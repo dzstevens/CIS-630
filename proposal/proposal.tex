@@ -1,0 +1,45 @@
+Today's World Wide Web is a goldmine of text-based information.
+Much work has been done to integrate this information into a structured
+\emph{knowledge base}, but this is no easy task.
+State-of-the-art information extraction systems such as NELL~\cite{carlson2010toward},
+which collates information pulled from the Web into an ontology,
+are lacking in the way they handle uncertainty.
+The result is a noisy ontology--a knowledge base laced with uncertain knowledge.
+
+Properly handling the uncertainty within these relational knowledge bases
+is a classic task for statistical relational learning.
+In particular, there have been efforts (\cite{lao2011random}) to clean up NELL's knowledge base
+using Markov logic.
+Techniques such as the Markov Chain Monte Carlo (MCMC) algorithm can help correct
+uncertainties within the knowledge base by jointly reasoning over the entire dataset.
+However, NELL's ontology is too large for a simple implementation of MCMC.
+While work has been done to manually partition how MCMC runs on the knowledge base,
+this is a time-consuming task and not a scalable solution.
+A better solution would involve managing the inference task in a distributed fashion,
+enabling an efficient and scalable solution.
+
+Our project involves leveraging a parallel, distributed belief propagation algorithm
+to clean up NELL's knowledge base.
+We propose to leverage GraphLab's Graphical Models toolkit~\cite{low2010graphlab} toward this end.
+Our solution will involve properly partitioning the dataset,
+running the distributed belief propagation algorithm,
+and evaluating the resulting ontology comparatively with previous work.
+Such work presents a much more scalable approach than existing practices.
+
+
+%Markov logic has been done
+%Problem space: we have a large, scalable system with questionable output/confidence
+%  [insert work that has been done]
+%      mcmc = sampling -> sequential
+%          had to break into pieces manually - can't run on such a large graph
+%            However -> [missing gap]
+%                speed, scalability, 
+%                  [our project]
+%                      -goals
+%                          -contributions
+%                              -work to do
+%                              1. what's been done?
+%                                -how parallel?  would parallelization improve?
+%                                  -
+%                                  2. understand GraphLab
+%                                  3. understand how to apply

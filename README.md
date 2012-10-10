@@ -1,2 +1,1 @@
-CIS-630
-=======
+Refining Automatically Generated Knowledge Bases in a Scalable, Distributed Fashion

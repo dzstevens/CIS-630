@@ -1,0 +1,104 @@
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{wrapfig}
+%\usepackage{floatflt} %don't think we ever use it, and it isn't included in current tex distributions
+%\usepackage{epsfig}
+\usepackage{color}
+\usepackage{url} %hyperref includes url functionality
+\usepackage{listings}
+\usepackage{pstricks}
+\usepackage{multirow}
+%\usepackage[toc,page]{appendix}  % to add appendices using "\begin{appendices} ...  \end{appendices}"
+				 % or using things like "\appendix, \appendixpage, \addappheadtotoc"
+
+\usepackage{balance} % add the command \balance if you want to balance the columns on the 
+                     % last page. 
+
+
+\usepackage{amsmath, amssymb}	% From American Mathematical Society, for theorems and proofs
+\ifdefined\proof
+\else
+\ifdefined\theoremstyle
+\else
+\usepackage{amsthm}
+			% See http://www.cs.hmc.edu/qref/latex/qref/#AMS
+			%TE: Gives errors when included (\proof already defined?)
+\fi
+\fi
+
+%\usepackage[ps2pdf,breaklinks,pdfpagemode=none]{hyperref}
+%\usepackage{breakurl} %allows links in hyperref to split lines
+\usepackage[12hr,nodate]{datetime}
+%\usepackage{psfrag} %allow text substitution in postscript:
+% enclose the \includegraphics command with curly braces and add a \psfrag command for 
+% each piece of text which you would like to replace in that figure, 
+% with the corresponding Latex text following it.
+%
+% {
+%   \psfrag{alpha}{$\alpha$}
+%   \psfrag{eqn1}{$\int_0^\infty\frac{x^2yz}{x^\alpha}{\rm d}x$}
+%   \includegraphics{figure.eps}
+% }
+%
+
+
+\newcommand{\oldstuff}[1]{}
+\newcommand{\optional}[1]{}
+\newcommand{\consider}[1]{}
+\newcommand{\moved}[1]{}
+\newcommand{\comments}[1]{}
+\newcommand{\comment}[1]{}
+\newcommand{\TODO}[1]{}
+
+\newcommand{\eg}{{e.g., }}
+\newcommand{\Eg}{{E.g., }}
+\newcommand{\ie}{{i.e., }}
+\newcommand{\Ie}{{I.e., }}
+\ifdefined\etal
+\else
+  \newcommand{\etal}{{et al. }} % et is a word, al. is an abbreviation (et alia)
+\fi
+
+\newcommand{\important}[1]{\emph{\textbf{#1}}}
+\newcommand{\term}[1]{{\textsf{\textbf{\footnotesize{#1}}}}}
+\newcommand{\leading}[1]{\emph{#1}}
+
+\ifdefined\theorem
+\else
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+%\newdef{definition}[theorem]{Definition}
+%\newdef{remark}[theorem]{Remark}
+\fi
+
+% \cramplist and \cramp are commands you can use within a list (bulleted, itemized, whatever), and 
+% bullets is an environment you can use in place of itemize.
+
+%%%
+%%%  Cramped lists, for occasionally squeezing a bit too much
+%%%%     onto a slide
+\newcommand{\cramplist}{
+        \setlength{\itemsep}{0in}
+        \setlength{\partopsep}{0in}
+        \setlength{\topsep}{0in}}
+\newcommand{\cramp}{\setlength{\parskip}{.5\parskip}}
+
+%
+%  Bulleted lists, almost flush with left margin
+%
+\newenvironment{bullets}%
+{\begin{list}{$\bullet$}{\setlength{\leftmargin}{1.5ex}%  originally 1 ex
+\setlength{\itemindent}{.5ex}}}% originally .5
+{\end{list}}
+
+%
+% moving figures and tables 
+%
+\optional{
+        \usepackage{figcaps}    % Move all figures and tables to the end of file
+        \printfigures           % Print these figures
+        % \figmarkon            % Leave a mark in text to show where to insert figures or tables
+}

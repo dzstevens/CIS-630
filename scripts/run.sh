@@ -21,7 +21,7 @@ echo "Processed edge data saved to 'edges.tsv'"
 echo "Error output saved to 'parse.out'"
 echo
 echo "Running through graphical models toolkit..."
-./graphlabapi/release/toolkits/graphical_models/lbp_structured_prediction --prior prior.tsv --graph edges.tsv --output posterior.tsv
+../graphlabapi/release/toolkits/graphical_models/lbp_structured_prediction --prior prior.tsv --graph edges.tsv --output posterior.tsv
 cat posterior.tsv_* > posterior.tsv
 rm posterior*_of_2*
 echo "Toolkit finished."

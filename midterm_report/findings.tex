@@ -1,3 +1,24 @@
 \section{Findings}
 %interesting findings?
 %obstacles? solutions/workarounds/attempts?
+During the first five weeks of the term, we uncovered some interesting issues with our project.
+First, we found some inconsistencies within our dataset.
+In addition to trivial errors such as edge weights without edge definitions--which we ignore--
+we found and addressed the following issues:
+\begin{enumerate}
+\item \emph{Duplicate vertices with different confidence values.} This is likely due to degrading confidence over time,
+and therefore we use the lowest (most recent) confidence value and will investigate next week.
+\item \emph{Hard constraints, representing manually verified facts.} We give these vertices a confidence value of 1,
+and note that we will have to address hard constraints in our inference algorithm.
+\item \emph{Conflicting beliefs $x$ and $\neg x$.} The vertex datasets contain a probability distribution of all possible values
+(in our case, true or false).  We simply combine the conflicting beliefs into a single entry, and give precedence
+to hard constraints as above.
+\item \emph{Existing edge data containing non-existent vertices.} This is caused by manually verified facts about
+vertices that do not exist in the knowledge base. We subsequently ignore them.
+\end{enumerate}
+
+Our results from the initial test look promising.
+Our corrected knowledge base shows considerable updates of confidence values,
+and we observe increases in confidence values on verifiably correct beliefs.
+We have also observed a few decreases in confidence values that are questionable,
+and will look into these cases in the beginning of next week.

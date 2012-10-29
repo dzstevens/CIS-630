@@ -7,4 +7,29 @@
   %\item \bf Week ~10~~~ \rm~Paper and presentations
   %\end{itemize}
 %What have we done so far?
+In this section, we cover the work we have done in the first half of the term.
+At this point in the project, we are on schedule with respect to our timeline.
+We began with focused literature review.
+We first reviewed machine learning inference algorithms including Markov logic networks
+and belief propagation, in order to understand the general procedure for cleaning
+up a noisy knowledge base.
+We used Shangpu's paper submission on refining NELL's~\cite{carlson2010toward} knowledge base with the Markov Chain Monte Carlo algorithm as reference,
+as well as web resources and conversations with Shangpu and Professor Daniel Lowd.
 
+In addition to literature review, we also began familiarizing ourselves with GraphLab~\cite{low2010graphlab}.
+We downloaded the GraphLab repository to our local machines, and compiled and built the framework.
+We then investigated GraphLab's graphical models toolkit, 
+which provides the parallel loopy belief propagation algorithm for refining structured noisy data such as NELL's knowledge base.
+We examined the required source file formats and analyzed the toolkit's source code for the inference algorithm,
+and finally ran a successful test on a sample dataset.
+
+After working through the literature review and the GraphLab framework,
+we began our design and implementation phase on schedule in week five.
+We obtained our dataset of NELL's extracted knowledge base,
+which was then preprocessed to ground all first-order logic clauses
+into independent variables.
+Next, we built a Python script to parse the corrected dataset
+and convert it into the vertex and edge datasets (beliefs and relations between beliefs, respectively) necessary for the graphical models toolkit.
+Finally, we ran a successful initial test on a single machine, and observed the results.
+
+In the following section, we detail the issues and findings we encountered during the first half of our work.

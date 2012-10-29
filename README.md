@@ -1,1 +1,1 @@
-Refining Automatically Generated Knowledge Bases in a Scalable, Distributed Fashion
+Refining NELL’s Internet-Extracted Knowledge Base in a Scalable, Distributed Fashion

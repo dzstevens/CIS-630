@@ -37,4 +37,10 @@ python diff.py
 echo "Comparison finished."
 echo "Diff saved to 'diff.out'"
 echo
+if [ $# -eq 1 ] && [ $1 == 'clean' ]; then
+	echo "Removing generated .tsv's"
+	rm *.tsv
+	echo
+fi
+rm *.pkl
 echo "Done!"

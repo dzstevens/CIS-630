@@ -15,17 +15,17 @@ echo "Parsing data from 'groundings.in'"
 python parse.py > parse.out
 echo "Parsing finished."
 echo "Unprocessed prior data saved to 'prior_unprocessed.tsv'"
-echo "Processed prior data saved to 'prior.tsv'"
+echo "Processed prior data saved to 'prior_processed.tsv'"
 echo "Unprocessed edge data saved to 'edges_unprocessed.tsv'"
-echo "Processed edge data saved to 'edges.tsv'"
+echo "Processed edge data saved to 'edges_processed.tsv'"
 echo "Error output saved to 'parse.out'"
 echo
 echo "Running through graphical models toolkit..."
-../graphlabapi/release/toolkits/graphical_models/lbp_structured_prediction --prior prior.tsv --graph edges.tsv --output posterior.tsv
-cat posterior.tsv_* > posterior.tsv
+../graphlabapi/release/toolkits/graphical_models/lbp_structured_prediction --prior prior_processed.tsv --graph edges_processed.tsv --output posterior.tsv
+cat posterior.tsv_* > posterior_unprocessed.tsv
 rm posterior*_of_2*
 echo "Toolkit finished."
-echo "Unprocessed posterior data saved to 'posterior.tsv'"
+echo "Unprocessed posterior data saved to 'posterior_unprocessed.tsv'"
 echo
 echo "Processing posterior data..."
 python process.py

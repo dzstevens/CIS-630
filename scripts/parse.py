@@ -13,9 +13,8 @@ def sigmoid(x):
 
 
 def main():
-    prior =  defaultdict(lambda: 1.0)
+    prior =  Counter()
     edges =  dict()
-    ignores = set()
     r = re.compile(r'(!?\w+\([^()]+\))|(\d+.?\d*)')
     print('Parsing Errors:\n')
     with open('groundings.in') as f:
@@ -50,6 +49,7 @@ def main():
     with open('prior_processed.tsv', 'w') as f:
         i = 0
         for k in keys:
+            v = prior[k]
             f.write('{}\t{}\t{}\n'.format(i, v, round(1.0 - v, 3)))
             indices[k] = i
             i+=1
@@ -71,8 +71,7 @@ def main():
                 for key in set(e.args):
                     missing_nodes[key] += 1
                 to_remove.append(k)
-            except:
-                raise
+
         for k in to_remove:
             del edges[k]
 

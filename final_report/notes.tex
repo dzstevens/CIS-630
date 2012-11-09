@@ -1,0 +1,91 @@
+\section{Project Idea}
+\subsection{Scope/Topic} 
+We look into [file hosting services (Dropbox) | revision systems (Github)], which is a popular system for [ collaborative work, remote file storage, FILL IN ].
+\subsection{Problem} 
+These services/systems work well with centralized storage, but keeping all data at a central server or group of servers:
+\begin{enumerate}
+\item Increases risk of privacy issues
+\item Central point of failure
+\end{enumerate}
+[FILL IN more from SOUP and elsewhere]
+\subsection{Solution}
+Distribute data storage for these [file hosting services | revision systems] across all users, by storing replicas on individual user machines.
+
+-Punt on security: SHA and PKI and everything else those schizoid nerds have come up with
+\subsection{Questions}
+(Given that nodes do not know global state----and are dealing with a dynamic distributed system--nodes may come and go, nodes may crash, multiple users may work on the same data)
+\begin{enumerate}
+\item Timing/Synchronicity:
+
+-How do we handle distributed updates of replicas, or rather how do we synchronize updates?
+
+-How do we synchronize updates
+
+\item Availability vs Network Overhead:
+
+-How do we handle node failures?  How do we update data when a node returns?
+
+-How do we ensure that a node gets updated/current data?
+
+\item Group membership:
+
+-How do we keep track of which nodes have replicas?
+\end{enumerate}
+
+\section{Related Work}
+(synchronicity/replication strategies--conservative or optimistic--in DS, issues with DropBox, open source revision|file hosting)
+(FILL IN)
+
+\section{Design}
+Readers and Writers
+Messages:
+-Write (create, push update)
+-Read (pull update)
+-Join (group, project|revision ?)
+Version numbers?
+Synch strategy:
+-conservative or optimistic?
+\section{Evaluation}
+Compare to [ DropBox | Github | other open source system ]
+\begin{enumerate}
+\item Testing Platform:
+lossy network
+\item Parameters:
+\begin{itemize}
+\item Types of users:
+
+-lenient (just want a more current copy of the data)
+
+-strict (want most up-to-date copy of the data)
+\item Environment:
+
+-unstable (significant node dynamics)
+
+-stable
+\end{itemize}
+\item Metrics:
+\begin{itemize}
+\item Available:
+
+-network overhead?
+
+-failed pull attempts?
+\item Reliable:
+
+-number of successful up-to-date pulls?
+\end{itemize}
+\item Scalability:
+\end{enumerate}
+\section{Timeline}
+\begin{enumerate}
+\item This weekend: complete literature review (synchronicity/replication strategies in DS, issues with DropBox, open source revision|file hosting)
+
+-Each of us: research 1 of each
+
+-Fill in 1 paragraph summary of any literature, add any ideas to notes
+
+\item Week 8: Design
+\item Week 9 (Thanksgiving): Testing/Evaluation
+\item Week 10: Presentation, Write paper
+\item Final Exam Week: Write paper, turn in paper, have multiple celebratory beers
+\end{enumerate}

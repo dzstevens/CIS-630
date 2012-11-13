@@ -12,6 +12,20 @@ These services/systems work well with centralized storage, but keeping all data 
 Distribute data storage for these [file hosting services | revision systems] across all users, by storing replicas on individual user machines.
 
 -Punt on security: SHA and PKI and everything else those schizoid nerds have come up with
+
+To distribute data storage in such a manner requires a distributed and scalable replication strategy.
+We investigate three common replication strategies:
+\begin{itemize}
+\item \textbf{Read Once, Write All (ROWA):} ROWA systems allow read operations to merely fetch the requested data from the most convenient location, while write operations are required to update all replicas. 
+Read operations are therefore guaranteed to be correct, but if replica-storing node fails during a write operation, then that write operation will fail. (PE: necessarily true?)
+\item \textbf{Read Once, Write All-Available (ROWA-A):} ROWA-A read operations are the same as in ROWA, but write operations only affect available replicas. 
+This allows writes to subsets of nodes and better handles changes in node availability, but could compromise the correctness of subsequent read requests.
+\item \textbf{Quorum Based (QB):} QB systems allow write operations to subsets of nodes without compromising correctness and consistency. An acting node must collect votes from other nodes until the sum of those votes exceeds predefined read or write quorums.  Read and write quorums are defined such that there is always a non-null intersection between any two quorum sets.
+\end{itemize}
+
+\subsection{Significance}
+To the best of our knowledge, these strategies have not been comparatively evaluated with respect to distributed [file hosting | revision ] systems.
+
 \subsection{Questions}
 (Given that nodes do not know global state----and are dealing with a dynamic distributed system--nodes may come and go, nodes may crash, multiple users may work on the same data)
 \begin{enumerate}
@@ -37,32 +51,31 @@ Distribute data storage for these [file hosting services | revision systems] acr
 (FILL IN)
 
 \section{Design}
-Readers and Writers
-Messages:
+\subsection{Client}
+Clients are thin--they have local data storage and the broker program, which handles their read and write requests.
+We implement clients as individual processes.
+\subsection{Broker}
+The broker handles the write requests of the clients.
+\subsection{Messages}
 -Write (create, push update)
 -Read (pull update)
 -Join (group, project|revision ?)
 Version numbers?
-Synch strategy:
--conservative or optimistic?
+\subsection{Replication Strategies}
+SEE ABOVE
+\subsection{NOTES}
+Client joins network, and sets up a broker. The client then immediately does a pull (to get all updated repo info) and also pushes any necessary new local data to repo.
+Once update process is successful, client then listens to the broker and listens to its local repository.
+
 \section{Evaluation}
-Compare to [ DropBox | Github | other open source system ]
 \begin{enumerate}
 \item Testing Platform:
-lossy network
 \item Parameters:
-\begin{itemize}
-\item Types of users:
+Centralized broker vs decentralized broker.
 
--lenient (just want a more current copy of the data)
+Different levels of node churn.
 
--strict (want most up-to-date copy of the data)
-\item Environment:
-
--unstable (significant node dynamics)
-
--stable
-\end{itemize}
+Different replication strategies.
 \item Metrics:
 \begin{itemize}
 \item Available:
@@ -85,6 +98,13 @@ lossy network
 -Fill in 1 paragraph summary of any literature, add any ideas to notes
 
 \item Week 8: Design
+  \begin{enumerate}
+    \item Build client
+    \item Implement storage
+    \item Create network definition (graph, edges are cost)
+    \item Implement central broker (define policies)
+    \item Implement Distributed broker
+  \end{enumerate}
 \item Week 9 (Thanksgiving): Testing/Evaluation
 \item Week 10: Presentation, Write paper
 \item Final Exam Week: Write paper, turn in paper, have multiple celebratory beers

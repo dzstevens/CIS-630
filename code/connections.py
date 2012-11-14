@@ -2,6 +2,7 @@ from threading import Thread
 import socket
 from sendfile import sendfile
 from collections import namedtuple
+import os
 
 CHUNK = 1024
 DELIM = b'\n'
@@ -13,11 +14,11 @@ class Conn(Thread):
         self.buff = bytes()
 
     def send_meta(self, msg): 
-        self.sock.sendall(msg)
+        self.sock.sendall(msg+DELIM)
         
     def send_header(self, name, size):
-        self.sock.sendall(name.encode()+DELIM)
-        self.sock.sendall(str(size).encode()+DELIM)
+        self.sock.sendall(name.encode())
+        self.sock.sendall(str(size).encode())
         
     def send_file(self, name):
         size = os.path.getsize(file)
@@ -38,7 +39,7 @@ class Conn(Thread):
                 self.sock.close()
                 raise socket.error()
             self.buff+=msg
-            end = self.buff.find(b'\n')
+            end = self.buff.find(DELIM)
         meta = self.buff[:end].decode()
         self.buff = self.buff[end+1:]
         return meta
@@ -52,11 +53,11 @@ class Conn(Thread):
     def recv_file(self):
         header = self.recv_header()
         while len(self.buff) < header.size:
-                msg = self.sock.recv(CHUNK)
-                if len(msg) == 0:
-                    self.sock.close()
-                    raise socket.error()
-                self.buff += msg
+            msg = self.sock.recv(CHUNK)
+            if len(msg) == 0:
+                self.sock.close()
+                raise socket.error()
+            self.buff += msg
         with open(header.name, 'wb') as f:
             f.write(self.buff[:header.size])
             self.buff = self.buff[header.size:]

@@ -2,12 +2,13 @@
 #needs to have an init => promptly pull and push
 
 import os
-from WatchDirectory import WatchDirectoryThread
+from directorymonitor import DirectoryMonitorThread
 import socket
 from threading import Thread, Lock, Event
 
 class ClientToBrokerThread(Thread):
   def __init__(self,broker,client_id,sock=None):
+    Thread.__init__(self)
     if sock is None:
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     else:
@@ -44,6 +45,7 @@ class ClientToBrokerThread(Thread):
 
 class BrokerToClientThread(Thread):
   def __init__(self,local_directory,sock=None):
+    Thread.__init__(self)
     self.local_directory = local_directory
     if sock is None:
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -73,12 +75,14 @@ class Client:
 
     self.local_directory = local_dir
     self.client_to_broker_thread = ClientToBrokerThread(broker,self.client_id)
-    self.client_to_broker_thread.setDaemon()
+    self.client_to_broker_thread.setDaemon(True)
     self.client_to_broker_thread.run()
 
-    self.watch_directory_thread = WatchDirectoryThread(self.local_directory,self.client_to_broker_thread)
-    self.watch_directory_thread.run()
+    self.directory_monitor = DirectoryMonitorThread(self.local_directory,self.client_to_broker_thread)
+    self.directory_monitor.setDaemon(True)
+    self.directory_monitor.run()
     self.broker_to_client_thread = BrokerToClientThread(local_directory)
+    self.broker_to_client_thread.setDaemon(True)
     self.broker_to_client_thread.run()
 
 

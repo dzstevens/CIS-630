@@ -55,7 +55,11 @@ To the best of our knowledge, these strategies have not been comparatively evalu
 Clients are thin--they have local data storage and the broker program, which handles their read and write requests.
 We implement clients as individual processes.
 \subsection{Broker}
-The broker handles the write requests of the clients.
+The purpose of the broker in our scheme is to handle read and write requests of the individual clients. 
+The broker keeps record of all clients participating in the system.
+When it receives a read request, it pulls in the most current data from the entire system that it can find
+and delivers it to the requesting client.
+During a write request, the broker pushes the update to all the clients it can reach.
 \subsection{Messages}
 -Write (create, push update)
 -Read (pull update)
@@ -63,6 +67,8 @@ The broker handles the write requests of the clients.
 Version numbers?
 \subsection{Replication Strategies}
 SEE ABOVE
+\subsection{Network}
+Clients and brokers use TCP stream sockets to communicate with one another.
 \subsection{NOTES}
 Client joins network, and sets up a broker. The client then immediately does a pull (to get all updated repo info) and also pushes any necessary new local data to repo.
 Once update process is successful, client then listens to the broker and listens to its local repository.

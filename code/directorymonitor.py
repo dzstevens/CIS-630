@@ -1,32 +1,59 @@
-import os
-from threading import Thread, Lock, Event
-class DirectoryMonitorThread(Thread):
-  def __init__(self,monitored_directory,client_to_broker_thread):
-    Thread.__init__(self)
-    self.monitored_directory = monitored_directory
-    self.client_to_broker_thread = client_to_broker_thread # RENAME?
+from os import path
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+from watchdog.observers.api import EventDispatcher
+import constants
 
-  def run(self):
-    initiated = False
-    while not initiated:
-      try:
-        current_files = dict([(file,os.stat(self.monitored_directory + file)) for file in os.listdir(self.monitored_directory)])
-        initiated = True
-      except os.error:
-        continue
-    while True: #continually pull in new view of directory and handle changes from previous view
-      try:
-        new_files = dict([(file,os.stat(self.monitored_directory + file)) for file in os.listdir(self.monitored_directory)])
-      except os.error:
-        continue #catch funkiness with os.stat
-      deleted_files = set(current_files) - set(new_files)
-      for file in deleted_files:
-        self.client_to_broker_thread.write_deletion(file)
-      for file,last_modified in new_files.items():
-        try:
-          if last_modified > current_files[file]:
-            self.client_to_broker_thread.write_modification(file) #file changed
-        except KeyError:
-          self.client_to_broker_thread.write_addition(file)
-      current_files = new_files
 
+class LocalFilesObserver(Observer):
+    def __init__(self, dirname):
+        Observer.__init__(self)
+        event_handler = LocalFilesEventHandler(dirname)
+        self.schedule(event_handler, path=filename, recursive=True)
+
+
+class LocalFilesEventHandler(FileSystemEventHandler):
+    def __init__(self, dirname):
+        self.__dirname = dirname
+
+    def on_created(self, event):
+        self.handle_change(event.src_path, (constants.ADD_FILE_FLAG |
+                                            event.is_directory))
+
+    def on_deleted(self, event):
+        self.handle_change(event.src_path, (constants.DELETE_FILE_FLAG |
+                                            event.is_directory))
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            self.handle_change(event.src_path, constants.ADD_FILE_FLAG)
+
+    def on_moved(self, event):
+        self.handle_change(event.src_path, (constants.MOVE_FILE_FLAG |
+                                            event.is_directory,
+                                            event.dest_path))
+
+    def handle_change(self, filename, flag, destination=None):
+        filename = path.relpath(filename, self.__dirname)
+        if destination is None:
+            print filename, flag
+        else:
+            destination = path.relpath(destination, self.__dirname)
+            print filename, flag, destination
+
+if __name__ == "__main__":
+    import sys
+    import time
+    if len(sys.argv) >= 2:
+        dirname = sys.argv[1]
+    else:
+        dirname = '.'
+    observer = LocalFilesObserver(dirname)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+    print

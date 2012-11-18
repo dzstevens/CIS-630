@@ -3,7 +3,6 @@ import asyncore
 import os
 import shutil
 import socket
-from fcntl import lockf, LOCK_EX, LOCK_NB
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -20,7 +19,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
     def handle_change(self, filename, change):
         filename = os.path.relpath(filename, self.dirname)
         if filename not in self.changes:
-            self.channel.push(filename + constants.DELIMITER + str(constants.REQUEST) + constants.TERMINATOR)
+            self.channel.push(filename + constants.DELIMITER +
+                              str(constants.REQUEST) + constants.TERMINATOR)
         self.changes[filename] = change
 
     def on_created(self, event):
@@ -62,7 +62,6 @@ class BrokerChannel(asynchat.async_chat):
         msg = token.split(constants.DELIMITER)
         msg[1] = int(msg[1])
         filename, flag = msg[:2]
-        flag = int(flag)
         if flag == constants.REQUEST:
             self.handle_push_change(filename)
         else:
@@ -91,6 +90,15 @@ class BrokerChannel(asynchat.async_chat):
         else:
             self.push(constants.TERMINATOR)
 
+    def handle_receive_change(self, msg):
+        flag = msg[1]
+        if flag & constants.ADD_FILE:
+            self.handle_receive_add(msg)
+        elif flag & constants.DELETE_FILE:
+            self.handle_receive_delete(msg)
+        elif flag & constants.MOVE_FILE:
+            self.handle_receive_move(msg)
+
     def handle_receive_add(self, msg):
         filename, flag = msg[:2]
         if flag & constants.FOLDER:
@@ -98,15 +106,6 @@ class BrokerChannel(asynchat.async_chat):
         else:
             # RAW MODE, ACTIVATE!!!
             pass
-
-    def handle_receive_change(self, msg):
-        filename, flag = msg[:2]
-        if flag & constants.ADD_FILE:
-            self.handle_receive_add(msg)
-        elif flag & constants.DELETE_FILE:
-            self.handle_receive_delete(msg)
-        elif flag & constants.MOVE_FILE:
-            self.handle_receive_move(msg)
 
     def handle_receive_delete(self, msg):
         filename, flag = msg[:2]
@@ -116,7 +115,7 @@ class BrokerChannel(asynchat.async_chat):
             os.remove(filename)
 
     def handle_receive_move(self, msg):
-        filename, flag = msg[:2]
+        filename = msg[0]
         destination = msg[2]
         shutil.move(filename, destination)
 
@@ -127,32 +126,27 @@ class FileProducer:
 
     def more(self):
         if self.file:
-            data = self.file.read(constants.CHUNK_SIZE)
-            if data:
-                return data
-            self.file.close()
-            self.file = None
+            try:
+                data = self.file.read(constants.CHUNK_SIZE)
+                if data:
+                    return data
+                self.file.close()
+                self.file = None
+            except:
+                self.file.close()
         return ""
 
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) >= 2:
-        dirname = sys.argv[1]
-    else:
-        dirname = '.'
-    if len(sys.argv) >= 3:
-        host = sys.argv[2]
-    else:
-        host = constants.HOST
-    if len(sys.argv) >= 4:
-        port = sys.argv[3]
-    else:
-        port = constants.PORT
+
+    dirname = sys.argv[1] if len(sys.argv) >= 2 else '.'
+    host = sys.argv[2] if len(sys.argv) >= 3 else constants.HOST
+    port =  int(sys.argv[3]) if len(sys.argv) >= 4 else constants.PORT
 
     observer = Observer()
     event_handler = LocalFilesEventHandler(dirname)
-    channel = BrokerChannel(constants.HOST, constants.PORT)
+    channel = BrokerChannel(host, port)
 
     event_handler.channel = channel
     channel.event_handler = event_handler

@@ -32,7 +32,7 @@ class MockBrokerSend(asyncore.file_dispatcher):
         self.b = b
 
     def handle_read(self):
-        self.buffer = self.buffer + self.recv(1024)
+        self.buffer += self.recv(1024)
         if self.buffer.find(constants.DELIMITER):
             data, self.buffer = self.buffer.split(constants.DELIMITER, 1)
             self.b.channel.push(constants.DELIMITER.join(data.split('\\n')) + constants.TERMINATOR)

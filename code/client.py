@@ -40,7 +40,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         self.handle_change(event.src_path, (constants.DELETE_FILE |
                                             event.is_directory,))
         self.handle_change(event.dest_path, (constants.ADD_FILE |
-                                            event.is_directory,))
+                                             event.is_directory,))
 
     def take_change(self, filename):
         change = self.changes[filename]
@@ -49,8 +49,10 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 
 
 class BrokerChannel(asynchat.async_chat):
-    def __init__(self, host, port):
+    def __init__(self, dirname, host, port):
         asynchat.async_chat.__init__(self)
+        self.dirname = dirname
+        self.process_data = self.process_message
         self.received_data = []
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((host, port))
@@ -60,6 +62,9 @@ class BrokerChannel(asynchat.async_chat):
         self.received_data.append(data)
 
     def found_terminator(self):
+        self.process_data()
+
+    def process_message(self):
         token = self.get_token()
         msg = token.split(constants.DELIMITER)
         msg[1] = int(msg[1])
@@ -68,6 +73,17 @@ class BrokerChannel(asynchat.async_chat):
             self.handle_push_change(filename)
         else:
             self.handle_receive_change(msg)
+
+    def process_file(self):
+        token = self.get_token()
+        self.file.write(token)
+        self.remaining_size -= len(token)
+        if self.remaining_size > 0:
+            self.set_terminator(min(self.remaining_size, constants.CHUNK_SIZE))
+        else:
+            self.file.close()
+            self.set_terminator(constants.TERMINATOR)
+            self.process_data = self.process_message
 
     def get_token(self):
         token = ''.join(self.received_data)
@@ -85,8 +101,9 @@ class BrokerChannel(asynchat.async_chat):
         flag = change[0]
         self.push(filename + constants.DELIMITER + str(flag))
         if flag == constants.ADD_FILE:
-            self.push(constants.DELIMITER + str(os.stat(filename).st_size) + constants.TERMINATOR)
-            self.push_with_producer(FileProducer(filename))
+            self.push(constants.DELIMITER + str(os.stat(self.dirname + filename).st_size)
+                      + constants.TERMINATOR)
+            self.push_with_producer(FileProducer(self.dirname + filename))
         else:
             self.push(constants.TERMINATOR)
 
@@ -101,10 +118,13 @@ class BrokerChannel(asynchat.async_chat):
         filename, flag = msg[:2]
         try:
             if flag & constants.FOLDER:
-                os.mkdir(filename)
+                os.mkdir(self.dirname + filename)
             else:
-                # RAW MODE, ACTIVATE!!!
-                pass
+                self.file = open(self.dirname + filename)
+                self.remaining_size = int(msg[2])
+                self.process_data = self.process_file
+                self.set_terminator(min(self.remaining_size,
+                                        constants.CHUNK_SIZE))
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
@@ -113,9 +133,9 @@ class BrokerChannel(asynchat.async_chat):
         filename, flag = msg[:2]
         try:
             if flag & constants.FOLDER:
-                shutil.rmtree(filename)
+                shutil.rmtree(self.dirname + filename)
             else:
-                os.remove(filename)
+                os.remove(self.dirname + filename)
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
@@ -143,11 +163,14 @@ if __name__ == "__main__":
 
     dirname = sys.argv[1] if len(sys.argv) >= 2 else '.'
     host = sys.argv[2] if len(sys.argv) >= 3 else constants.HOST
-    port =  int(sys.argv[3]) if len(sys.argv) >= 4 else constants.PORT
+    port = int(sys.argv[3]) if len(sys.argv) >= 4 else constants.PORT
+
+    if not dirname.endswith('/'):
+        dirname += '/'
 
     observer = Observer()
     event_handler = LocalFilesEventHandler(dirname)
-    channel = BrokerChannel(host, port)
+    channel = BrokerChannel(dirname, host, port)
 
     event_handler.channel = channel
     channel.event_handler = event_handler

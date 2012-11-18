@@ -218,10 +218,25 @@ class FileProducer:
 
 
 if __name__ == "__main__":
+    import getopt
     import sys
-    dirname = sys.argv[1] if len(sys.argv) > 1 else '.'
-    host = sys.argv[2] if len(sys.argv) > 2 else constants.HOST
-    port = int(sys.argv[3]) if len(sys.argv) > 3 else constants.PORT
+    dirname = './'
+    host = constants.HOST
+    port = constants.PORT
+    try:
+        opts, args = getopt.getopt(sys.argv, 'd:h:p:',
+                                   ['dir=', 'host=', 'port='])
+    except getopt.GetoptError:
+        logging.warning("The system arguments are incorrect")
+        logging.debug("Arguments : " + repr(opts))
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ('-d', '--dir'):
+            dirname = arg
+        elif opt in ('-h', '--host'):
+            host = arg
+        elif opt in ('-p', '--port'):
+            port = int(arg)
 
     if not dirname.endswith('/'):
         dirname += '/'

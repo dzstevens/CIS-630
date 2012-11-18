@@ -31,8 +31,8 @@ class MockBrokerReceive(asyncore.dispatcher):
             logging.warning("An accept returned nothing")
         else:
             sock, addr = pair
-            logging.info("Connected to a socket at " + repr(addr))
             self.channels.append(MockChannel(sock, addr))
+            logging.info("Connected to " + repr(addr))
 
 
 class MockBrokerSend(asyncore.file_dispatcher):
@@ -47,8 +47,8 @@ class MockBrokerSend(asyncore.file_dispatcher):
         self.buffer += self.recv(1024)
         if self.buffer.find(constants.DELIMITER):
             data, self.buffer = self.buffer.split(constants.DELIMITER, 1)
-            data = constants.DELIMITER.join(data.split('\\n')) +
-            constants.TERMINATOR
+            data = (constants.DELIMITER.join(data.split('\\n')) +
+                    constants.TERMINATOR)
             for channel in self.b.channels:
                 logging.info("Pushing to " + repr(channel.addr))
                 logging.debug("Data : " + repr(data))
@@ -74,11 +74,27 @@ class MockChannel(asynchat.async_chat):
     def found_terminator(self):
         pass
 
+    def handle_close(self):
+        logging.warning("Disconnected from " + repr(self.addr))
+        self.close()
 
-def main():
+
+if __name__ == '__main__':
+    import getopt
     import sys
-    host = sys.argv[1] if len(sys.argv) > 1 else constants.HOST
-    port = int(sys.argv[2]) if len(sys.argv) > 2 else constants.PORT
+    host = constants.HOST
+    port = constants.PORT
+    try:
+        opts, args = getopt.getopt(sys.argv, 'h:p:', ['host=', 'port='])
+    except getopt.GetoptError:
+        logging.warning("The system arguments are incorrect")
+        logging.debug("Arguments : " + repr(opts))
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ('-h', '--host'):
+            host = arg
+        elif opt in ('-p', '--port'):
+            port = int(arg)
 
     try:
         b = MockBrokerReceive(host, port)
@@ -86,6 +102,3 @@ def main():
         asyncore.loop()
     except KeyboardInterrupt:
         sys.exit(0)
-
-if __name__ == '__main__':
-    main()

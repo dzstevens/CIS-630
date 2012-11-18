@@ -108,8 +108,18 @@ class BrokerFactory(Factory):
 
 
 if __name__ == "__main__":
+    import getopt
     import sys
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else constants.PORT
+    port = constants.PORT
+    try:
+        opts, args = getopt.getopt(sys.argv, 'p:', ['port='])
+    except getopt.GetoptError:
+        logging.warning("The system arguments are incorrect")
+        logging.debug("Arguments : " + repr(opts))
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ('-p', '--port'):
+            port = int(arg)
 
     reactor.listenTCP(port, BrokerFactory())
     reactor.run()

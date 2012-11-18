@@ -1,3 +1,4 @@
+import logging
 import socket
 import sys
 
@@ -6,10 +7,14 @@ import asyncore
 
 import constants
 
+logging.basicConfig(format='%(asctime)s - client.py - %(levelname)7s : '
+                    '%(message)s', level=logging.INFO)
+
 
 class MockBrokerReceive(asyncore.dispatcher):
     def __init__(self, host, port):
         asyncore.dispatcher.__init__(self)
+        self.channels = []
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.set_reuse_addr()
         self.bind((host, port))
@@ -18,11 +23,11 @@ class MockBrokerReceive(asyncore.dispatcher):
     def handle_accept(self):
         pair = self.accept()
         if pair is None:
-            pass
+            logging.warning("An accept returned nothing")
         else:
             sock, addr = pair
-            p("New Connection\n")
-            self.channel = MockChannel(sock)
+            logging.info("Connected to a socket at " + repr(addr))
+            self.channels.append(MockChannel(sock, addr))
 
 
 class MockBrokerSend(asyncore.file_dispatcher):
@@ -35,13 +40,18 @@ class MockBrokerSend(asyncore.file_dispatcher):
         self.buffer += self.recv(1024)
         if self.buffer.find(constants.DELIMITER):
             data, self.buffer = self.buffer.split(constants.DELIMITER, 1)
-            self.b.channel.push(constants.DELIMITER.join(data.split('\\n')) +
-                                constants.TERMINATOR)
+            data = constants.DELIMITER.join(data.split('\\n')) +
+            constants.TERMINATOR
+            for channel in self.b.channels:
+                logging.info("Pushing to " + repr(channel.addr))
+                logging.debug("Data : " + repr(data))
+                channel.push(data)
 
 
 class MockChannel(asynchat.async_chat):
-    def __init__(self, sock):
+    def __init__(self, sock, addr):
         asynchat.async_chat.__init__(self, sock)
+        self.addr = addr
         self.buffer = ''
         self.set_terminator(1)
 
@@ -49,15 +59,11 @@ class MockChannel(asynchat.async_chat):
         self.buffer += data.replace('\n', '\\n')
         if not self.buffer.endswith('\r'):
             self.buffer = self.buffer.replace('\r\\n', '\r\n')
-            p(self.buffer)
+            sys.stdout.write(self.buffer)
             self.buffer = ''
 
     def found_terminator(self):
         pass
-
-
-def p(msg):
-    sys.stdout.write(msg)
 
 
 def main():

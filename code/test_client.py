@@ -21,7 +21,7 @@ class MockBrokerReceive(asyncore.dispatcher):
             pass
         else:
             sock, addr = pair
-            p("Connected!\n")
+            p("New Connection\n")
             self.channel = MockChannel(sock)
 
 
@@ -35,16 +35,22 @@ class MockBrokerSend(asyncore.file_dispatcher):
         self.buffer += self.recv(1024)
         if self.buffer.find(constants.DELIMITER):
             data, self.buffer = self.buffer.split(constants.DELIMITER, 1)
-            self.b.channel.push(constants.DELIMITER.join(data.split('\\n')) + constants.TERMINATOR)
+            self.b.channel.push(constants.DELIMITER.join(data.split('\\n')) +
+                                constants.TERMINATOR)
 
 
 class MockChannel(asynchat.async_chat):
     def __init__(self, sock):
         asynchat.async_chat.__init__(self, sock)
-        self.set_terminator('')
+        self.buffer = ''
+        self.set_terminator(1)
 
     def collect_incoming_data(self, data):
-        p(constants.TERMINATOR.join('\\n'.join(data.split(constants.DELIMITER)).split('\r\\n')))
+        self.buffer += data.replace('\n', '\\n')
+        if not self.buffer.endswith('\r'):
+            self.buffer = self.buffer.replace('\r\\n', '\r\n')
+            p(self.buffer)
+            self.buffer = ''
 
     def found_terminator(self):
         pass

@@ -4,54 +4,73 @@ Created on Nov 17, 2012
 @author: David Stevens
 '''
 
+import logging
+import sys
 from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
-import sys
 import constants
+
+logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
 
 
 class Connection(LineReceiver):
-
     def __init__(self, users):
         self.users = users
 
     def connectionMade(self):
         self.users.add(self)
+        logging.info("Added self to users")
+        logging.debug("Users : " + repr(self.users))
         self.addr = self.transport.getHost().host
         self.peer = self.transport.getPeer().host
-        print('Connected to {}\n'.format(self.peer))
-    
+        logging.info("Connected to " + repr(self.peer))
+
     def connectionLost(self, reason):
+        logging.warning("Disconnected from " + repr(self.peer))
         if self in self.users:
             self.users.remove(self)
-            print('Disconnected from {}\n'.format(self.peer))
+            logging.info("Removed self from users")
+            logging.debug("Users : " + repr(self.users))
 
     def lineReceived(self, line):
-        print('Received: {} from {}\n'.format(repr(line), self.peer))
+        logging.info("Received Line from " + repr(self.peer))
+        logging.debug("Data : " + repr(line))
         msg = line.strip().split(constants.DELIMITER)
-        self.name, self.flag = msg[0], int(msg[1])
+        msg[1] = int(msg[1])
+        self.name, self.flag = msg[:2]
+        logging.info("Recieved Message with flag " +
+                     constants.DIRECTORY_FLAG_TO_NAME[self.flag])
+        logging.debug("Data : " + repr(msg))
         if self.flag == constants.ADD_FILE:
+            logging.info("Switching to raw mode")
             self.to_receive = int(msg[2])
             self.sent = 0
             self.setRawMode()
-            print('Recieving {} from {} and sending to peers\n'.format(self.name, self.addr, self.peer))
         # figure some stuff out here
         if self.flag == constants.REQUEST:
-            print('Sending {} to {}\n'.format(line, self.peer))
             self.sendLine(line)
         else:
             for user in self.users - set([self]):
-                print('Sending {} to {}\n'.format(repr(line), user.transport.getHost().host))
                 user.sendLine(line)
+
     def rawDataReceived(self, data):
         for user in self.users - set([self]):
+            logging.info("Sending chunk of size " +
+                         min(len(data), self.to_receive) + " to " +
+                         repr(user.peer))
+            logging.debug("Chunk : " + repr(data[:self.to_receive]))
             user.transport.write(data[:self.to_receive])
         if len(data) >= self.to_receive:
+            logging.info("Switching to line mode")
             self.setLineMode(extra=data[self.to_receive:])
-            print("File sent!")
         else:
             self.to_receive -= len(data)
+
+    def sendLine(self, line):
+        logging.info("Sending Line to " + repr(self.peer))
+        logging.debug("Line : " + repr(line))
+        LineReceiver.sendLine(self, line)
 
 #     def _handle_GET_FILENAME(self, name):
 #         self.state = 'GET_FILENAME':

@@ -1,14 +1,11 @@
 import logging
 import socket
 import sys
-
 import asynchat
 import asyncore
-
 import constants
 
-logging.basicConfig(format='%(asctime)s - client.py - %(levelname)7s : '
-                    '%(message)s', level=logging.INFO)
+logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
 
 
 class MockBrokerReceive(asyncore.dispatcher):

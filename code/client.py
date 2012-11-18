@@ -5,14 +5,11 @@ import logging
 import os
 import shutil
 import socket
-
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-
 import constants
 
-logging.basicConfig(format='%(asctime)s - client.py - %(levelname)7s : '
-                    '%(message)s', level=logging.INFO)
+logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
 
 
 class LocalFilesEventHandler(FileSystemEventHandler):
@@ -65,17 +62,17 @@ class BrokerChannel(asynchat.async_chat):
         self.set_terminator(constants.TERMINATOR)
 
     def push(self, data):
-        logging.info("Pushed")
+        logging.info("Pushed Data")
         logging.debug("Data : " + repr(data))
         asynchat.async_chat.push(self, data)
 
     def push_with_producer(self, producer):
-        logging.info("Pushed with a producer ")
+        logging.info("Pushed Producer ")
         logging.debug("Data : " + repr(producer))
         asynchat.async_chat.push_with_producer(self, producer)
 
     def collect_incoming_data(self, data):
-        logging.info("Received")
+        logging.info("Received Data")
         logging.debug("Data : " + repr(data))
         self.received_data.append(data)
 
@@ -87,15 +84,20 @@ class BrokerChannel(asynchat.async_chat):
         msg = token.split(constants.DELIMITER)
         msg[1] = int(msg[1])
         filename, flag = msg[:2]
+        logging.info("Recieved Message with flag " +
+                     constants.DIRECTORY_FLAG_TO_NAME[flag])
+        logging.debug("Data : " + repr(msg))
         if flag == constants.REQUEST:
             self.handle_push_change(filename)
         else:
             self.handle_receive_change(msg)
 
     def process_file(self):
-        logging.info("Getting File Data" + repr(self.file.name))
         logging.debug("Data : " + repr(data))
         token = self.get_token()
+        logging.info("Receiving File Data" + repr(self.file.name) +
+                     " with size " + len(token))
+        logging.debug("Data : " + repr(token))
         self.file.write(token)
         self.remaining_size -= len(token)
         if self.remaining_size > 0:
@@ -112,7 +114,7 @@ class BrokerChannel(asynchat.async_chat):
         return token
 
     def handle_close(self):
-        logging.warning("Disonnected")
+        logging.warning("Disconnected")
         self.close()
 
     def handle_connect(self):
@@ -152,11 +154,11 @@ class BrokerChannel(asynchat.async_chat):
                                         constants.CHUNK_SIZE))
         except OSError as e:
             if e.errno != errno.EEXIST:
-                logging.error(e.message)
+                logging.error(str(e))
                 logging.debug("Exception : " + repr(e))
                 raise
             else:
-                logging.warning(e.message)
+                logging.warning(str(e))
                 logging.debug("Exception : " + repr(e))
 
     def handle_receive_delete(self, msg):
@@ -169,11 +171,11 @@ class BrokerChannel(asynchat.async_chat):
                 os.remove(self.dirname + filename)
         except OSError as e:
             if e.errno != errno.ENOENT:
-                logging.error(e.message)
+                logging.error(str(e))
                 logging.debug("Exception : " + repr(e))
                 raise
             else:
-                logging.warning(e.message)
+                logging.warning(str(e))
                 logging.debug("Exception : " + repr(e))
 
 

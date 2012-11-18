@@ -11,3 +11,12 @@ DELETE_FILE   = 0b100
 FOLDER        = 0b001
 ADD_FOLDER    = FOLDER | ADD_FILE
 DELETE_FOLDER = FOLDER | DELETE_FILE
+
+DIRECTORY_FLAG_TO_NAME = {REQUEST       : 'REQUEST',
+                          ADD_FILE      : 'ADD_FILE',
+                          DELETE_FILE   : 'DELETE_FILE',
+                          ADD_FOLDER    : 'ADD_FOLDER',
+                          DELETE_FOLDER : 'DELETE_FOLDER'}
+
+# Logging
+LOG_FORMAT = '%(asctime)s - %(levelname)7s : %(message)s'

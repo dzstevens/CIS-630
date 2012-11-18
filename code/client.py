@@ -11,8 +11,8 @@ from watchdog.observers import Observer
 
 import constants
 
-logging.basicConfig(format='%(asctime)s - %(levelname)7s : %(message)s',
-                    level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - client.py - %(levelname)7s : '
+                    '%(message)s', level=logging.INFO)
 
 
 class LocalFilesEventHandler(FileSystemEventHandler):
@@ -23,7 +23,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 
     def handle_change(self, filename, change):
         filename = os.path.relpath(filename, self.dirname)
-        logging.info("Change happened to " + repr(filename) + " " + repr(change))
+        logging.info("Change happened to " + repr(filename))
+        logging.debug("Data : " + repr(change))
         if filename not in self.changes:
             self.channel.push(filename + constants.DELIMITER +
                               str(constants.REQUEST) + constants.TERMINATOR)
@@ -64,15 +65,18 @@ class BrokerChannel(asynchat.async_chat):
         self.set_terminator(constants.TERMINATOR)
 
     def push(self, data):
-        logging.info("Pushed " + repr(data))
+        logging.info("Pushed")
+        logging.debug("Data : " + repr(data))
         asynchat.async_chat.push(self, data)
 
     def push_with_producer(self, producer):
-        logging.info("Pushed with producer " + repr(producer))
+        logging.info("Pushed with a producer ")
+        logging.debug("Data : " + repr(producer))
         asynchat.async_chat.push_with_producer(self, producer)
 
     def collect_incoming_data(self, data):
-        logging.info("Received " + repr(data))
+        logging.info("Received")
+        logging.debug("Data : " + repr(data))
         self.received_data.append(data)
 
     def found_terminator(self):
@@ -89,12 +93,15 @@ class BrokerChannel(asynchat.async_chat):
             self.handle_receive_change(msg)
 
     def process_file(self):
+        logging.info("Getting File Data" + repr(self.file.name))
+        logging.debug("Data : " + repr(data))
         token = self.get_token()
         self.file.write(token)
         self.remaining_size -= len(token)
         if self.remaining_size > 0:
             self.set_terminator(min(self.remaining_size, constants.CHUNK_SIZE))
         else:
+            logging.info("Closing " + repr(self.file.name))
             self.file.close()
             self.set_terminator(constants.TERMINATOR)
             self.process_data = self.process_message
@@ -116,8 +123,9 @@ class BrokerChannel(asynchat.async_chat):
         flag = change[0]
         self.push(filename + constants.DELIMITER + str(flag))
         if flag == constants.ADD_FILE:
-            self.push(constants.DELIMITER + str(os.stat(self.dirname + filename).st_size)
-                      + constants.TERMINATOR)
+            self.push(constants.DELIMITER +
+                      str(os.stat(self.dirname + filename).st_size) +
+                      constants.TERMINATOR)
             self.push_with_producer(FileProducer(self.dirname + filename))
         else:
             self.push(constants.TERMINATOR)
@@ -136,6 +144,7 @@ class BrokerChannel(asynchat.async_chat):
             if flag & constants.FOLDER:
                 os.mkdir(self.dirname + filename)
             else:
+                logging.info("Opening " + repr(filename))
                 self.file = open(self.dirname + filename, 'w')
                 self.remaining_size = int(msg[2])
                 self.process_data = self.process_file
@@ -143,7 +152,12 @@ class BrokerChannel(asynchat.async_chat):
                                         constants.CHUNK_SIZE))
         except OSError as e:
             if e.errno != errno.EEXIST:
+                logging.error(e.message)
+                logging.debug("Exception : " + repr(e))
                 raise
+            else:
+                logging.warning(e.message)
+                logging.debug("Exception : " + repr(e))
 
     def handle_receive_delete(self, msg):
         filename, flag = msg[:2]
@@ -155,11 +169,17 @@ class BrokerChannel(asynchat.async_chat):
                 os.remove(self.dirname + filename)
         except OSError as e:
             if e.errno != errno.ENOENT:
+                logging.error(e.message)
+                logging.debug("Exception : " + repr(e))
                 raise
+            else:
+                logging.warning(e.message)
+                logging.debug("Exception : " + repr(e))
 
 
 class FileProducer:
     def __init__(self, name):
+        logging.info("Opening Producer's File")
         self.file = open(name)
 
     def more(self):
@@ -167,13 +187,19 @@ class FileProducer:
             try:
                 data = self.file.read(constants.CHUNK_SIZE)
                 if data:
-       	            logging.debug("Produced" + repr(data))
+                    logging.info("Produced with size " + len(data))
+                    logging.debug("Producer : " + repr(self))
+                    logging.debug("Data : " + repr(data))
                     return data
+                logging.info("Closing Producer's File")
                 self.file.close()
                 self.file = None
             except:
+                logging.warning("Could not produce from file")
                 self.file.close()
-        logging.debug("Produced" + repr(""))
+        logging.info("Produced with size 0")
+        logging.debug("Producer : " + repr(self))
+        logging.debug("Data : " + repr(""))
         return ""
 
 
@@ -194,6 +220,6 @@ if __name__ == "__main__":
     event_handler.channel = channel
     channel.event_handler = event_handler
     observer.schedule(event_handler, dirname, True)
- 
+
     observer.start()
     asyncore.loop()

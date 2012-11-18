@@ -1,3 +1,9 @@
+'''
+Created on Nov 17, 2012
+
+@author: David Stevens
+'''
+
 import logging
 import socket
 import sys
@@ -9,6 +15,8 @@ logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
 
 
 class MockBrokerReceive(asyncore.dispatcher):
+    '''This is half of a Mock Broker, spawning asynchats on connections.'''
+
     def __init__(self, host, port):
         asyncore.dispatcher.__init__(self)
         self.channels = []
@@ -28,6 +36,8 @@ class MockBrokerReceive(asyncore.dispatcher):
 
 
 class MockBrokerSend(asyncore.file_dispatcher):
+    '''This is half of a Mock Broker, sending what's in the console.'''
+
     def __init__(self, b):
         asyncore.file_dispatcher.__init__(self, sys.stdin)
         self.buffer = ''
@@ -46,6 +56,8 @@ class MockBrokerSend(asyncore.file_dispatcher):
 
 
 class MockChannel(asynchat.async_chat):
+    '''This is a Mock Channel, printing what it receives to the console.'''
+
     def __init__(self, sock, addr):
         asynchat.async_chat.__init__(self, sock)
         self.addr = addr

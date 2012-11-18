@@ -1,3 +1,9 @@
+'''
+Created on Nov 17, 2012
+
+@author: David Stevens
+'''
+
 import asynchat
 import asyncore
 import errno
@@ -13,6 +19,8 @@ logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
 
 
 class LocalFilesEventHandler(FileSystemEventHandler):
+    '''Handles events in the file system and passes it to the channel'''
+
     def __init__(self, dirname):
         FileSystemEventHandler.__init__(self)
         self.dirname = dirname
@@ -52,6 +60,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 
 
 class BrokerChannel(asynchat.async_chat):
+    '''The channel that deals with sending and receiving to the broker.'''
+
     def __init__(self, dirname, host, port):
         asynchat.async_chat.__init__(self)
         self.dirname = dirname
@@ -180,6 +190,8 @@ class BrokerChannel(asynchat.async_chat):
 
 
 class FileProducer:
+    '''This produces a file in chunks.'''
+
     def __init__(self, name):
         logging.info("Opening Producer's File")
         self.file = open(name)

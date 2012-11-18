@@ -28,7 +28,7 @@ class Connection(LineReceiver):
             print('Disconnected from {}\n'.format(self.peer))
 
     def lineReceived(self, line):
-        print('Received: {} from {}\n'.format(line, self.peer))
+        print('Received: {} from {}\n'.format(repr(line), self.peer))
         msg = line.strip().split(constants.DELIMITER)
         self.name, self.flag = msg[0], int(msg[1])
         if self.flag == constants.ADD_FILE:
@@ -42,8 +42,8 @@ class Connection(LineReceiver):
             self.sendLine(line)
         else:
             for user in self.users - set([self]):
-                print('Sending {} to {}\n'.format(line, user.transport.getHost().host))
-
+                print('Sending {} to {}\n'.format(repr(line), user.transport.getHost().host))
+                user.sendLine(line)
     def rawDataReceived(self, data):
         for user in self.users - set([self]):
             user.transport.write(data[:self.to_receive])

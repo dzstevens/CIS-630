@@ -25,15 +25,20 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         FileSystemEventHandler.__init__(self)
         self.dirname = dirname
         self.changes = {}
+        self.just_changed = {}
 
     def handle_change(self, filename, change):
         filename = os.path.relpath(filename, self.dirname)
         logging.info("Change happened to " + repr(filename))
         logging.debug("Data : " + repr(change))
-        if filename not in self.changes:
-            self.channel.push(filename + constants.DELIMITER +
-                              str(constants.REQUEST) + constants.TERMINATOR)
-        self.changes[filename] = change
+        if not self.just_changed.get(filename):
+            if filename not in self.changes:
+                self.channel.push(filename + constants.DELIMITER +
+                                  str(constants.REQUEST) + constants.TERMINATOR)
+            self.changes[filename] = change
+        else:
+            logging.info("Unmark " + repr(filename) + " as being just changed.")
+            self.just_changed[filename] = False
 
     def on_created(self, event):
         self.handle_change(event.src_path, (constants.ADD_FILE |
@@ -154,10 +159,16 @@ class BrokerChannel(asynchat.async_chat):
         logging.info("Getting Add" + repr(filename))
         try:
             if flag & constants.FOLDER:
+                logging.info("Mark " + repr(filename) +
+                             " as being just changed.")
+                self.event_handler.just_changed[filename] = True
                 os.mkdir(self.dirname + filename)
             else:
                 logging.info("Opening " + repr(filename))
                 self.file = open(self.dirname + filename, 'w')
+                logging.info("Mark " + repr(filename) +
+                             " as being just changed.")
+                self.event_handler.just_changed[filename] = True
                 self.remaining_size = int(msg[2])
                 self.process_data = self.process_file
                 self.set_terminator(min(self.remaining_size,
@@ -176,8 +187,14 @@ class BrokerChannel(asynchat.async_chat):
         logging.info("Getting Delete" + repr(filename))
         try:
             if flag & constants.FOLDER:
+                logging.info("Mark " + repr(filename) +
+                             " as being just changed.")
+                self.event_handler.just_changed[filename] = True
                 shutil.rmtree(self.dirname + filename)
             else:
+                logging.info("Mark " + repr(filename) +
+                             " as being just changed.")
+                self.event_handler.just_changed[filename] = True
                 os.remove(self.dirname + filename)
         except OSError as e:
             if e.errno != errno.ENOENT:
@@ -224,7 +241,7 @@ if __name__ == "__main__":
     host = constants.HOST
     port = constants.PORT
     try:
-        opts, args = getopt.getopt(sys.argv, 'd:h:p:',
+        opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:',
                                    ['dir=', 'host=', 'port='])
     except getopt.GetoptError:
         logging.warning("The system arguments are incorrect")

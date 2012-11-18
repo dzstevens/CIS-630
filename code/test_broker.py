@@ -85,7 +85,7 @@ if __name__ == '__main__':
     host = constants.HOST
     port = constants.PORT
     try:
-        opts, args = getopt.getopt(sys.argv, 'h:p:', ['host=', 'port='])
+        opts, args = getopt.getopt(sys.argv[1:], 'h:p:', ['host=', 'port='])
     except getopt.GetoptError:
         logging.warning("The system arguments are incorrect")
         logging.debug("Arguments : " + repr(opts))

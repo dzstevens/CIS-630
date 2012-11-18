@@ -112,7 +112,7 @@ if __name__ == "__main__":
     import sys
     port = constants.PORT
     try:
-        opts, args = getopt.getopt(sys.argv, 'p:', ['port='])
+        opts, args = getopt.getopt(sys.argv[1:], 'p:', ['port='])
     except getopt.GetoptError:
         logging.warning("The system arguments are incorrect")
         logging.debug("Arguments : " + repr(opts))

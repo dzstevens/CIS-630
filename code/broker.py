@@ -57,7 +57,7 @@ class Connection(LineReceiver):
     def rawDataReceived(self, data):
         for user in self.users - set([self]):
             logging.info("Sending chunk of size " +
-                         min(len(data), self.to_receive) + " to " +
+                         str(min(len(data), self.to_receive)) + " to " +
                          repr(user.peer))
             logging.debug("Chunk : " + repr(data[:self.to_receive]))
             user.transport.write(data[:self.to_receive])

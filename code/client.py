@@ -9,12 +9,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 import constants
-
-
-def p(what, data):
-   print what, "{"
-   print data
-   print "}"
+from log import log
 
 
 class LocalFilesEventHandler(FileSystemEventHandler):
@@ -25,28 +20,25 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 
     def handle_change(self, filename, change):
         filename = os.path.relpath(filename, self.dirname)
+        log("CHANGE HAPPENED", filename, change)
         if filename not in self.changes:
             self.channel.push(filename + constants.DELIMITER +
                               str(constants.REQUEST) + constants.TERMINATOR)
         self.changes[filename] = change
 
     def on_created(self, event):
-        p("ADD HAPPENED", event.src_path)
         self.handle_change(event.src_path, (constants.ADD_FILE |
                                             event.is_directory,))
 
     def on_deleted(self, event):
-        p("DELETE HAPPENED", event.src_path)
         self.handle_change(event.src_path, (constants.DELETE_FILE |
                                             event.is_directory,))
 
     def on_modified(self, event):
         if not event.is_directory:
-            p("MODIFY HAPPENED", event.src_path)
             self.handle_change(event.src_path, (constants.ADD_FILE,))
 
     def on_moved(self, event):
-        p("MOVE HAPPENED", event.src_path + "\n" + event.dest_path)
         self.handle_change(event.src_path, (constants.DELETE_FILE |
                                             event.is_directory,))
         self.handle_change(event.dest_path, (constants.ADD_FILE |
@@ -69,11 +61,15 @@ class BrokerChannel(asynchat.async_chat):
         self.set_terminator(constants.TERMINATOR)
 
     def push(self, data):
-        p("PUSH", data)
+        log("PUSH", data)
         asynchat.async_chat.push(self, data)
 
+    def push_with_producer(self, producer):
+        log("PUSH WITH PRODUCER", producer)
+        asynchat.async_chat.push_with_producer(self, producer)
+
     def collect_incoming_data(self, data):
-        p("RECEIVE", data)
+        log("RECEIVE", data)
         self.received_data.append(data)
 
     def found_terminator(self):
@@ -106,10 +102,11 @@ class BrokerChannel(asynchat.async_chat):
         return token
 
     def handle_close(self):
+        log("DISCONNECTED")
         self.close()
 
     def handle_connect(self):
-        pass
+        log("CONNECTED")
 
     def handle_push_change(self, filename):
         change = self.event_handler.take_change(filename)
@@ -131,7 +128,7 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_receive_add(self, msg):
         filename, flag = msg[:2]
-        p("GETTING ADD", filename)
+        log("GETTING ADD", filename)
         try:
             if flag & constants.FOLDER:
                 os.mkdir(self.dirname + filename)
@@ -146,7 +143,7 @@ class BrokerChannel(asynchat.async_chat):
                 raise
 
     def handle_receive_delete(self, msg):
-        p("GETTING DELETE", filename)
+        log("GETTING DELETE", filename)
         filename, flag = msg[:2]
         try:
             if flag & constants.FOLDER:
@@ -167,11 +164,13 @@ class FileProducer:
             try:
                 data = self.file.read(constants.CHUNK_SIZE)
                 if data:
+                    log("PRODUCED", data)
                     return data
                 self.file.close()
                 self.file = None
             except:
                 self.file.close()
+        log("PRODUCED", "")
         return ""
 
 

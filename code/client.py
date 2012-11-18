@@ -1,89 +1,59 @@
-#Code for the client nodes.
-#needs to have an init => promptly pull and push
+from os import path
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+from watchdog.observers.api import EventDispatcher
+import constants
 
-import os
-from directorymonitor import DirectoryMonitorThread
-import socket
-from threading import Thread, Lock, Event
 
-class ClientToBrokerThread(Thread):
-  def __init__(self,broker,client_id,sock=None):
-    Thread.__init__(self)
-    if sock is None:
-      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+class LocalFilesObserver(Observer):
+    def __init__(self, dirname):
+        Observer.__init__(self)
+        event_handler = LocalFilesEventHandler(dirname)
+        self.schedule(event_handler, path=filename, recursive=True)
+
+
+class LocalFilesEventHandler(FileSystemEventHandler):
+    def __init__(self, dirname):
+        self.__dirname = dirname
+
+    def on_created(self, event):
+        self.handle_change(event.src_path, (constants.ADD_FILE_FLAG |
+                                            event.is_directory))
+
+    def on_deleted(self, event):
+        self.handle_change(event.src_path, (constants.DELETE_FILE_FLAG |
+                                            event.is_directory))
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            self.handle_change(event.src_path, constants.ADD_FILE_FLAG)
+
+    def on_moved(self, event):
+        self.handle_change(event.src_path, (constants.MOVE_FILE_FLAG |
+                                            event.is_directory,
+                                            event.dest_path))
+
+    def handle_change(self, filename, flag, destination=None):
+        filename = path.relpath(filename, self.__dirname)
+        if destination is None:
+            print filename, flag
+        else:
+            destination = path.relpath(destination, self.__dirname)
+            print filename, flag, destination
+
+if __name__ == "__main__":
+    import sys
+    import time
+    if len(sys.argv) >= 2:
+        dirname = sys.argv[1]
     else:
-      self.sock = sock
-    self.broker = broker
-    self.client_id = client_id
-  
-  def run(self):
-    self.output("Client to broker thread is running")
-  
-  def connect(self):
-    self.sock.connect((self.broker.host,self.broker.port))
-
-  def write_modification(self,modified_file):
-    self.output(str(modified_file) + " was modified")
-    self.connect()
-    #send modification to broker
-
-  def write_new_file(self,new_file):
-    self.output("New file: " + str(new_file))
-    self.connect()
-    #send new file to broker
-
-  def write_deleted_file(self,deleted_file):
-    self.output("Deleted file: " + str(deleted_file))
-    self.connect()
-    #send deleted to broker
-
-  def read(self):
-    self.output("Attempting to read updates")
-  
-  def output(self,message):
-    print("#",self.client_id,"# ",message)
-
-class BrokerToClientThread(Thread):
-  def __init__(self,local_directory,sock=None):
-    Thread.__init__(self)
-    self.local_directory = local_directory
-    if sock is None:
-      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    else:
-      self.sock = sock
-    self.port = 8000 #how to check if ok?
-
-  def run(self):
-    print("Broker to client thread is running")
-    while True:
-      self.sock.bind(('127.0.0.1',self.port))
-      self.sock.listen(5)
-      print("Waiting for connection..")
-      connection, address = self.sock.accept()
-      while True:
-        data = connection.recv(1024)
-        if not data: break
-      connection.close()
-
-class Client:
-
-  def __init__(self,client_id,local_dir,broker = None):
-
-    #initiate connection to broker
-    #broker exists already, just need to connect to it
-    self.client_id = client_id
-
-    self.local_directory = local_dir
-    self.client_to_broker_thread = ClientToBrokerThread(broker,self.client_id)
-    self.client_to_broker_thread.setDaemon(True)
-    self.client_to_broker_thread.run()
-
-    self.directory_monitor = DirectoryMonitorThread(self.local_directory,self.client_to_broker_thread)
-    self.directory_monitor.setDaemon(True)
-    self.directory_monitor.run()
-    self.broker_to_client_thread = BrokerToClientThread(local_directory)
-    self.broker_to_client_thread.setDaemon(True)
-    self.broker_to_client_thread.run()
-
-
-x= Client(1,'/Users/krazkorean/Desktop/cis630/test/')
+        dirname = '.'
+    observer = LocalFilesObserver(dirname)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+    print

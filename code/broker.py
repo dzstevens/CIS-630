@@ -10,7 +10,7 @@ from twisted.internet import reactor
 import sys
 import constants
 
-class Chat(LineReceiver):
+class Connection(LineReceiver):
 
     def __init__(self, users):
         self.users = users

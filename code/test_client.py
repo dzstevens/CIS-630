@@ -28,10 +28,14 @@ class MockBrokerReceive(asyncore.dispatcher):
 class MockBrokerSend(asyncore.file_dispatcher):
     def __init__(self, b):
         asyncore.file_dispatcher.__init__(self, sys.stdin)
+        self.buffer = ''
         self.b = b
 
     def handle_read(self):
-        self.b.channel.push(self.recv(1024).replace('\n', constants.DELIMITER))
+        self.buffer = self.buffer + self.recv(1024)
+        if self.buffer.find(constants.DELIMITER):
+            data, self.buffer = self.buffer.split(constants.DELIMITER, 1)
+            self.b.channel.push(constants.DELIMITER.join(data.split('\\n')) + constants.TERMINATOR)
 
 
 class MockChannel(asynchat.async_chat):
@@ -40,7 +44,7 @@ class MockChannel(asynchat.async_chat):
         self.set_terminator('')
 
     def collect_incoming_data(self, data):
-        p(data)
+        p(constants.TERMINATOR.join('\\n'.join(data.split(constants.DELIMITER)).split('\r\\n')))
 
     def found_terminator(self):
         pass

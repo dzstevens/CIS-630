@@ -1,5 +1,6 @@
 CHUNK_SIZE = 1024
-DELIMITER  = '\r\n'
+DELIMITER  = '\n'
+TERMINATOR = '\r\n'
 HOST       = ''
 PORT       = 55555
 

@@ -1,8 +1,9 @@
 import asynchat
 import asyncore
+import os
+import shutil
 import socket
 from fcntl import lockf, LOCK_EX, LOCK_NB
-from os import path, stat
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -17,10 +18,9 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         self.changes = {}
 
     def handle_change(self, filename, change):
-        filename = path.relpath(filename, self.dirname)
+        filename = os.path.relpath(filename, self.dirname)
         if filename not in self.changes:
-            self.channel.push(filename + constants.DELIMITER)
-            self.channel.push(str(constants.REQUEST) + constants.DELIMITER)
+            self.channel.push(filename + constants.DELIMITER + str(constants.REQUEST) + constants.TERMINATOR)
         self.changes[filename] = change
 
     def on_created(self, event):
@@ -38,7 +38,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
     def on_moved(self, event):
         self.handle_change(event.src_path, (constants.MOVE_FILE |
                                             event.is_directory,
-                                            event.destination))
+                                            os.path.relpath(event.dest_path)))
 
     def take_change(self, filename):
         change = self.changes[filename]
@@ -49,20 +49,24 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 class BrokerChannel(asynchat.async_chat):
     def __init__(self, host, port):
         asynchat.async_chat.__init__(self)
-        self.process_data = self._state_start
         self.received_data = []
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((host, port))
-        self.set_terminator(constants.DELIMITER)
-
-    def handle_connect(self):
-        pass
+        self.set_terminator(constants.TERMINATOR)
 
     def collect_incoming_data(self, data):
         self.received_data.append(data)
 
     def found_terminator(self):
-        self.process_data()
+        token = self.get_token()
+        msg = token.split(constants.DELIMITER)
+        msg[1] = int(msg[1])
+        filename, flag = msg[:2]
+        flag = int(flag)
+        if flag == constants.REQUEST:
+            self.handle_push_change(filename)
+        else:
+            self.handle_receive_change(msg)
 
     def get_token(self):
         token = ''.join(self.received_data)
@@ -72,35 +76,49 @@ class BrokerChannel(asynchat.async_chat):
     def handle_close(self):
         self.close()
 
-    def _state_start(self):
-        self.filename = self.get_token()
-        self.process_data = self._state_have_filename
+    def handle_connect(self):
+        pass
 
-    def _state_have_filename(self):
-        self.flag = int(self.get_token())
-        if self.flag == constants.REQUEST:
-            self._push_change()
-        else:
-            self._handle_receive_change()
-
-    def _push_change(self):
-        change = self.event_handler.take_change(self.filename)
-        self.flag = change[0]
-        self.push(self.filename + constants.DELIMITER)
-        self.push(str(self.flag) + constants.DELIMITER)
-        if self.flag & constants.MOVE_FILE:
-            self.push(change[1] + constants.DELIMITER)
-        elif self.flag == constants.ADD_FILE:
-            self.push(str(stat(self.filename).st_size) + constants.DELIMITER)
+    def handle_push_change(self, filename):
+        change = self.event_handler.take_change(filename)
+        flag = change[0]
+        self.push(filename + constants.DELIMITER + str(flag))
+        if flag & constants.MOVE_FILE:
+            self.push(constants.DELIMITER + change[1] + constants.TERMINATOR)
+        elif flag == constants.ADD_FILE:
+            self.push(constants.DELIMITER + str(stat(self.filename).st_size) + constants.TERMINATOR)
             self.push_with_producer(FileProducer(self.filename))
-        del self.flag
-        del self.filename
-        self.process_data = self._state_start
-    
-    def _handle_receive_change(self):
-        del self.flag
-        del self.filename
-        self.process_data = self._state_start
+        else:
+            self.push(constants.TERMINATOR)
+
+    def handle_receive_add(self, msg):
+        filename, flag = msg[:2]
+        if flag & constants.FOLDER:
+            os.mkdir(filename)
+        else:
+            # RAW MODE, ACTIVATE!!!
+            pass
+
+    def handle_receive_change(self, msg):
+        filename, flag = msg[:2]
+        if flag & constants.ADD_FILE:
+            self.handle_receive_add(msg)
+        elif flag & constants.DELETE_FILE:
+            self.handle_receive_delete(msg)
+        elif flag & constants.MOVE_FILE:
+            self.handle_receive_move(msg)
+
+    def handle_receive_delete(self, msg):
+        filename, flag = msg[:2]
+        if flag & constants.FOLDER:
+            shutil.rmtree(filename)
+        else:
+            os.remove(filename)
+
+    def handle_receive_move(self, msg):
+        filename, flag = msg[:2]
+        destination = msg[2]
+        shutil.move(filename, destination)
 
 
 class FileProducer:
@@ -123,6 +141,14 @@ if __name__ == "__main__":
         dirname = sys.argv[1]
     else:
         dirname = '.'
+    if len(sys.argv) >= 3:
+        host = sys.argv[2]
+    else:
+        host = constants.HOST
+    if len(sys.argv) >= 4:
+        port = sys.argv[3]
+    else:
+        port = constants.PORT
 
     observer = Observer()
     event_handler = LocalFilesEventHandler(dirname)

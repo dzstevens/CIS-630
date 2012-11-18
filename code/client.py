@@ -1,5 +1,6 @@
 import asynchat
 import asyncore
+import errno
 import os
 import shutil
 import socket
@@ -36,9 +37,10 @@ class LocalFilesEventHandler(FileSystemEventHandler):
             self.handle_change(event.src_path, (constants.ADD_FILE,))
 
     def on_moved(self, event):
-        self.handle_change(event.src_path, (constants.MOVE_FILE |
-                                            event.is_directory,
-                                            os.path.relpath(event.dest_path)))
+        self.handle_change(event.src_path, (constants.DELETE_FILE |
+                                            event.is_directory,))
+        self.handle_change(event.dest_path, (constants.ADD_FILE |
+                                            event.is_directory,))
 
     def take_change(self, filename):
         change = self.changes[filename]
@@ -82,9 +84,7 @@ class BrokerChannel(asynchat.async_chat):
         change = self.event_handler.take_change(filename)
         flag = change[0]
         self.push(filename + constants.DELIMITER + str(flag))
-        if flag & constants.MOVE_FILE:
-            self.push(constants.DELIMITER + change[1] + constants.TERMINATOR)
-        elif flag == constants.ADD_FILE:
+        if flag == constants.ADD_FILE:
             self.push(constants.DELIMITER + str(stat(self.filename).st_size) + constants.TERMINATOR)
             self.push_with_producer(FileProducer(self.filename))
         else:
@@ -96,28 +96,29 @@ class BrokerChannel(asynchat.async_chat):
             self.handle_receive_add(msg)
         elif flag & constants.DELETE_FILE:
             self.handle_receive_delete(msg)
-        elif flag & constants.MOVE_FILE:
-            self.handle_receive_move(msg)
 
     def handle_receive_add(self, msg):
         filename, flag = msg[:2]
-        if flag & constants.FOLDER:
-            os.mkdir(filename)
-        else:
-            # RAW MODE, ACTIVATE!!!
-            pass
+        try:
+            if flag & constants.FOLDER:
+                os.mkdir(filename)
+            else:
+                # RAW MODE, ACTIVATE!!!
+                pass
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
 
     def handle_receive_delete(self, msg):
         filename, flag = msg[:2]
-        if flag & constants.FOLDER:
-            shutil.rmtree(filename)
-        else:
-            os.remove(filename)
-
-    def handle_receive_move(self, msg):
-        filename = msg[0]
-        destination = msg[2]
-        shutil.move(filename, destination)
+        try:
+            if flag & constants.FOLDER:
+                shutil.rmtree(filename)
+            else:
+                os.remove(filename)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
 
 
 class FileProducer:

@@ -39,7 +39,6 @@ class Test(asynchat.async_chat):
         
     def handle_close(self):
         self.close()
-        return
         
 class FileProducer:
     # a producer which reads data from a file object

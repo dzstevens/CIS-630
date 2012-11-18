@@ -64,8 +64,8 @@ class ClientChannel(asynchat.async_chat):
         self.file_name = self.cache+self.file_name
         if op != 'DEL':
             size = int(header[2])
-            self.process_data = self._write_file
             self.set_terminator(size)
+            self.process_data = self._write_file
         else:
             self._delete_file()
         self.buff = []

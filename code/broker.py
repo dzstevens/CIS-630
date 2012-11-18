@@ -15,35 +15,39 @@ class Connection(LineReceiver):
 
     def __init__(self, users):
         self.users = users
-
+        self.peer = self.transport.getPeer().host
     def connectionMade(self):
         self.users.add(self)
-        print('Connected to {}'.format(self.transport.getPeer().host))
+        print('Connected to {}'.format(self.peer)
 
     def connectionLost(self, reason):
         if self in self.users:
             self.users.remove(self)
-            print('Disconnected from {}'.format(self.transport.getPeer().host))
+            print('Disconnected from {}'.format(self.peer))
 
     def lineReceived(self, line):
+        print('Received: {} from {}'.format(line, self.peer))
         msg = line.strip().split(constants.DELIMITER)
         self.name, self.flag = msg[0], int(msg[1])
         if self.flag == constants.ADD_FILE:
             self.to_receive = int(msg[2])
             self.sent = 0
             self.setRawMode()
+            print('Sending file to everyone except {}'.format(self.peer))
         # figure some stuff out here
         if self.flag == constants.REQUEST:
+            print('Sending {} to {}'.format(line, self.peer))
             self.sendLine(line)
         else:
             for user in self.users - set([self]):
-                user.sendLine(line)
+                print('Sending {} to {}'.format(line, user))
 
     def rawDataReceived(self, data):
         for user in self.users - set([self]):
             user.transport.write(data[:self.to_receive])
         if len(data) >= self.to_receive:
             self.setLineMode(extra=data[self.to_receive:])
+            print("File sent!")
         else:
             self.to_receive -= len(data)
 

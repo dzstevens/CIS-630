@@ -10,25 +10,24 @@ from twisted.internet import reactor
 import sys
 import constants
 
+
 class Connection(LineReceiver):
 
     def __init__(self, users):
         self.users = users
-        self.users.add(self)
-        self.state = 'GET_FILENAME'
 
     def connectionMade(self):
+        self.users.add(self)
         print('Connected to {}'.format(self.transport.getHost().host))
-        self.sendLine('Welcome!')
 
     def connectionLost(self, reason):
-        if self.name in self.users:
+        if self in self.users:
             self.users.remove(self)
             print('Disconnected from {}'.format(self.transport.getHost().host))
 
     def lineReceived(self, line):
-        msg = line.strip().split('\n')
-        self.name, self.flag = msg[0], int[msg[1]]
+        msg = line.strip().split(constants.DELIMITER)
+        self.name, self.flag = msg[0], int(msg[1])
         if flag | constants.MOVE_FILE:
             self.dest = msg[2]
         elif flag == constants.ADD_FILE:
@@ -39,7 +38,7 @@ class Connection(LineReceiver):
         if flag == constants.REQUEST:
             self.sendline(line)
         else:
-            for users in users - self:
+            for self.users in self.users - self:
                 user.sendline(line)
 
     def rawDataRecieved(self, data):
@@ -55,7 +54,7 @@ class Connection(LineReceiver):
 #         self.name = name
 #         self.to_send = [name]
 #         self.state = 'GET_FLAG'
-# 
+#
 #     def _hande_GET_FLAG(self, flag):
 #         self.to_send.append(flag)
 #         if flag in [constants.MOVE_FILE, constants.MOVE_FOLDER]:
@@ -64,17 +63,18 @@ class Connection(LineReceiver):
 #             self.state = 'GET_SIZE'
 #         else:
 #             self.send_message()
-# 
+#
 #     def _handle_GET_DEST(self, arg):
 #         self.to_send.append(arg)
 #         self.send_message()
-#     
+#
 #     def _handle_GET_SIZE(self, arg):
 #         self.to_send.append(arg)
 #         self.send_message()
 #         self.size = int(arg)
 #         self.so_far = 0
 #         self.setRawMode()
+
 
 class BrokerFactory(Factory):
     def __init__(self):
@@ -84,5 +84,6 @@ class BrokerFactory(Factory):
         return Connection(self.users)
 
 
-reactor.listenTCP(5555, BrokerFactory())
-reactor.run()
+if __name__ == "__main__":
+    reactor.listenTCP(5555, BrokerFactory())
+    reactor.run()

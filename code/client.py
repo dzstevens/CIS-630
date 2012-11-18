@@ -1,6 +1,7 @@
 import asynchat
 import asyncore
 import errno
+import logging
 import os
 import shutil
 import socket
@@ -9,7 +10,9 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 import constants
-from log import log
+
+logging.basicConfig(format='%(asctime)s - %(levelname)7s : %(message)s',
+                    level=logging.INFO)
 
 
 class LocalFilesEventHandler(FileSystemEventHandler):
@@ -20,7 +23,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 
     def handle_change(self, filename, change):
         filename = os.path.relpath(filename, self.dirname)
-        log("CHANGE HAPPENED", filename, change)
+        logging.info("Change happened to " + repr(filename) + " " + repr(change))
         if filename not in self.changes:
             self.channel.push(filename + constants.DELIMITER +
                               str(constants.REQUEST) + constants.TERMINATOR)
@@ -61,15 +64,15 @@ class BrokerChannel(asynchat.async_chat):
         self.set_terminator(constants.TERMINATOR)
 
     def push(self, data):
-        log("PUSH", data)
+        logging.info("Pushed " + repr(data))
         asynchat.async_chat.push(self, data)
 
     def push_with_producer(self, producer):
-        log("PUSH WITH PRODUCER", producer)
+        logging.info("Pushed with producer " + repr(producer))
         asynchat.async_chat.push_with_producer(self, producer)
 
     def collect_incoming_data(self, data):
-        log("RECEIVE", data)
+        logging.info("Received " + repr(data))
         self.received_data.append(data)
 
     def found_terminator(self):
@@ -102,11 +105,11 @@ class BrokerChannel(asynchat.async_chat):
         return token
 
     def handle_close(self):
-        log("DISCONNECTED")
+        logging.warning("Disonnected")
         self.close()
 
     def handle_connect(self):
-        log("CONNECTED")
+        logging.info("Connected")
 
     def handle_push_change(self, filename):
         change = self.event_handler.take_change(filename)
@@ -128,7 +131,7 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_receive_add(self, msg):
         filename, flag = msg[:2]
-        log("GETTING ADD", filename)
+        logging.info("Getting Add" + repr(filename))
         try:
             if flag & constants.FOLDER:
                 os.mkdir(self.dirname + filename)
@@ -143,8 +146,8 @@ class BrokerChannel(asynchat.async_chat):
                 raise
 
     def handle_receive_delete(self, msg):
-        log("GETTING DELETE", filename)
         filename, flag = msg[:2]
+        logging.info("Getting Delete" + repr(filename))
         try:
             if flag & constants.FOLDER:
                 shutil.rmtree(self.dirname + filename)
@@ -164,13 +167,13 @@ class FileProducer:
             try:
                 data = self.file.read(constants.CHUNK_SIZE)
                 if data:
-                    log("PRODUCED", data)
+       	            logging.debug("Produced" + repr(data))
                     return data
                 self.file.close()
                 self.file = None
             except:
                 self.file.close()
-        log("PRODUCED", "")
+        logging.debug("Produced" + repr(""))
         return ""
 
 
@@ -191,6 +194,6 @@ if __name__ == "__main__":
     event_handler.channel = channel
     channel.event_handler = event_handler
     observer.schedule(event_handler, dirname, True)
-
+ 
     observer.start()
     asyncore.loop()

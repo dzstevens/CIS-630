@@ -39,10 +39,10 @@ class Connection(LineReceiver):
             for user in self.users - set([self]):
                 user.sendLine(line)
 
-    def rawDataRecieved(self, data):
-        for user in self.users - self:
+    def rawDataReceived(self, data):
+        for user in self.users - set([self]):
             user.transport.write(data[:self.to_receive])
-        if len(data) >= self.to_recieve:
+        if len(data) >= self.to_receive:
             self.setLineMode(extra=data[self.to_receive:])
         else:
             self.to_receive -= len(data)

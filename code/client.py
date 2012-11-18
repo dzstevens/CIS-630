@@ -120,7 +120,7 @@ class BrokerChannel(asynchat.async_chat):
             if flag & constants.FOLDER:
                 os.mkdir(self.dirname + filename)
             else:
-                self.file = open(self.dirname + filename)
+                self.file = open(self.dirname + filename, 'w')
                 self.remaining_size = int(msg[2])
                 self.process_data = self.process_file
                 self.set_terminator(min(self.remaining_size,

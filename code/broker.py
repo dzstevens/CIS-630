@@ -108,5 +108,8 @@ class BrokerFactory(Factory):
 
 
 if __name__ == "__main__":
-    reactor.listenTCP(constants.PORT, BrokerFactory())
+    import sys
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else constants.PORT
+
+    reactor.listenTCP(port, BrokerFactory())
     reactor.run()

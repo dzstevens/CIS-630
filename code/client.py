@@ -207,10 +207,9 @@ class FileProducer:
 
 if __name__ == "__main__":
     import sys
-
-    dirname = sys.argv[1] if len(sys.argv) >= 2 else '.'
-    host = sys.argv[2] if len(sys.argv) >= 3 else constants.HOST
-    port = int(sys.argv[3]) if len(sys.argv) >= 4 else constants.PORT
+    dirname = sys.argv[1] if len(sys.argv) > 1 else '.'
+    host = sys.argv[2] if len(sys.argv) > 2 else constants.HOST
+    port = int(sys.argv[3]) if len(sys.argv) > 3 else constants.PORT
 
     if not dirname.endswith('/'):
         dirname += '/'

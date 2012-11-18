@@ -64,8 +64,12 @@ class MockChannel(asynchat.async_chat):
 
 
 def main():
+    import sys
+    host = sys.argv[1] if len(sys.argv) > 1 else constants.HOST
+    port = int(sys.argv[2]) if len(sys.argv) > 2 else constants.PORT
+
     try:
-        b = MockBrokerReceive(constants.HOST, constants.PORT)
+        b = MockBrokerReceive(host, port)
         c = MockBrokerSend(b)
         asyncore.loop()
     except KeyboardInterrupt:

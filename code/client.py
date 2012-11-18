@@ -85,8 +85,8 @@ class BrokerChannel(asynchat.async_chat):
         flag = change[0]
         self.push(filename + constants.DELIMITER + str(flag))
         if flag == constants.ADD_FILE:
-            self.push(constants.DELIMITER + str(stat(self.filename).st_size) + constants.TERMINATOR)
-            self.push_with_producer(FileProducer(self.filename))
+            self.push(constants.DELIMITER + str(os.stat(filename).st_size) + constants.TERMINATOR)
+            self.push_with_producer(FileProducer(filename))
         else:
             self.push(constants.TERMINATOR)
 

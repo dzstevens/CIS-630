@@ -18,28 +18,26 @@ class Connection(LineReceiver):
 
     def connectionMade(self):
         self.users.add(self)
-        print('Connected to {}'.format(self.transport.getHost().host))
+        print('Connected to {}'.format(self.transport.getPeer().host))
 
     def connectionLost(self, reason):
         if self in self.users:
             self.users.remove(self)
-            print('Disconnected from {}'.format(self.transport.getHost().host))
+            print('Disconnected from {}'.format(self.transport.getPeer().host))
 
     def lineReceived(self, line):
         msg = line.strip().split(constants.DELIMITER)
         self.name, self.flag = msg[0], int(msg[1])
-        if flag | constants.MOVE_FILE:
-            self.dest = msg[2]
-        elif flag == constants.ADD_FILE:
+        if self.flag == constants.ADD_FILE:
             self.to_receive = int(msg[2])
             self.sent = 0
             self.setRawMode()
         # figure some stuff out here
-        if flag == constants.REQUEST:
-            self.sendline(line)
+        if self.flag == constants.REQUEST:
+            self.sendLine(line)
         else:
-            for self.users in self.users - self:
-                user.sendline(line)
+            for user in self.users - set([self]):
+                user.sendLine(line)
 
     def rawDataRecieved(self, data):
         for user in self.users - self:
@@ -85,5 +83,5 @@ class BrokerFactory(Factory):
 
 
 if __name__ == "__main__":
-    reactor.listenTCP(5555, BrokerFactory())
+    reactor.listenTCP(constants.PORT, BrokerFactory())
     reactor.run()

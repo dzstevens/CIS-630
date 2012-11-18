@@ -11,6 +11,12 @@ from watchdog.observers import Observer
 import constants
 
 
+def p(what, data):
+   print what, "{"
+   print data
+   print "}"
+
+
 class LocalFilesEventHandler(FileSystemEventHandler):
     def __init__(self, dirname):
         FileSystemEventHandler.__init__(self)
@@ -25,18 +31,22 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         self.changes[filename] = change
 
     def on_created(self, event):
+        p("ADD HAPPENED", event.src_path)
         self.handle_change(event.src_path, (constants.ADD_FILE |
                                             event.is_directory,))
 
     def on_deleted(self, event):
+        p("DELETE HAPPENED", event.src_path)
         self.handle_change(event.src_path, (constants.DELETE_FILE |
                                             event.is_directory,))
 
     def on_modified(self, event):
         if not event.is_directory:
+            p("MODIFY HAPPENED", event.src_path)
             self.handle_change(event.src_path, (constants.ADD_FILE,))
 
     def on_moved(self, event):
+        p("MOVE HAPPENED", event.src_path + "\n" + event.dest_path)
         self.handle_change(event.src_path, (constants.DELETE_FILE |
                                             event.is_directory,))
         self.handle_change(event.dest_path, (constants.ADD_FILE |
@@ -58,7 +68,12 @@ class BrokerChannel(asynchat.async_chat):
         self.connect((host, port))
         self.set_terminator(constants.TERMINATOR)
 
+    def push(self, data):
+        p("PUSH", data)
+        asynchat.async_chat.push(self, data)
+
     def collect_incoming_data(self, data):
+        p("RECEIVE", data)
         self.received_data.append(data)
 
     def found_terminator(self):
@@ -116,6 +131,7 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_receive_add(self, msg):
         filename, flag = msg[:2]
+        p("GETTING ADD", filename)
         try:
             if flag & constants.FOLDER:
                 os.mkdir(self.dirname + filename)
@@ -130,6 +146,7 @@ class BrokerChannel(asynchat.async_chat):
                 raise
 
     def handle_receive_delete(self, msg):
+        p("GETTING DELETE", filename)
         filename, flag = msg[:2]
         try:
             if flag & constants.FOLDER:

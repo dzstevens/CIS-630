@@ -11,8 +11,6 @@ from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
 import constants
 
-logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
-
 
 class Connection(LineReceiver):
     def __init__(self, users):
@@ -111,8 +109,10 @@ if __name__ == "__main__":
     import getopt
     import sys
     port = constants.PORT
+    loglevel = logging.INFO
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'p:', ['port='])
+        opts, args = getopt.getopt(sys.argv[1:], 'p:l:v:',
+                                   ['port=', 'logging=', 'verbose='])
     except getopt.GetoptError:
         logging.warning("The system arguments are incorrect")
         logging.debug("Arguments : " + repr(opts))
@@ -120,6 +120,10 @@ if __name__ == "__main__":
     for opt, arg in opts:
         if opt in ('-p', '--port'):
             port = int(arg)
+        elif opt in ('-v', '-l', '--logging'):
+            loglevel = 10 * (6 - int(arg))
+
+    logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
 
     reactor.listenTCP(port, BrokerFactory())
     reactor.run()

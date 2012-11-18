@@ -11,8 +11,6 @@ import asynchat
 import asyncore
 import constants
 
-logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
-
 
 class MockBrokerReceive(asyncore.dispatcher):
     '''This is half of a Mock Broker, spawning asynchats on connections.'''
@@ -84,8 +82,10 @@ if __name__ == '__main__':
     import sys
     host = constants.HOST
     port = constants.PORT
+    loglevel = logging.INFO
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'h:p:', ['host=', 'port='])
+        opts, args = getopt.getopt(sys.argv[1:], 'h:p:l:v:',
+                                   ['host=', 'port=', 'logging=', 'verbose='])
     except getopt.GetoptError:
         logging.warning("The system arguments are incorrect")
         logging.debug("Arguments : " + repr(opts))
@@ -95,6 +95,10 @@ if __name__ == '__main__':
             host = arg
         elif opt in ('-p', '--port'):
             port = int(arg)
+        elif opt in ('-v', '-l', '--logging'):
+            loglevel = 10 * (6 - int(arg))
+
+    logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
 
     try:
         b = MockBrokerReceive(host, port)

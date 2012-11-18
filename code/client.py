@@ -15,8 +15,6 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import constants
 
-logging.basicConfig(format=constants.LOG_FORMAT, level=logging.INFO)
-
 
 class LocalFilesEventHandler(FileSystemEventHandler):
     '''Handles events in the file system and passes it to the channel'''
@@ -34,10 +32,12 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         if not self.just_changed.get(filename):
             if filename not in self.changes:
                 self.channel.push(filename + constants.DELIMITER +
-                                  str(constants.REQUEST) + constants.TERMINATOR)
+                                  str(constants.REQUEST) +
+                                  constants.TERMINATOR)
             self.changes[filename] = change
         else:
-            logging.info("Unmark " + repr(filename) + " as being just changed.")
+            logging.info("Unmark " + repr(filename) +
+                         " as being just changed.")
             self.just_changed[filename] = False
 
     def on_created(self, event):
@@ -156,18 +156,18 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_receive_add(self, msg):
         filename, flag = msg[:2]
-        logging.info("Getting Add" + repr(filename))
+        logging.info("Getting Add " + repr(filename))
         try:
             if flag & constants.FOLDER:
                 logging.info("Mark " + repr(filename) +
-                             " as being just changed.")
+                             " as being just changed")
                 self.event_handler.just_changed[filename] = True
                 os.mkdir(self.dirname + filename)
             else:
                 logging.info("Opening " + repr(filename))
                 self.file = open(self.dirname + filename, 'w')
                 logging.info("Mark " + repr(filename) +
-                             " as being just changed.")
+                             " as being just changed")
                 self.event_handler.just_changed[filename] = True
                 self.remaining_size = int(msg[2])
                 self.process_data = self.process_file
@@ -184,16 +184,16 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_receive_delete(self, msg):
         filename, flag = msg[:2]
-        logging.info("Getting Delete" + repr(filename))
+        logging.info("Getting Delete " + repr(filename))
         try:
             if flag & constants.FOLDER:
                 logging.info("Mark " + repr(filename) +
-                             " as being just changed.")
+                             " as being just changed")
                 self.event_handler.just_changed[filename] = True
                 shutil.rmtree(self.dirname + filename)
             else:
                 logging.info("Mark " + repr(filename) +
-                             " as being just changed.")
+                             " as being just changed")
                 self.event_handler.just_changed[filename] = True
                 os.remove(self.dirname + filename)
         except OSError as e:
@@ -240,9 +240,11 @@ if __name__ == "__main__":
     dirname = './'
     host = constants.HOST
     port = constants.PORT
+    loglevel = logging.INFO
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:',
-                                   ['dir=', 'host=', 'port='])
+        opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:l:v:',
+                                   ['dir=', 'host=', 'port=', 'logging=',
+                                    'verbose='])
     except getopt.GetoptError:
         logging.warning("The system arguments are incorrect")
         logging.debug("Arguments : " + repr(opts))
@@ -254,9 +256,13 @@ if __name__ == "__main__":
             host = arg
         elif opt in ('-p', '--port'):
             port = int(arg)
+        elif opt in ('-v', '-l', '--logging'):
+            loglevel = 10 * (6 - int(arg))
 
     if not dirname.endswith('/'):
         dirname += '/'
+
+    logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
 
     observer = Observer()
     event_handler = LocalFilesEventHandler(dirname)

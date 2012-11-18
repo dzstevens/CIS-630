@@ -1,162 +1,88 @@
 '''
-Created on Nov 13, 2012
+Created on Nov 17, 2012
 
 @author: David Stevens
 '''
 
-import socket, os, errno, asyncore, asynchat, sys
+from twisted.internet.protocol import Factory
+from twisted.protocols.basic import LineReceiver
+from twisted.internet import reactor
+import sys
+import constants
 
-HOST = ""
-PORT = 55555
-CACHE = './cache/'
-CHUNK = 1024
-TERM = '\n'
+class Chat(LineReceiver):
 
-def make_dir(path):
-    try:
-        os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
-            
-class BrokerServer(asyncore.dispatcher):
-    def __init__(self, host, port):
-        asyncore.dispatcher.__init__(self)
-        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.set_reuse_addr()
-        self.bind((host, port))
-        self.listen(5)
-        make_dir(CACHE)
-        
-    def handle_accept(self):
-        pair = self.accept()
-        if pair is None:
-            pass
+    def __init__(self, users):
+        self.users = users
+        self.users.add(self)
+        self.state = 'GET_FILENAME'
+
+    def connectionMade(self):
+        print('Connected to {}'.format(self.transport.getHost().host))
+        self.sendLine('Welcome!')
+
+    def connectionLost(self, reason):
+        if self.name in self.users:
+            self.users.remove(self)
+            print('Disconnected from {}'.format(self.transport.getHost().host))
+
+    def lineReceived(self, line):
+        msg = line.strip().split('\n')
+        self.name, self.flag = msg[0], int[msg[1]]
+        if flag | constants.MOVE_FILE:
+            self.dest = msg[2]
+        elif flag == constants.ADD_FILE:
+            self.to_receive = int(msg[2])
+            self.sent = 0
+            self.setRawMode()
+        # figure some stuff out here
+        if flag == constants.REQUEST:
+            self.sendline(line)
         else:
-            sock, addr = pair
-            print 'Incoming connection from %s' % repr(addr)
-            handler = ClientChannel(sock, CACHE)
-            
-class ClientChannel(asynchat.async_chat):          
-    def __init__(self, sock, cache):
-        asynchat.async_chat.__init__(self, sock)
-        self.buff = []
-        self.process_data = self._process_header
-        self.set_terminator(TERM)
-        self.cache = cache
-        self.file_name = ''
-    
-    def push(self, msg):
-        asynchat.async_chat.push(self, msg+TERM)
+            for users in users - self:
+                user.sendline(line)
 
-    def collect_incoming_data(self, data):
-        '''Read an incoming message from the client and put it into buffer.'''
-        self.buff.append(data)
-
-    def found_terminator(self):
-        '''The end of a header or message has been seen.'''
-        self.process_data()
-    
-    def _process_header(self):        
-        '''We have the full header'''
-        header = ''.join(self.buff).strip().split('\t')
-        self.file_name, op = header[:2]
-        self.file_name = self.cache+self.file_name
-        if op != 'DEL':
-            size = int(header[2])
-            self.set_terminator(size)
-            self.process_data = self._write_file
+    def rawDataRecieved(self, data):
+        for user in self.users - self:
+            user.transport.write(data[:self.to_receive])
+        if len(data) >= self.to_recieve:
+            self.setLineMode(extra=data[self.to_receive:])
         else:
-            self._delete_file()
-        self.buff = []
-    
-    def _write_file(self):
-        if self.file_name:
-            size = 0
-            with open(self.file_name, 'w') as f:
-                for s in self.buff:
-                    size += len(s)
-                    f.write(s)
-            self.buff = []
-            print('Wrote {} ({} bytes)'.format(self.file_name, size))
-        self.file_name = ''
-        self.push('File recieved!')
-        self.set_terminator(TERM)
-        self.process_data = self._process_header
-    
-    def _delete_file(self):
-        print('Attempting to delete: {}'.format(self.file_name))
-        try:
-            os.remove(self.file_name)
-            print('Deleted {}'.format(self.file_name))
-            self.file_name = ''
-            self.push('File deleted!')
-        except OSError as exception:
-            if exception.errno != errno.ENOENT:
-                raise
-            else:
-                self.push('File not present!')
+            self.to_receive -= len(data)
 
-class CmdlineClient(asyncore.file_dispatcher):
+#     def _handle_GET_FILENAME(self, name):
+#         self.state = 'GET_FILENAME':
+#         self.name = name
+#         self.to_send = [name]
+#         self.state = 'GET_FLAG'
+# 
+#     def _hande_GET_FLAG(self, flag):
+#         self.to_send.append(flag)
+#         if flag in [constants.MOVE_FILE, constants.MOVE_FOLDER]:
+#             self.state = 'GET_DEST'
+#         elif flag == constants.ADD_FILE:
+#             self.state = 'GET_SIZE'
+#         else:
+#             self.send_message()
+# 
+#     def _handle_GET_DEST(self, arg):
+#         self.to_send.append(arg)
+#         self.send_message()
+#     
+#     def _handle_GET_SIZE(self, arg):
+#         self.to_send.append(arg)
+#         self.send_message()
+#         self.size = int(arg)
+#         self.so_far = 0
+#         self.setRawMode()
+
+class BrokerFactory(Factory):
     def __init__(self):
-        print('Type \'q\' to quit\n')
-        asyncore.file_dispatcher.__init__(self, sys.stdin)
+        self.users = set()
 
-    def handle_read(self):
-        if self.recv(1).lower() == 'q':
-            sys.exit(0)
+    def buildProtocol(self, addr):
+        return Connection(self.users)
 
-def main():
-    try:
-        b = BrokerServer(HOST, PORT)
-        c = CmdlineClient()
-        asyncore.loop()
-    except KeyboardInterrupt:
-        sys.exit(1)
 
-if __name__ == '__main__':
-    main()
-
-# def main(*args):
-#     make_dir(CACHE)
-#     PORT = int(args[1]) if len(args) > 1 else 55555    
-#     client_listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     client_listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#     client_listener.bind((HOST, PORT))
-#     client_listener.listen(5)
-# 
-#     f_to_sock = {client_listener.fileno() : client_listener, stdin.fileno(): stdin}
-#     p = poll()
-#     p.register(client_listener, READ_ONLY)
-#     p.register(stdin.fileno(), READ_ONLY)
-#     try:
-#         print("Type 'q' to quit\n\n")
-#         while True:
-#             actions = p.poll()
-#             for f, flag in actions:
-#                 current_sock = f_to_sock[f]
-#                 if flag & (POLLIN | POLLPRI):
-#                     if current_sock is client_listener:
-#                         client_sock, addr = client_listener.accept()
-#                         new_client = ClientConn(client_sock, CACHE)
-#                         new_client.start()
-#                         f_to_sock[client_sock.fileno()] = client_sock
-#                     elif current_sock is stdin:
-#                         choice = raw_input().strip().lower()[0]
-#                         if choice == 'q':
-#                             for s in f_to_sock:
-#                                 f_to_sock[s].close()
-#                             exit(0)
-#                 elif flag & POLLERR:
-#                     print("Error: {} Closing socket: {}".format(flag, f))
-#                     p.unregister(f)
-#                     current_sock.close()
-#                     del f_to_sock[f]
-#     except Exception as e:
-#         print('ERROR: {}'.format(e))
-#         if len(f_to_sock) > 0:
-#             for sock in f_to_sock.values():
-#                 sock.close()
-# 
-# if __name__ == '__main__':
-#     main(*argv)
+reactor.listenTCP(5555, BrokerFactory())
+reactor.run()

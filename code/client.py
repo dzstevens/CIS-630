@@ -9,6 +9,7 @@ import asyncore
 import errno
 import logging
 import os
+import re
 import shutil
 import socket
 from watchdog.events import FileSystemEventHandler
@@ -24,44 +25,67 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         self.dirname = dirname
         self.changes = {}
         self.just_changed = {}
+        self.valid = re.compile(r'^(.+/)*[^\./][^/]*$')
 
     def handle_change(self, filename, change):
         filename = os.path.relpath(filename, self.dirname)
-        logging.info("Change happened to " + repr(filename))
-        logging.debug("Data : " + repr(change))
-        if not self.just_changed.get(filename):
-            if filename not in self.changes:
-                self.channel.push(filename + constants.DELIMITER +
-                                  str(constants.REQUEST) +
-                                  constants.TERMINATOR)
-            self.changes[filename] = change
+        if self.valid.match(filename):
+            logging.info("Change happened to " + repr(filename))
+            logging.debug("Data : " +
+                          constants.DIRECTORY_FLAG_TO_NAME[change])
+            if not self.just_changed.get(filename):
+                if filename not in self.changes:
+                    self.channel.push(filename + constants.DELIMITER +
+                                      str(constants.REQUEST) +
+                                      constants.TERMINATOR)
+                self.changes[filename] = change
+            else:
+                logging.info("Unmark " + repr(filename) +
+                             " as being just changed")
+                self.just_changed[filename] = False
         else:
-            logging.info("Unmark " + repr(filename) +
-                         " as being just changed.")
-            self.just_changed[filename] = False
+            logging.info("Ignoring change to " + repr(filename))
+            logging.debug("Data : " +
+                          constants.DIRECTORY_FLAG_TO_NAME[change])
 
     def on_created(self, event):
         self.handle_change(event.src_path, (constants.ADD_FILE |
-                                            event.is_directory,))
+                                            event.is_directory))
 
     def on_deleted(self, event):
         self.handle_change(event.src_path, (constants.DELETE_FILE |
-                                            event.is_directory,))
+                                            event.is_directory))
 
     def on_modified(self, event):
         if not event.is_directory:
-            self.handle_change(event.src_path, (constants.ADD_FILE,))
+            self.handle_change(event.src_path, (constants.ADD_FILE))
 
     def on_moved(self, event):
         self.handle_change(event.src_path, (constants.DELETE_FILE |
-                                            event.is_directory,))
+                                            event.is_directory))
         self.handle_change(event.dest_path, (constants.ADD_FILE |
-                                             event.is_directory,))
+                                             event.is_directory))
 
     def take_change(self, filename):
-        change = self.changes[filename]
-        del self.changes[filename]
-        return change
+        if filename in change:
+            change = self.changes[filename]
+            del self.changes[filename]
+            return (change,)
+        else:
+            logging.warning(repr(filename) + " was never set to change")
+            if os.path.exists(self.dirname + filename):
+                if os.path.isdir(self.dirname + filename):
+                    logging.warning("Spoofing ADD_FOLDER")
+                    return (constants.ADD_FOLDER,)
+                else:
+                    logging.warning("Spoofing ADD_FILE")
+                    return (constants.ADD_FILE,)
+            else:
+                logging.warning(repr(filename) + " does not exist")
+                logging.warning("Spoofing DELETE_FILE")
+                logging.warning("Spoofing DELETE_FOLDER")
+                return (constants.DELETE_FILE, constants.DELETE_FOLDER)
+            
 
 
 class BrokerChannel(asynchat.async_chat):
@@ -136,16 +160,16 @@ class BrokerChannel(asynchat.async_chat):
         logging.info("Connected")
 
     def handle_push_change(self, filename):
-        change = self.event_handler.take_change(filename)
-        flag = change[0]
-        self.push(filename + constants.DELIMITER + str(flag))
-        if flag == constants.ADD_FILE:
-            self.push(constants.DELIMITER +
-                      str(os.stat(self.dirname + filename).st_size) +
-                      constants.TERMINATOR)
-            self.push_with_producer(FileProducer(self.dirname + filename))
-        else:
-            self.push(constants.TERMINATOR)
+        flags = self.event_handler.take_change(filename)
+        for flag in flag:
+            self.push(filename + constants.DELIMITER + str(flag))
+            if flag == constants.ADD_FILE:
+                self.push(constants.DELIMITER +
+                          str(os.stat(self.dirname + filename).st_size) +
+                          constants.TERMINATOR)
+                self.push_with_producer(FileProducer(self.dirname + filename))
+           else:
+                self.push(constants.TERMINATOR)
 
     def handle_receive_change(self, msg):
         flag = msg[1]
@@ -174,13 +198,17 @@ class BrokerChannel(asynchat.async_chat):
                 self.set_terminator(min(self.remaining_size,
                                         constants.CHUNK_SIZE))
         except OSError as e:
-            if e.errno != errno.EEXIST:
+            if e.errno == errno.EEXIST:
+                logging.warning(str(e))
+                logging.debug("Exception : " + repr(e))
+            else:
                 logging.error(str(e))
                 logging.debug("Exception : " + repr(e))
                 raise
-            else:
-                logging.warning(str(e))
-                logging.debug("Exception : " + repr(e))
+        except Exception as e:
+            logging.error(str(e))
+            logging.debug("Exception : " + repr(e))
+            raise
 
     def handle_receive_delete(self, msg):
         filename, flag = msg[:2]
@@ -197,13 +225,17 @@ class BrokerChannel(asynchat.async_chat):
                 self.event_handler.just_changed[filename] = True
                 os.remove(self.dirname + filename)
         except OSError as e:
-            if e.errno != errno.ENOENT:
+            if e.errno == errno.ENOENT:
+                logging.warning(str(e))
+                logging.debug("Exception : " + repr(e))
+            else:
                 logging.error(str(e))
                 logging.debug("Exception : " + repr(e))
                 raise
-            else:
-                logging.warning(str(e))
-                logging.debug("Exception : " + repr(e))
+        except Exception as e:
+            logging.error(str(e))
+            logging.debug("Exception : " + repr(e))
+            raise
 
 
 class FileProducer:
@@ -225,9 +257,15 @@ class FileProducer:
                 logging.info("Closing Producer's File")
                 self.file.close()
                 self.file = None
-            except:
-                logging.warning("Could not produce from file")
+            except IOError as e:
+                logging.warning(str(e))
+                logging.debug("Exception : " + repr(e))
                 self.file.close()
+            except Exception as e:
+                logging.error(str(e))
+                logging.debug("Exception : " + repr(e))
+                self.file.close()
+                raise
         logging.info("Produced with size 0")
         logging.debug("Producer : " + repr(self))
         logging.debug("Data : " + repr(""))

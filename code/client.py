@@ -92,6 +92,7 @@ class BrokerChannel(asynchat.async_chat):
         self.received_data.append(data)
 
     def found_terminator(self):
+        logging.info("Processing Data")
         self.process_data()
 
     def process_message(self):
@@ -108,7 +109,6 @@ class BrokerChannel(asynchat.async_chat):
             self.handle_receive_change(msg)
 
     def process_file(self):
-        logging.debug("Data : " + repr(data))
         token = self.get_token()
         logging.info("Receiving File Data" + repr(self.file.name) +
                      " with size " + len(token))

@@ -1,0 +1,1934 @@
+<html><head><title>
+USENIX NSDI '06 Technical Paper</title>
+<script language="Javascript" src="/page.js"><!-- // PAGE 1.0
+iover() { ; } iout() { ; }
+// -->
+</script>
+
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 12 April 2005), see www.w3.org" />
+<meta http-equiv="Content-Type" content=
+"text/html; charset=us-ascii" />
+<meta name="GENERATOR" content="hevea 1.08" />
+<style type="text/css">
+/*<![CDATA[*/
+.toc{list-style:none;}
+.title{margin:auto;text-align:center}
+.center{text-align:center;margin-left:auto;margin-right:auto;}
+.flushleft{text-align:left;margin-left:0ex;margin-right:auto;}
+.flushright{text-align:right;margin-left:auto;margin-right:0ex;}
+DIV TABLE{margin-left:inherit;margin-right:inherit;}
+PRE{text-align:left;margin-left:0ex;margin-right:auto;}
+BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
+.part{margin:auto;text-align:center}
+/*]]>*/
+</style>
+</HEAD>
+
+<a href="http://www.usenix.org"><img src="/graphics/new_usenix.jpg" width="288" height="232" alt="Check out the new USENIX Web site." align="right"></a>
+
+<!-- IE understands topmargin, leftmargin, rightmargin, NS understands marginheight -->
+<BODY BGCOLOR="#ffffff" TEXT="#000000"  link="#990000" alink="#666666" vlink="#666666" TOPMARGIN="0" LEFTMARGIN="0" RIGHTMARGIN="0" MARGINHEIGHT="0">
+<!-- Banner --><center><div>
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+<!-- space at top -->
+<tr><td colspan="13"><img src="../../../art/dot_clear.gif" width="1" height="5" alt=""><br><img src="../../../art/dot_clear.gif" width="1" height="5" alt=""><br></td></tr>
+
+  <tr><!-- row 1 -->
+  <TD>
+
+<!--begin banner-->
+
+ <TABLE WIDTH=750 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+ 	<TR>
+ 		<TD ROWSPAN=2>
+ 			<A HREF="http://www.usenix.org" target="other">
+ 				<IMG SRC="../../../art/home.gif" WIDTH=175 HEIGHT=66 BORDER=0 ALT=""></A></TD>
+ 		<TD>
+ 			<A HREF="http://www.usenix.org/events/" target="other">
+ 				<IMG SRC="../../../art/conf.gif" WIDTH=93 HEIGHT=33 BORDER=0 ALT=""></A></TD>
+ 		<TD>
+ 			<A HREF="http://www.usenix.org/membership/" target="other">
+ 				<IMG SRC="../../../art/join.gif" WIDTH=93 HEIGHT=33 BORDER=0 ALT=""></A></TD>
+ 		<TD>
+ 			<A HREF="http://www.usenix.org/about/" target="other">
+ 				<IMG SRC="../../../art/who.gif" WIDTH=94 HEIGHT=33 BORDER=0 ALT=""></A></TD>
+ 		<TD>
+ 			<A HREF="http://www.usenix.org/about/contacts.html" target="other">
+ 				<IMG SRC="../../../art/contact.gif" WIDTH=95 HEIGHT=33 BORDER=0 ALT=""></A></TD>
+ 		<TD>
+ 			<A HREF="http://www.usenix.org/publications/login/" target="other">
+ 				<IMG SRC="../../../art/login.gif" WIDTH=94 HEIGHT=33 BORDER=0 ALT=""></A></TD>
+ 		<TD>
+ 			<A HREF="http://www.usenix.org/site_map.html" target="other">
+ 				<IMG SRC="../../../art/site_map.gif" WIDTH=94 HEIGHT=33 BORDER=0 ALT=""></A></TD>
+ 		<TD ROWSPAN=2>
+ 			<IMG SRC="../../../art/usenix_sub_buttons_08.gif" WIDTH=12 HEIGHT=66 ALT=""></TD>
+ 	</TR>
+ 	<TR>
+ 		<TD COLSPAN=6>
+ 			<A HREF="http://www.usenix.org/" target="other">
+ 				<IMG SRC="../../../art/lower.gif" WIDTH=563 HEIGHT=33 BORDER=0 ALT=""></A></TD>
+ 	</TR>
+ </TABLE>
+
+<!--end banner-->
+
+  </td>
+  </tr>
+
+</table>
+<!-- End of Banner -->
+
+<!--Main Table 2/135/2/472/2/135/2 -->
+<table border="0" cellspacing="0" cellpadding="0" width="750">
+<tr>
+
+<!--Left Border-->
+<td width="2" valign="top" bgcolor="#CCCCCC"><img src="../../../art/dot_clear.gif" width="2" height="1" alt=""></td>
+
+<!--Links Column-->
+<td width="596" valign="top" bgcolor="#FFFFFF">
+<table width=100% border=0 cellspacing=0 cellpadding=8><tr><td>
+
+<font SIZE="+1" COLOR="#990000" FACE="verdana, arial, helvetica, sans-serif">
+<b>NSDI '06 Paper</b></font>&nbsp;&nbsp;&nbsp;
+
+<font SIZE="-1" FACE="verdana, arial, helvetica, sans-serif">[<a href="../../../index.html">NSDI '06 Technical Program</a>]</font>
+
+<!-- START OF PAGE CONTENTS -->
+
+<!--HEVEA command line is: /usr/bin/hevea -I .. ../nsdi.tex -->
+<!--HTMLHEAD-->
+<!--ENDHTML-->
+<!--PREFIX <ARG ></ARG>-->
+<!--CUT DEF section 1 -->
+<br />
+<table class="title">
+<tr>
+<td>
+<h1 class="titlemain">Efficient Replica Maintenance for Distributed
+Storage Systems</h1>
+<h3 class="titlerest">Byung-Gon
+Chun,<sup><small>&dagger;</small></sup> Frank
+Dabek,<sup>&#8902;</sup> Andreas
+Haeberlen,<sup><small>&Dagger;</small></sup> Emil
+Sit,<sup>&#8902;</sup> Hakim
+Weatherspoon,<sup><small>&dagger;</small></sup><br />
+M. Frans Kaashoek,<sup>&#8902;</sup> John
+Kubiatowicz,<sup><small>&dagger;</small></sup> and Robert
+Morris<sup>&#8902;</sup></h3>
+<h3 class="titlerest"><sup><em>&#8902;</em></sup> <em>MIT Computer
+Science and Artificial Intelligence
+Laboratory,<br /></em><sup><em><small>&Dagger;</small></em></sup>
+<em>Rice University/MPI-SWS,</em>
+<sup><em><small>&dagger;</small></em></sup> <em>University of
+California, Berkeley</em></h3>
+</td>
+</tr>
+</table>
+<br />
+<font size="4"><br />
+<b>Abstract</b><br />
+<br /></font>
+<p><font size="4"><font size="3">This paper considers replication
+strategies for storage systems that aggregate the disks of many
+nodes spread over the Internet. Maintaining replication in such
+systems can be prohibitively expensive, since every transient
+network or host failure could potentially lead to copying a
+server's worth of data over the Internet to maintain replication
+levels.</font></font></p>
+<p>The following insights in designing an efficient replication
+algorithm emerge from the paper's analysis. First, durability can
+be provided separately from availability; the former is less
+expensive to ensure and a more useful goal for many wide-area
+applications. Second, the focus of a durability algorithm must be
+to create new copies of data objects faster than permanent disk
+failures destroy the objects; careful choice of policies for what
+nodes should hold what data can decrease repair time. Third,
+increasing the number of replicas of each data object does not help
+a system tolerate a higher disk failure probability, but does help
+tolerate bursts of failures. Finally, ensuring that the system
+makes use of replicas that recover after temporary failure is
+critical to efficiency.</p>
+<p>Based on these insights, the paper proposes the
+Carbonite replication algorithm for keeping data durable at a low
+cost. A simulation of Carbonite storing 1 TB of data over a 365 day
+trace of PlanetLab activity shows that Carbonite is able to keep all
+data durable and uses 44% more network traffic than a hypothetical
+system that only responds to permanent failures. In comparison,
+Total Recall and DHash require almost a factor of two more network
+traffic than this hypothetical system.</p>
+<p><!--TOC section Introduction--></p>
+<h2 class="section"><a name="htoc1" id=
+"htoc1">1</a>&nbsp;&nbsp;Introduction</h2>
+<!--SEC END -->
+<a name="sect-introduction" id="sect-introduction"></a> Wide-area
+distributed storage systems typically use replication to provide
+two related properties: durability and availability.
+<em>Durability</em> means that objects that an application has
+<tt>put</tt> into the system are not lost due to disk failure
+whereas <em>availability</em> means that <tt>get</tt> will be able
+to return the object promptly. Objects can be durably stored but
+not immediately available: if the only copy of an object is on the
+disk of a node that is currently powered off, but will someday
+re-join the system with disk contents intact, then that object is
+durable but not currently available. The paper's goal is to develop
+an algorithm to store immutable objects durably and at a low
+bandwidth cost in a system that aggregates the disks of many
+Internet nodes.
+<p>The threat to durability is losing the last copy of an object
+due to permanent failures of disks. Efficiently countering this
+threat to durability involves three main challenges. First, network
+bandwidth is a scarce resource in a wide-area distributed storage
+system. To store objects durably, there must be enough network
+capacity to create copies of objects faster than they are lost due
+to disk failure. Second, a system cannot always distinguish between
+transient failures and permanent disk failures: it may waste
+network bandwidth by creating new copies during transient failures.
+Third, after recovery from transient failures, some replicas may be
+on nodes that the replica lookup algorithm does not query and are
+thus effectively lost.</p>
+<p>Since transient failures are common in wide-area systems,
+replication algorithms can waste bandwidth by making unneeded
+replicas. For example, the initial replication
+algorithm&nbsp;[<a href="#merkle:cates"><cite>6</cite></a>] that
+the DHash distributed hash table (DHT)&nbsp;[<a href=
+"#dhash:nsdi2004"><cite>9</cite></a>] turned out to be inadequate
+to build storage applications such as UsenetDHT&nbsp;[<a href=
+"#usenetdht:iptps04"><cite>34</cite></a>], Antiquity&nbsp;[<a href=
+"#databinding:sisw2005"><cite>11</cite></a>], and
+OverCite&nbsp;[<a href=
+"#overcite:iptps2005"><cite>35</cite></a><cite>,</cite> <a href=
+"#overcite:nsdi2006"><cite>36</cite></a>].</p>
+<p>A problem with DHash was that its design was driven by the goal
+of achieving 100% availability; this decision caused it to waste
+bandwidth by creating new replicas in response to temporary
+failures. Its design and similar ones (such as Total
+Recall&nbsp;[<a href="#totalrecall:nsdi2004"><cite>3</cite></a>])
+are overkill for durability. Furthermore, users of many Internet
+applications can tolerate some unavailability. For example, Usenet
+readers will see all articles eventually, as long as they are
+stored durably. Our experience with these DHT applications has led
+us to the following insights:</p>
+<ul class="itemize">
+<li class="li-itemize">Durability is a more practical and useful
+goal than availability for applications that store objects (as
+opposed to caching objects).</li>
+<li class="li-itemize">The main goal of a durability algorithm
+should be to create new copies of an object faster than they are
+destroyed by disk failures; the choice of how replicas are
+distributed among nodes can make this task easier.</li>
+<li class="li-itemize">Increasing the replication level does not
+help tolerate a higher average permanent failure rate, but it does
+help cope with bursts of failures.</li>
+<li class="li-itemize">Reintegrating returning replicas is key to
+avoiding unnecessary copying.</li>
+</ul>
+Using these insights we have developed Carbonite, an efficient
+wide-area replication algorithm for keeping objects durable. After
+inserting a set of initial replicas, Carbonite begins by creating
+new replicas mostly in response to transient failures. However,
+over time it is increasingly able to ignore transient failures and
+approaches the goal of only producing replicas in response to
+permanent failures.
+<p>Carbonite's design assumes that the disks in the distributed
+storage system fail independently of each other: failures of
+geographically distributed hard drives from different manufacturers
+are likely to be uncorrelated.</p>
+<p>In a year-long PlanetLab failure trace, however, we observe some
+correlated failures because of coordinated re-installs of the
+PlanetLab software. Despite this, an evaluation using the PlanetLab
+failure trace shows that Carbonite is able to keep 1 TB of data
+durable, and consumes only 44% more network traffic than a
+hypothetical system that only responds to permanent failures. In
+comparison, Total Recall and DHash require almost a factor of two
+more network traffic than this hypothetical system.</p>
+<p>The rest of this paper explains our durability models and
+algorithms, interleaving evaluation results into the explanation.
+Section&nbsp;<a href="#sec:methodology">2</a> describes the
+simulated evaluation environment. Section&nbsp;<a href=
+"#sec:durability">3</a> presents a model of the relationship
+between network capacity, amount of replicated data, number of
+replicas, and durability. Section&nbsp;<a href="#sec:design">4</a>
+explains how to decrease repair time, and thus increase durability,
+by proper placement of replicas on servers. Section&nbsp;<a href=
+"#sec:costs">5</a> presents an algorithm that reduces the bandwidth
+wasted making copies due to transient failures.
+Section&nbsp;<a href="#sec:together">6</a> outlines some of the
+challenges that face practical implementations of these ideas,
+Section&nbsp;<a href="#sec:related">7</a> discusses related work,
+and Section&nbsp;<a href="#sec:conclusion">8</a> concludes.</p>
+<p><!--TOC section System environment--></p>
+<h2 class="section"><a name="htoc2" id=
+"htoc2">2</a>&nbsp;&nbsp;System environment</h2>
+<!--SEC END -->
+<a name="sec:methodology" id="sec:methodology"></a> The behavior of
+a replication algorithm depends on the environment in which it is
+used: high disk failure rates or low network access link speeds
+make it difficult for any system to maintain durability. We will
+use the characteristics of the PlanetLab testbed as a
+representative environment when evaluating wide-area replication
+techniques. For explanatory purposes, we will also use a synthetic
+trace that makes some of the underlying trends more visible. This
+section describes both environments, as well as the simulator we
+used to evaluate our algorithm.
+<p><!--TOC subsection PlanetLab characteristics--></p>
+<h3 class="subsection"><a name="htoc3" id=
+"htoc3">2.1</a>&nbsp;&nbsp;PlanetLab characteristics</h3>
+<!--SEC END -->
+<a name="sec:pltrace" id="sec:pltrace"></a> PlanetLab is a large
+(&gt; 600 node) research testbed&nbsp;[<a href=
+"#planetlab"><cite>28</cite></a>] with nodes located around the
+world. We chose this testbed as our representative environment
+mainly because it is a large, distributed collection of machines
+that has been monitored for long periods; we use this monitoring
+data to construct a realistic trace of failures in a mostly managed
+environment.
+<p>The main characteristics of PlanetLab that interest us are the
+rates of disk and transient failures. We use historical data
+collected by the CoMon project&nbsp;[<a href=
+"#comon:osr"><cite>25</cite></a>] to identify transient failures.
+CoMon has archival records collected on average every 5 minutes
+that include the uptime as reported by the system uptime counter on
+each node. We use resets of this counter to detect reboots, and we
+estimate the time when the node became unreachable based on the
+last time CoMon was able to successfully contact the node. This
+allows us to pinpoint failures without depending on the
+reachability of the node from the CoMon monitoring site.</p>
+<p>We define a disk failure to be any permanent loss of disk
+contents, due to disk hardware failure or because its contents are
+erased accidentally or intentionally. In order to identify disk
+failures, the CoMon measurements were supplemented with event logs
+from PlanetLab Central&nbsp;[<a href=
+"#planetlab"><cite>28</cite></a>]. This database automatically
+records each time a PlanetLab node is reinstalled (e.g., for an
+upgrade, or after a disk is replaced following a failure). The
+machine is then considered offline until the machine is assigned a
+regular boot state in the database. Table&nbsp;<a href=
+"#tab:comonplc">1</a> summarizes the statistics of this trace.
+Figure&nbsp;<a href="#fig:blockscreated">7</a>(a) visualizes how
+transient and disk failures accumulate over time in this
+network.</p>
+<blockquote class="table">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<table cellspacing="2" cellpadding="0">
+<tr>
+<td align="left" nowrap="nowrap">Dates</td>
+<td align="left" nowrap="nowrap">1 March 2005 &ndash; 28 Feb
+2006</td>
+</tr>
+<tr>
+<td align="left" nowrap="nowrap">Number of hosts</td>
+<td align="left" nowrap="nowrap">632</td>
+</tr>
+<tr>
+<td align="left" nowrap="nowrap">Number of transient failures</td>
+<td align="left" nowrap="nowrap">21255</td>
+</tr>
+<tr>
+<td align="left" nowrap="nowrap">Number of disk failures</td>
+<td align="left" nowrap="nowrap">219</td>
+</tr>
+<tr>
+<td align="left" nowrap="nowrap">Transient host downtime (s)</td>
+<td align="left" nowrap="nowrap">1208, 104647, 14242</td>
+</tr>
+<tr>
+<td align="left" nowrap="nowrap">Any failure interarrival (s)</td>
+<td align="left" nowrap="nowrap">305, 1467, 3306</td>
+</tr>
+<tr>
+<td align="left" nowrap="nowrap">Disk failures interarrival
+(s)</td>
+<td align="left" nowrap="nowrap">54411, 143476, 490047</td>
+</tr>
+<tr>
+<td align="left" nowrap="nowrap">&nbsp;&nbsp;(Median/Mean/90th
+percentile)</td>
+</tr>
+</table>
+<div class="center">Table 1: CoMon+PLC trace characteristics.</div>
+<p><a name="tab:comonplc" id="tab:comonplc"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+<!--TOC subsection Synthetic trace-->
+<h3 class="subsection"><a name="htoc4" id=
+"htoc4">2.2</a>&nbsp;&nbsp;Synthetic trace</h3>
+<!--SEC END -->
+<a name="sec:synthetictrace" id="sec:synthetictrace"></a> We also
+generated synthetic traces of failures by drawing failure
+inter-arrival times from exponential distributions. Synthetic
+traces have two benefits. First, they let us simulate longer time
+periods, and second, they allow us to increase the failure density,
+which makes the basic underlying trends more visible. We conjecture
+that exponential inter-failure times are a good model for disks
+that are independently acquired and operated at geographically
+separated sites; exponential intervals are possibly not so well
+justified for transient failures due to network problems.
+<p>Each synthetic trace contains 632 nodes, just like the PlanetLab
+trace. The mean session time and downtime match the values shown in
+Table&nbsp;<a href="#tab:comonplc">1</a>; however, in order to
+increase the failure density, we extended the length to two years
+and reduced the average node lifetime to one year. Each experiment
+was run with ten different traces; the figures show the averages
+from these experiments.</p>
+<p><!--TOC subsection Simulation--></p>
+<h3 class="subsection"><a name="htoc5" id=
+"htoc5">2.3</a>&nbsp;&nbsp;Simulation</h3>
+<!--SEC END -->
+<a name="sec:methodology_setup" id="sec:methodology_setup"></a> We
+use the failure traces to drive an event-based simulator. In the
+simulator, each node has unlimited disk capacity, but limited link
+bandwidth. However, it assumes that all network paths are
+independent so that there are no shared bottlenecks. Further it
+assumes that if a node is available, it is reachable from all other
+nodes. This is occasionally not the case on
+PlanetLab&nbsp;[<a href="#nontransitivedhts:worlds2005"><cite>14</cite></a>];
+however, techniques do exist to mask the effects of partially
+unreachable nodes&nbsp;[<a href=
+"#availoverlay:dga"><cite>1</cite></a>].
+<p>The simulator takes as input a trace of transient and disk
+failure events, node repairs and object insertions. It simulates
+the behavior of nodes under different protocols and produces a
+trace of the availability of objects and the amount of data sent
+and stored by each node for each hour of simulated time. Each
+simulation calls <tt>put</tt> with 50,000 data objects, each of
+size 20 MB. Unless otherwise noted, each node is configured with an
+access link capacity of 150 KBytes/s, roughly corresponding to the
+throughput achievable under the bandwidth cap imposed by PlanetLab.
+The goal of the simulations is to show the percentage of objects
+lost and the amount of bandwidth needed to sustain objects over
+time.</p>
+<p><!--TOC section Understanding durability--></p>
+<h2 class="section"><a name="htoc6" id=
+"htoc6">3</a>&nbsp;&nbsp;Understanding durability</h2>
+<!--SEC END -->
+<a name="sec:durability" id="sec:durability"></a> We consider the
+problem of providing durability for a storage system composed of a
+large number of nodes spread over the Internet, each contributing
+disk space. The system stores a large number of independent pieces
+of data. Each piece of data is immutable. The system must have a
+way to name and locate data; the former is beyond the scope of this
+work, while the latter may affect the possible policies for placing
+replicas. While parts of the system will suffer temporary failures,
+such as network partitions or power failures, the focus of this
+section is on failures that result in permanent loss of data.
+Section&nbsp;<a href="#sec:costs">5</a> shows how to efficiently
+manage transient failures; this section describes some fundamental
+constraints and challenges in providing durability.
+<p><!--TOC subsection Challenges to durability--></p>
+<h3 class="subsection"><a name="htoc7" id=
+"htoc7">3.1</a>&nbsp;&nbsp;Challenges to durability</h3>
+<!--SEC END -->
+It is useful to view permanent disk and node failures as having an
+average rate and a degree of burstiness. To provide high
+durability, a system must be able to cope with both.
+<p>In order to handle some average rate of failure, a
+high-durability system must have the ability to create new replicas
+of objects faster than replicas are destroyed. Whether the system
+can do so depends on the per-node network access link speed, the
+number of nodes (and hence access links) that help perform each
+repair, and the amount of data stored on each failed node. When a
+node <i>n</i> fails, the other nodes holding replicas of the
+objects stored on <i>n</i> must generate replacements: objects will
+remain durable if there is sufficient bandwidth available on
+average for the lost replicas to be recreated. For example, in a
+symmetric system each node must have sufficient bandwidth to copy
+the equivalent of all data it stores to other nodes during its
+lifetime.</p>
+<p>If nodes are unable to keep pace with the average failure rate,
+no replication policy can prevent objects from being lost. These
+systems are <em>infeasible</em>. If the system is infeasible, it
+will eventually &ldquo;adapt&rdquo; to the failure rate by
+discarding objects until it becomes feasible to store the remaining
+amount of data. A system designer may not have control over access
+link speeds and the amount of data to be stored; fortunately,
+choice of object placement can improve the speed that a system can
+create new replicas as discussed in Section&nbsp;<a href=
+"#sec:design">4</a>.</p>
+<p>If the creation rate is only slightly above the average failure
+rate, then a burst of failures may destroy all of an object's
+replicas before a new replica can be made; a subsequent lull in
+failures below the average rate will not help replace replicas if
+no replicas remain. For our purposes, these failures are
+<em>simultaneous</em>: they occur closer together in time than the
+time required to create new replicas of the data that was stored on
+the failed disk. Simultaneous failures pose a constraint tighter
+than just meeting the average failure rate: every object must have
+more replicas than the largest expected burst of failures. We study
+systems that aim to maintain a target number of replicas in order
+to survive bursts of failure; we call this target
+<i>r</i><sub><i>L</i></sub>.</p>
+<p>Higher values of <i>r</i><sub><i>L</i></sub> do <i>not</i> allow
+the system to survive a higher average failure rate. For examples,
+if failures were to arrive at fixed intervals, then either
+<i>r</i><sub><i>L</i></sub>=2 would always be sufficient, or no
+amount of replication would ensure durability. If
+<i>r</i><sub><i>L</i></sub> = 2 is sufficient, there will always be
+time to create a new replica of the objects on the most recently
+failed disk before their remaining replicas fail. If creating new
+replicas takes longer than the average time between failures, no
+fixed replication level will make the system feasible; setting a
+replication level higher than two would only increase the number of
+bytes each node must copy in response to failures, which is already
+infeasible at <i>r</i><sub><i>L</i></sub>=2.</p>
+<p><!--TOC subsection Creation versus failure rate--></p>
+<h3 class="subsection"><a name="htoc8" id=
+"htoc8">3.2</a>&nbsp;&nbsp;Creation versus failure rate</h3>
+<!--SEC END -->
+It might seem that any creation rate higher than the average
+failure rate will lead to an unbounded number of replicas, thus
+satisfying the burst constraint. However, this intuition is false.
+To see why, let us model the number of replicas of an object as a
+birth-death process using a continuous time Markov chain, which
+assumes independent exponential inter-failure and inter-repair
+times. This assumption is reasonable for independent disk failures.
+<blockquote class="figure">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<img src="nsdi001.png" alt="nsdi001.png" />
+<div class="center">Figure 1: A continuous time Markov model for
+the process of replica failure and repair for a system that
+maintains three replicas (<i>r</i><sub><i>L</i></sub>=3). Numbered
+states correspond to the number of replicas of each object that are
+durable. Transitions to the left occur at the rate at which
+replicas are lost; right-moving transitions happen at the replica
+creation rate.<a name="fig:simple_ctmc" id=
+"fig:simple_ctmc"></a></div>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+An object is in state <i>i</i> when <i>i</i> disks hold a replica
+of the object. There are thus <i>r</i><sub><i>L</i></sub> + 1
+possible states, as we start with <i>r</i><sub><i>L</i></sub>
+replicas and only create new replicas in response to failures. From
+a given state <i>i</i>, there is a transition to state <i>i</i>+1
+with rate &mu;<sub><i>i</i></sub> corresponding to repair, except
+for state 0 which corresponds to loss of durability and state
+<i>r</i><sub><i>L</i></sub> which does not need repair. The actual
+rate &mu;<sub><i>i</i></sub> depends on how bandwidth is allocated
+to repair and may change depending on the replication level of an
+object. There is a transition to the next lower state
+<i>i</i>&minus;1 with rate <i>i</i>&lambda;<sub><i>f</i></sub>
+because each of the <i>i</i> nodes holding an existing replica
+might fail. Figure&nbsp;<a href="#fig:simple_ctmc">1</a> shows this
+model for the case where <i>r</i><sub><i>L</i></sub> = 3.
+<p>This model can be analyzed numerically to shed light on the
+impact of <i>r</i><sub><i>L</i></sub> on the probability of data
+loss; we will show this in Section&nbsp;<a href=
+"#sec:chooserl">3.3</a>. However, to gain some intuition about the
+relationship between creation and failure rates and the impact this
+has on the number of replicas that can be supported, we consider a
+simplification of Figure&nbsp;<a href="#fig:simple_ctmc">1</a> that
+uses a fixed &mu; but repairs constantly, even allowing for
+transitions out of state 0. While these changes make the model less
+realistic, they turn the model into an M/M/&infin;
+queue&nbsp;[<a href="#queueing:kleinrock"><cite>19</cite></a>]
+where the &ldquo;arrival rate&rdquo; is the repair rate and the
+&ldquo;service rate&rdquo; is the per-replica failure rate. The
+&ldquo;number of busy servers&rdquo; is the number of replicas: the
+more replicas an object has, the more probable it is that one of
+them will fail.</p>
+<p>This simplification allows us to estimate the equilibrium number
+of replicas: it is &mu;/&lambda;<sub><i>f</i></sub>. Given &mu; and
+&lambda;<sub><i>f</i></sub>, a system cannot expect to support more
+than this number of replicas. For example, if the system must
+handle coincidental bursts of five failures, it must be able to
+support at least six replicas and hence the replica creation rate
+must be at least 6 times higher than the average replica failure
+rate. We will refer to &mu;/&lambda;<sub><i>f</i></sub> as &theta;.
+Choices for <i>r</i><sub><i>L</i></sub> are effectively limited by
+&theta;. It is not the case that durability increases continuously
+with <i>r</i><sub><i>L</i></sub>; rather, when using
+<i>r</i><sub><i>L</i></sub> &gt; &theta;, the system provides the
+best durability it can, given its resource constraints. Higher
+values of &theta; decrease the time it takes to repair an object,
+and thus the `window of vulnerability' during which additional
+failures can cause the object to be destroyed.</p>
+<p>To get an idea of a real-world value of &theta;, we estimate
+&mu; and &lambda;<sub><i>f</i></sub> from the historical failure
+record for disks on PlanetLab. From Table&nbsp;<a href=
+"#tab:comonplc">1</a>, the average disk failure inter-arrival time
+for the entire test bed is 39.85&nbsp;hours. On average, there were
+490&nbsp;nodes in the system, so we can estimate the mean time
+between failures for a single disk as 490&sdot; 39.85 hours or
+2.23&nbsp;years. This translates to &lambda;<sub><i>f</i></sub>
+&asymp; 0.439 disk failures per year.</p>
+<p>The replica creation rate &mu; depends on the achievable network
+throughput per node, as well as the amount of data that each node
+has to store (including replication). PlanetLab currently limits
+the available network bandwidth to 150 KB/s per node, and if we
+assume that the system stores 500 GB of unique data per node with
+<i>r</i><sub><i>L</i></sub> = 3 replicas each, then each of the
+490&nbsp;nodes stores 1.5 TB. This means that one node's data can
+be recreated in 121&nbsp;days, or approximately three times per
+year. This yields &mu; &asymp; 3 disk copies per year.</p>
+<p>In a system with these characteristics, we can estimate &theta;
+= &mu;/&lambda;<sub><i>f</i></sub> &asymp; 6.85, though the actual
+value is likely to be lower. Note that this ratio represents the
+equilibrium number of <em>disks</em> worth of data that can be
+supported; if a disk is lost, all replicas on that disk are lost.
+When viewed in terms of disk failures and copies, &theta; depends
+on the value of <i>r</i><sub><i>L</i></sub>: as
+<i>r</i><sub><i>L</i></sub>increases, the total amount of data
+stored per disk (assuming available capacity) increases
+proportionally and reduces &mu;. If &lambda;<sub><i>f</i></sub> =
+&mu;, the system can in fact maintain
+<i>r</i><sub><i>L</i></sub>replicas of each object.</p>
+<p>To show the impact of &theta;, we ran an experiment with the
+synthetic trace (i.e., with 632&nbsp;nodes, a failure rate of
+&lambda;<sub><i>f</i></sub> = 1 per year and a storage load of 1
+TB), varying the available bandwidth per node. In this case, 100
+B/s corresponds to &theta;=1.81 / <i>r</i><sub><i>L</i></sub>.
+Figure&nbsp;<a href="#fig:theta">2</a> shows that, as &theta; drops
+below one, the system can no longer maintain full replication and
+starts operating in a `best effort' mode, where higher values of
+<i>r</i><sub><i>L</i></sub> do not give any benefit. The exception
+is if some of the initial <i>r</i><sub><i>L</i></sub> replicas
+survive through the entire trace, which explains the small
+differences on the left side of the graph.</p>
+<blockquote class="figure">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<div class="center"><img src="nsdi002.png" alt="nsdi002.png" /></div>
+<div class="center">Figure 2: Average number of replicas per object
+at the end of a two-year synthetic trace for varying values of
+&theta;, which varies with bandwidth per node (on the
+<i>x</i>-axis) and total data stored (<i>r</i><sub><i>L</i></sub>).
+Where &theta; &lt; 1, the system cannot maintain the full
+replication level; increasing <i>r</i><sub><i>L</i></sub> further
+does not have any effect.</div>
+<p><a name="fig:theta" id="fig:theta"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</blockquote>
+<!--TOC subsection Choosing <I>r</I><SUB><I>L</I></SUB>-->
+<h3 class="subsection"><a name="htoc9" id=
+"htoc9">3.3</a>&nbsp;&nbsp;Choosing
+<i>r</i><sub><i>L</i></sub></h3>
+<!--SEC END -->
+<a name="sec:chooserl" id="sec:chooserl"></a>
+<blockquote class="figure">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<div class="center"><img src="nsdi003.png" alt="nsdi003.png" /></div>
+<div class="center">Figure 3: Frequency of
+&ldquo;simultaneous&rdquo; failures in the PlanetLab trace. These
+counts are derived from breaking the trace into non-overlapping 24
+and 72 hour periods and noting the number of permanent failures
+that occur in each period. If there are <i>x</i> replicas of an
+object, there were <i>y</i> chances in the trace for the object to
+be lost; this would happen if the remaining replicas were not able
+to respond quickly enough to create new replicas of the
+object.</div>
+<p><a name="fig:bursts" id="fig:bursts"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</blockquote>
+A system designer must choose an appropriate value of
+<i>r</i><sub><i>L</i></sub>to meet a target level of durability.
+That is, for a given deployment environment,
+<i>r</i><sub><i>L</i></sub>must be high enough so that a burst of
+<i>r</i><sub><i>L</i></sub> failures is sufficiently rare.
+<p>One approach is to set <i>r</i><sub><i>L</i></sub>to one more
+than the maximum burst of simultaneous failures in a trace of a
+real system. For example, Figure&nbsp;<a href="#fig:bursts">3</a>
+shows the burstiness of permanent failures in the PlanetLab trace
+by counting the number of times that a given number of failures
+occurs in disjoint 24 hour and 72 hour periods. If the size of a
+failure burst exceeds the number of replicas, some objects may be
+lost. From this, one might conclude that 12 replicas are needed to
+maintain the desired durability. This value would likely provide
+durability but at a high cost. If a lower value of
+<i>r</i><sub><i>L</i></sub>would suffice, the bandwidth spent
+maintaining the extra replicas would be wasted.</p>
+<p>There are several factors to consider in choosing
+<i>r</i><sub><i>L</i></sub>to provide a certain level of
+durability. First, even if failures are independent, there is a
+non-zero (though small) probability for every burst size up to the
+total number of nodes. Second, a burst may arrive while there are
+fewer than <i>r</i><sub><i>L</i></sub>replicas. One could conclude
+from these properties that the highest possible value of
+<i>r</i><sub><i>L</i></sub>is desirable. On the other hand, the
+simultaneous failure of even a large fraction of nodes may not
+destroy any objects, depending on how the system places replicas
+(see Section&nbsp;<a href="#sec:design">4</a>). Also, the workload
+may change over time, affecting &mu; and thus &theta;.</p>
+<p>The continuous time Markov model described in
+Figure&nbsp;<a href="#fig:simple_ctmc">1</a> reflects the
+distributions of both burst size and object replication level. The
+effect of these distributions is significant. An analysis of the
+governing differential equations can be used to derive the
+probability that an object will be at a given replication level
+after a given amount of time. In particular, we can determine the
+probability that the chain is in state 0, corresponding to a loss
+of durability.</p>
+<p>We show the results of such an analysis in Figure&nbsp;<a href=
+"#fig:pzero">4</a>; for details, see&nbsp;[<a href=
+"#dht:fdabek"><cite>7</cite></a>]. To explore different workloads,
+we consider different amounts of data per node. The graph shows the
+probability that an object will survive after four years as a
+function of <i>r</i><sub><i>L</i></sub> and data stored per node
+(which affects the repair rate and hence &theta;).</p>
+<p>As <i>r</i><sub><i>L</i></sub> increases, the system can
+tolerate more simultaneous failures and objects are more likely to
+survive. The probability of object loss at
+<i>r</i><sub><i>L</i></sub>=1 corresponds to using no replication.
+This value is the same for all curves since it depends only on the
+lifetime of a disk; no new replicas can be created once the only
+replica of the object is lost. To store 50 GB durably, the system
+must use an <i>r</i><sub><i>L</i></sub> of at least 3. As the total
+amount of data increases, the <i>r</i><sub><i>L</i></sub> required
+to attain a given survival probability also increases. Experiments
+confirm that data is lost on the PlanetLab trace only when
+maintaining fewer than three replicas.</p>
+<blockquote class="figure">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<img src="nsdi004.png" alt="nsdi004.png" />
+<div class="center">Figure 4: Analytic prediction for object
+durability after four years on PlanetLab. The <i>x</i>-axis shows
+the initial number of replicas for each object: as the number of
+replicas is increased, object durability also increases. Each curve
+plots a different per-node storage load; as load increases, it
+takes longer to copy objects after a failure and it is more likely
+that objects will be lost due to simultaneous failures.</div>
+<p><a name="fig:pzero" id="fig:pzero"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+<!--TOC section Improving repair time-->
+<h2 class="section"><a name="htoc10" id=
+"htoc10">4</a>&nbsp;&nbsp;Improving repair time</h2>
+<!--SEC END -->
+<a name="sec:design" id="sec:design"></a> This section explores how
+the system can increase durability by replacing replicas from a
+failed disk in parallel. In effect, this reduces the time needed to
+repair the disk and increases &theta;.
+<p>Each node, <i>n</i>, designates a set of other nodes that can
+potentially hold copies of the objects that <i>n</i> is responsible
+for. We will call the size of that set the node's <i>scope</i>, and
+consider only system designs in which every node has the same
+scope. Scope can range from a minimum of
+<i>r</i><sub><i>L</i></sub> to a maximum of the number of nodes in
+the system.</p>
+<p>A small scope means that all the objects stored on node <i>n</i>
+have copies on nodes chosen from the same restricted set of other
+nodes. The advantage of a small scope is that it makes it easier to
+keep track of the copies of each object. For example, DHash stores
+the copies of all the objects with keys in a particular range on
+the successor nodes of that key range; the result is that those
+nodes store similar sets of objects, and can exchange compressed
+summaries of the objects they store when they want to check that
+each object is replicated a sufficient number of
+times&nbsp;[<a href="#merkle:cates"><cite>6</cite></a>].</p>
+<p>The disadvantage of a small scope is that the effort of creating
+new copies of objects stored on a failed disk falls on the small
+set of nodes in that disk's scope. The time required to create the
+new copies is proportional to the amount of data on one disk
+divided by the scope. Thus a small scope results in a long recovery
+time. Another problem with a small scope, when coupled with
+consistent hashing, is that the addition of a new node may cause
+needless copying of objects: the small scope may dictate that the
+new node replicate certain objects, forcing the previous replicas
+out of scope and thus preventing them from contributing to
+durability.</p>
+<p>Larger scopes spread the work of making new copies of objects on
+a failed disk over more access links, so that the copying can be
+completed faster. In the extreme of a scope of <i>N</i> (the number
+of nodes in the system), the remaining copies of the objects on a
+failed disk would be spread over all nodes, assuming that there are
+many more objects than nodes. Furthermore, the new object copies
+created after the failure would also be spread over all the nodes.
+Thus the network traffic sources and destinations are spread over
+all the access links, and the time to recover from the failure is
+short (proportional to the amount of data on one disk divided by
+<i>N</i>).</p>
+<p>A larger scope also means that a temporary failure will be
+noticed by a larger number of nodes. Thus, more access links are
+available to create additional replicas while the failure lasts.
+Unless these links are already fully utilized, this increases the
+effective replica creation rate, and thus improves durability.</p>
+<blockquote class="figure">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<img src="nsdi005.png" alt="nsdi005.png" />
+<div class="center">Figure 5: Durability for different scopes in a
+synthetic trace with low &theta;. Larger scopes spread the repair
+work over more access links and improve the nodes' ability to
+monitor replicas and temporary failures, which results in higher
+durability.<a name="fig:d_vs_scope" id="fig:d_vs_scope"></a></div>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+Figure&nbsp;<a href="#fig:d_vs_scope">5</a> shows how scope (and
+thus repair time) affects object durability in a simulation on a
+synthetic trace. To reduce &theta;, we limit the bandwidth per node
+to 1000 B/s in this experiment. We vary the repair threshold and
+the scope, and measure durability after two years of simulated
+time. Increasing the scope from 5 to 25 nodes reduces the fraction
+of lost objects by an order of magnitude, independent of
+<i>r</i><sub><i>L</i></sub>. By including more nodes (and thus more
+network connections) in each repair effort, the work is spread over
+more access links and completes faster, limiting the window of time
+in which the system is vulnerable to another disk failure. Ideally,
+by doubling the scope, the window of vulnerability can be cut in
+half.
+<p>A large scope reduces repair time and increases durability;
+however, implementing a large scope presents two trade-offs. First,
+the system must monitor each node in the scope to determine the
+replication levels; when using a large scope, the system must
+monitor many nodes. This increased monitoring traffic limits
+scalability. Second, in some instances, a large scope can increase
+the likelihood that a simultaneous failure of multiple disks will
+cause some object to be lost.</p>
+<p>If objects are placed randomly with scope <i>N</i> and there are
+many objects, then it is likely that all 
+<sub><i>N</i></sub>C<sub><i>r<sub>L</sub></i></sub>
+potential replica sets are used. In this scenario, the
+simultaneous failure of any <i>r</i><sub><i>L</i></sub> disks is
+likely to cause data loss: there is likely to be at least one
+object replicated on exactly those disks. A small scope limits
+placement possibilities that are used, concentrating objects into
+common replica sets. As a result, it is less likely that a given
+set of <i>r</i><sub><i>L</i></sub> failures will affect a replica
+set, but when data loss does occur, many more objects will be lost.
+These effects exactly balance: the expected number of objects lost
+during a large failure event is identical for both strategies. It
+is the variance that differs between the two strategies.</p>
+<p><!--TOC section Reducing transient costs--></p>
+<h2 class="section"><a name="htoc11" id=
+"htoc11">5</a>&nbsp;&nbsp;Reducing transient costs</h2>
+<!--SEC END -->
+<a name="sec:costs" id="sec:costs"></a> The possibility of
+transient failures complicates providing durability efficiently: we
+do not want to make new copies in response to transient failures,
+but it is impossible to distinguish between disk failures and
+transient failures using only remote network measurements. This
+section focuses minimizing the amount of network traffic sent in
+response to transient failures.
+<p>The key technique needed to achieve this is to ensure that the
+system reintegrates object replicas stored on nodes after transient
+failures; this means the system must be able to track more than
+<i>r</i><sub><i>L</i></sub> replicas of each object. The number of
+replicas that the system must remember turns out to be dependent on
+<i>a</i>, the average fraction of time that a node is available.
+However, we show that the correct number of extra replicas can be
+determined without estimating <i>a</i> by tracking the location of
+all replicas, including those that are offline. We introduce the
+Carbonite algorithm that uses this technique and demonstrate its
+effectiveness using simulations.</p>
+<p>We additionally consider two other techniques for limiting
+response to transient failures: creating extra replicas in batches
+and using timeouts as a heuristic for distinguishing transient from
+disk failures. Both are of limited value: batching is best able to
+save bandwidth when using erasure codes and, in the presence of
+reintegration, timeouts work well only if node downtimes are
+notably shorter than node (and disk) lifetimes.</p>
+<p><!--TOC subsection Carbonite details--></p>
+<h3 class="subsection"><a name="htoc12" id=
+"htoc12">5.1</a>&nbsp;&nbsp;Carbonite details</h3>
+<!--SEC END -->
+The Carbonite maintenance algorithm focuses on reintegration to
+avoid responding to transient failures. Durability is provided by
+selecting a suitable value of <i>r</i><sub><i>L</i></sub>; an
+implementation of Carbonite should place objects to maximize &theta;
+and preferentially repair the least replicated object. Within these
+settings, Carbonite works to efficiently maintain
+<i>r</i><sub><i>L</i></sub>copies, thus providing durability.
+<p>Because it is not possible to distinguish between transient and
+disk failures remotely, Carbonite simply responds to any detected
+failure by creating a new replica. This approach is shown in
+Figure&nbsp;<a href="#fig:trigger-code">6</a>. If fewer than
+<i>r</i><sub><i>L</i></sub> replicas are detected as available, the
+algorithm creates enough new replicas to return the replication
+level to <i>r</i><sub><i>L</i></sub>.</p>
+<blockquote class="figure">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<pre>
+// Iterate through the object database
+// and schedule an object for repair if needed
+Maintain_Replicas ()
+    keys = &lt;DB.object_keys sorted number of available replicas&gt;
+    foreach k in keys:
+	n = replicas[k].len ()
+	if n &lt; rL:
+	    newreplica = enqueue_repair (k)
+	    replicas[k].append (newreplica)
+</pre>
+<div class="center">Figure 6: Each node maintains a list of objects
+for which it is responsible and monitors the replication level of
+each object using some synchronization mechanism. In this code,
+this state is stored in the replicas hash table though an
+implementation may choose to store it on disk. This code is called
+periodically to enqueue repairs on those objects that have too few
+replicas available; the application can issue these requests at its
+convenience.</div>
+<p><a name="fig:trigger-code" id="fig:trigger-code"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</blockquote>
+However, Carbonite remembers which replicas were stored on nodes
+that have failed so that they can be reused if they return. This
+allows Carbonite to greatly reduce the cost of responding to
+transient failures. For example, if the system has created two
+replicas beyond <i>r</i><sub><i>L</i></sub> and both fail, no work
+needs to be done unless a third replica fails before one of the two
+currently unavailable replicas returns. Once enough extra replicas
+have been created, it is unlikely that fewer than
+<i>r</i><sub><i>L</i></sub> of them will be available at any given
+time. Over time, it is increasingly unlikely that the system will
+need to make any more replicas.
+<p><!--TOC subsection Reintegration reduces maintenance--></p>
+<h3 class="subsection"><a name="htoc13" id=
+"htoc13">5.2</a>&nbsp;&nbsp;Reintegration reduces maintenance</h3>
+<!--SEC END -->
+<blockquote class="figure">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<table cellspacing="2" cellpadding="0">
+<tr>
+<td align="center" nowrap="nowrap"><img src="nsdi006.png" alt="nsdi006.png" /></td>
+<td align="center" nowrap="nowrap"><img src="nsdi007.png" alt="nsdi007.png" /></td>
+</tr>
+<tr>
+<td align="center" nowrap="nowrap"><img src="nsdi008.png" alt="nsdi008.png" /></td>
+<td align="center" nowrap="nowrap"><img src="nsdi009.png" alt="nsdi009.png" /></td>
+</tr>
+<tr>
+<td align="center" nowrap="nowrap">(a)</td>
+<td align="center" nowrap="nowrap">(b)</td>
+</tr>
+</table>
+<div class="center">Figure 7: A comparison of the total amount of
+work done by different maintenance algorithms with
+<i>r</i><sub><i>L</i></sub>=3 using a PlanetLab trace (left) and a
+synthetic trace (right). In all cases, no objects are lost.
+However, <i>r</i><sub><i>L</i></sub> = 2 is insufficient: for the
+PlanetLab trace, even a system that could distinguish permanent
+from transient failures would lose several objects.</div>
+<p><a name="fig:blockscreated" id="fig:blockscreated"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</blockquote>
+Figure&nbsp;<a href="#fig:blockscreated">7</a> shows the importance
+of reintegrating replicas back into the system by comparing the
+behavior of Carbonite to two prior DHT systems and a hypothetical
+system that can differentiate disk from transient failures using an
+oracle and thus only reacts to disk failures. In the simulation,
+each system operates with <i>r</i><sub><i>L</i></sub>=3. The
+systems are simulated against the PlanetLab trace (a) and a
+synthetic trace (b). The <i>y</i>-axes plot the cumulative number
+of bytes of network traffic used to create replicas; the
+<i>x</i>-axes show time.
+<p>Unlike all other synthetic traces used in this paper, whose
+parameters are different from the PlanetLab trace in order to bring
+out the basic underlying trends, the synthetic trace used in
+Figure&nbsp;<a href="#fig:blockscreated">7</a> was configured to be
+similar to the PlanetLab trace. In particular, the average node
+lifetime and the median downtime are the same. The result is still
+an approximation (for example, PlanetLab grew during the trace) but
+the observed performance is similar. Some of the observed
+differences are due to batching (used by Total Recall) and timeouts
+(used by all systems); the impact of these are discussed in more
+detail in Sections&nbsp;<a href="#sec:batching">5.4</a> and
+<a href="#sec:timeouts">5.5</a>.</p>
+<p>Since the oracle system responds only to disk failures, it uses
+the lowest amount of bandwidth. The line labeled Cates shows a
+system that keeps track of exactly <i>r</i><sub><i>L</i></sub>
+replicas per object; this system approximates the behavior of DHTs
+like DHash, PAST and OpenDHT. Each failure causes the number of
+replicas to drop below <i>r</i><sub><i>L</i></sub> and causes this
+system to create a new copy of an object, even if the failure was
+transient. If the replica comes back online, it is discarded. This
+behavior results in the highest traffic rate shown. The difference
+in performance between the PlanetLab and Poisson trace is due to
+differences in the distribution of downtimes: Poisson is not a
+particularly good fit for the PlanetLab downtime distribution.</p>
+<p>Total Recall&nbsp;[<a href=
+"#totalrecall:nsdi2004"><cite>3</cite></a>] tracks up to a fixed
+number of replicas, controlled by a parameter
+<i>r</i><sub><i>H</i></sub>; we show <i>r</i><sub><i>H</i></sub> =
+5 which is optimal for these traces, and
+<i>r</i><sub><i>H</i></sub> = 9. As can be seen at the right of the
+graphs, this tracking of additional replicas allows Total Recall to
+create fewer replicas than the Cates system. When more than
+<i>r</i><sub><i>L</i></sub> replicas are available, a transient
+failure will not cause Total Recall to make a new copy. However,
+Total Recall's performance is very sensitive to
+<i>r</i><sub><i>H</i></sub>. If <i>r</i><sub><i>H</i></sub> is set
+too low, a series of transient failures will cause the replication
+level to drop below <i>r</i><sub><i>L</i></sub> and force it to
+create an unnecessary copy. This will cause Total Recall to
+approach Cates (when <i>r</i><sub><i>H</i></sub> =
+<i>r</i><sub><i>L</i></sub>). Worse, when the system creates new
+copies it forgets about any copies that are currently on failed
+nodes and cannot benefit from the return of those copies. Without a
+sufficiently long memory, Total Recall must make additional
+replicas. Setting <i>r</i><sub><i>H</i></sub>too high imposes a
+very high insertion cost and results in work that may not be needed
+for a long time.</p>
+<p>Carbonite reintegrates all returning replicas into the replica
+sets and therefore creates fewer copies than Total Recall. However,
+Carbonite's inability to distinguish between transient and disk
+failures means that it produces and maintains more copies than the
+oracle based algorithm. This is mainly visible in the first weeks
+of the trace as Carbonite builds up a buffer of extra copies. By the
+end of the simulations, the rate at which Carbonite produces new
+replicas approaches that of the oracle system.</p>
+<p><!--TOC subsection How many replicas?--></p>
+<h3 class="subsection"><a name="htoc14" id=
+"htoc14">5.3</a>&nbsp;&nbsp;How many replicas?</h3>
+<!--SEC END -->
+To formalize our intuition about the effect of extra replicas on
+maintenance cost and to understand how many extra replicas are
+necessary to avoid triggering repair following a transient failure,
+consider a simple Bernoulli process measuring <i>R</i>, the number
+of replicas available at a given moment, when there are
+<i>r</i>&gt;<i>r</i><sub><i>L</i></sub> total replicas. The
+availability of each node is <i>a</i>. Since repair is triggered
+when the number of available replicas is less than
+<i>r</i><sub><i>L</i></sub>, the probability that a new replica
+needs to be created is the probability that less than
+<i>r</i><sub><i>L</i></sub> replicas are available:
+<div class="center">
+<table cellspacing="0" cellpadding="0">
+<tr valign="middle">
+<td nowrap="nowrap">Pr[<i>R</i> &lt; <i>r</i><sub><i>L</i></sub>
+&nbsp;|&nbsp;<i>r</i> extant copies</td>
+<td nowrap="nowrap">] =</td>
+<td nowrap="nowrap">
+<table cellspacing="0" cellpadding="0">
+<tr>
+<td align="center" nowrap="nowrap"><i>r</i><sub><i>L</i></sub>
+&minus; 1</td>
+</tr>
+<tr>
+<td align="center" nowrap="nowrap"><font size=
+"5">&Sigma;</font></td>
+</tr>
+<tr>
+<td align="center" nowrap="nowrap"><i>i</i> = 0</td>
+</tr>
+</table>
+</td>
+<td nowrap="nowrap">
+<table cellspacing="0" cellpadding="0">
+<tr valign="middle">
+<td nowrap="nowrap">&#9115;<br />
+&#9117;</td>
+<td nowrap="nowrap">
+<table cellspacing="2" cellpadding="0">
+<tr>
+<td align="center" nowrap="nowrap"><i>r</i></td>
+</tr>
+<tr>
+<td align="center" nowrap="nowrap"><i>i</i></td>
+</tr>
+</table>
+</td>
+<td nowrap="nowrap">&#9118;<br />
+&#9120;</td>
+</tr>
+</table>
+</td>
+<td nowrap="nowrap"><i>a</i><sup><i>i</i></sup> (1 &minus;
+<i>a</i>)<sup><i>r</i> &minus; <i>i</i></sup>.</td>
+</tr>
+</table>
+</div>
+This probability falls rapidly as <i>r</i> increases but it will
+never reach zero; there is always a chance that a replica must be
+created due to a large number of concurrent failures, regardless of
+how many replicas exist already. However, when a large number of
+replicas exists, it is extremely unlikely that enough replicas fail
+such that fewer than <i>r</i><sub><i>L</i></sub> are available.
+<p>By computing the Chernoff bound, it is possible to show that
+after the system has created 2<i>r</i><sub><i>L</i></sub>/<i>a</i>
+replicas, the probability of a new object creation is exponentially
+small. 2<i>r</i><sub><i>L</i></sub>/<i>a</i> is a rough (and
+somewhat arbitrary) estimate of when the probability of a new
+object creation is small enough to ignore. Figure&nbsp;<a href=
+"#fig:probrepair">8</a> shows (on the <i>y</i>-axis) the
+probability that a new object must be created when an increasing
+number of replicas already exist. As <i>r</i> increases, the
+probability that a new replica needs to be created falls, and the
+algorithm creates replicas less frequently. As <i>r</i> approaches
+2<i>r</i><sub><i>L</i></sub>/<i>a</i>, the algorithm essentially
+stops creating replicas, despite not knowing the value of
+<i>a</i>.</p>
+<blockquote class="figure">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<img src="nsdi010.png" alt="nsdi010.png" />
+<div class="center">Figure 8: Additional redundancy must be created
+when the amount of live redundancy drops below the desired amount
+(3 replicas in this example). The probability of this happening
+depends solely on the average node availability <i>a</i> and the
+amount of durable redundancy. This graph shows the probability of a
+repair action as a function of the amount of durable redundancy,
+with <i>a</i> = 0.5, <i>a</i> = 0.7 and <i>a</i> = 0.9 for a
+replication system.</div>
+<p><a name="fig:probrepair" id="fig:probrepair"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+This benefit is obtained only if returning replicas are
+reintegrated into the appropriate replica set, allowing more than
+<i>r</i><sub><i>L</i></sub> to be available with high probability.
+As a result, the cost of responding to transient failures will be
+nearly zero. Still, this system is more expensive than an oracle
+system that can distinguish between disk and transient failures.
+While the latter could maintain exactly <i>r</i><sub><i>L</i></sub>
+replicas, the former has to maintain approximately
+2<i>r</i><sub><i>L</i></sub>/<i>a</i>. The factor of 2/<i>a</i>
+difference in the cost is the penalty for not distinguishing disk
+and transient failures.
+<p><!--TOC subsection Create replicas as needed--></p>
+<h3 class="subsection"><a name="htoc15" id=
+"htoc15">5.4</a>&nbsp;&nbsp;Create replicas as needed</h3>
+<!--SEC END -->
+<a name="sec:batching" id="sec:batching"></a> Given that the system
+tends towards creating 2<i>r</i><sub><i>L</i></sub>/<i>a</i>
+replicas in order to keep <i>r</i><sub><i>L</i></sub> of them
+available, it is tempting to create the entire set&mdash;not just
+<i>r</i><sub><i>L</i></sub> of them&mdash;when the object is first
+inserted into the system (Total Recall&nbsp;[<a href=
+"#totalrecall:nsdi2004"><cite>3</cite></a>] uses a similar
+technique). However, this approach requires an accurate estimate
+for <i>a</i> to deliver good performance. If <i>a</i> is
+overestimated, the system quickly finds itself with less than
+<i>r</i><sub><i>L</i></sub> replicas after a string of transient
+failures and is forced to create additional copies. If <i>a</i> is
+underestimated, the system creates unneeded copies and wastes
+valuable resources. Carbonite is simplified by the fact that it does
+not need to measure or estimate <i>a</i> to create the
+&ldquo;correct&rdquo; number of replicas.
+<p>Another idea is to create not only enough copies to bring the
+number of available replicas back up to
+<i>r</i><sub><i>L</i></sub>, but also <i>e</i> additional copies
+beyond <i>r</i><sub><i>L</i></sub> (this is similar to Total
+Recall's lazy repair technique). Creating a batch of copies makes
+repair actions less frequent, but at the same time, causes more
+maintenance traffic than Carbonite. The work required to create
+additional replicas will be wasted if those replicas are lost due
+to disk failures before they are actually required. Carbonite, on
+the other hand, only creates replicas that are necessary to keep
+<i>r</i><sub><i>L</i></sub> replicas available. In other words,
+either Carbonite would eventually create the same number of
+replicas as a scheme that creates replicas in batches, or some
+replicas created in the batch were unnecessary: batch schemes do,
+at best, the same amount of work as Carbonite.</p>
+<blockquote class="figure">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+<img src="nsdi011.png" alt="nsdi011.png" />
+<div class="center">Figure 9: Total repair cost with extra
+replicas, and with and without reintegration after repair. Without
+reintegration, extra replicas reduce the rate at which repair is
+triggered and thus reduce maintenance cost; there is an optimal
+setting (here <i>e</i>=8). With reintegration, the cost is lowest
+if no extra replicas are used.</div>
+<p><a name="fig:extra-replication" id=
+"fig:extra-replication"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+Figure&nbsp;<a href="#fig:extra-replication">9</a> shows the bytes
+sent in a simulation experiment using a five-year synthetic trace
+with <i>a</i>=0.88, <i>r</i><sub><i>L</i></sub>=3, and an average
+node lifetime of one year. The graph shows results for different
+values of <i>e</i> (in Total Recall, <i>e</i> =
+<i>r</i><sub><i>H</i></sub> &minus; <i>r</i><sub><i>L</i></sub>)
+and for two different scenarios. In the scenario with
+reintegration, the system reintegrates all replicas as they return
+from transient failures. This scenario represents the behavior of
+Carbonite when <i>e</i>=0 and causes the least traffic.
+<p>In the scenario without reintegration, replicas that are
+unavailable when repair is triggered are not reintegrated into the
+replica set even if they do return. Total Recall behaves this way.
+Extra replicas give the system a short-term memory. Additional
+replicas increase the time until repair must be made (at which time
+failed replicas will be forgotten); during this time failed
+replicas can be reintegrated. Larger values of <i>e</i> give the
+system a longer memory but also put more data at risk of failure:
+on this synthetic trace, a value of <i>e</i>=8 is optimal. Taking
+advantage of returning replicas is simpler and more efficient than
+creating additional replicas: a system that reintegrates returning
+replicas will always make fewer copies than a system that does not
+and must replace forgotten replicas.</p>
+<p>For systems that use erasure codes, there is an additional read
+cost since a complete copy of the object is needed in order to
+generate a new fragment&nbsp;[<a href=
+"#codingvsreplication2:iptps2005"><cite>32</cite></a>]. The cost of
+reading a sufficient number of fragments prior to recreating a lost
+fragment can overwhelm the savings that erasure codes provide. A
+common approach is to amortize this cost by batching fragment
+creation but simply caching the object at the node responsible for
+repair is much more effective. A simulation contrasting both
+caching and batching (but both with reintegration) shows results
+similar to Figure&nbsp;<a href="#fig:extra-replication">9</a>:
+caching the object with a 7/14 erasure code uses 85% of the
+bandwidth that the optimal batching strategy would use.</p>
+<p><!--TOC subsection Timeouts--></p>
+<h3 class="subsection"><a name="htoc16" id=
+"htoc16">5.5</a>&nbsp;&nbsp;Timeouts</h3>
+<!--SEC END -->
+<a name="sec:timeouts" id="sec:timeouts"></a> A common approach to
+reduce transient costs is to use long timeouts, as suggested by
+Blake&nbsp;[<a href="#picktwo:hotos"><cite>4</cite></a>]. Timeouts
+are a heuristic to avoid misclassifying temporary failures as
+permanent: failures are considered to be permanent only when the
+corresponding node has not responded for some number of seconds.
+Longer timeouts reduce the number of misclassified transient
+failures and thus the number of repairs. On the other hand, a
+longer timeout also increases the latency between failure and
+repair in the event of a true disk failure; if additional permanent
+failures occur during this larger &ldquo;window of
+vulnerability,&rdquo; data may be lost.
+<p>The goal of both reintegrating replicas and use of timeouts is
+to reduce the number of repairs without decreasing durability.
+Figure&nbsp;<a href="#fig:blockscreated">7</a> demonstrates that
+reintegration is effective for Carbonite. However, it also
+illustrates that timeouts are important in systems without
+reintegration: on the PlanetLab trace, the timeout used is able to
+mask 87.7% of transient failures whereas it only masks 58.3% of
+transient failures on the Poisson trace. If replicas are
+reintegrated, what extra benefit does a timeout provide?</p>
+<p>Timeouts are most effective when a significant percentage of the
+transient failures can be ignored, which is dependent on the
+downtime distribution. However, for durability to remain high, the
+expected node lifetime needs to be significantly greater than the
+timeout.</p>
+<blockquote class="figure">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+[]<img src="nsdi012.png" alt="nsdi012.png" /><a name="fig10a" id="fig10a"></a>
+[]<img src="nsdi013.png" alt="nsdi013.png" /><a name="fig10b" id="fig10b"></a>
+<div class="center">Figure 10: The impact of timeouts on bandwidth
+and durability on a synthetic trace. Figure <a href=
+"#fig10a">10(a)</a> shows the number of copies created for various
+timeout values; fig10b shows the corresponding object durability.
+In this trace, the expected downtime is about 29&nbsp;hours. Longer
+timeouts allow the system to mask more transient failures and thus
+reduce maintenance cost; however, they also reduce
+durability.</div>
+<p><a name="fig:bandwidth_vs_timeout" id=
+"fig:bandwidth_vs_timeout"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+To evaluate this scenario where timeouts should have impact, we
+performed an experiment using a synthetic trace where we varied the
+repair threshold and the node timeout. Since the system would
+recognize nodes returning after a permanent failure and immediately
+expire all pending timeouts for these nodes, we assigned new
+identities to such nodes to allow long timeouts to expire normally.
+<p>Figure&nbsp;<a href="#fig:bandwidth_vs_timeout">10</a> shows the
+results of this simulation: fig10a shows the total bytes sent as a
+function of timeout while fig10b shows the durability at the end of
+the trace. As the length of the timeout increases past the average
+downtime, we observe a reduction in the number of bytes sent
+without a decrease in durability. However, as the timeout grows
+longer, durability begins to fall: the long timeout delays the
+point at which the system can begin repair, reducing the effective
+repair rate. Thus setting a timeout can reduce response to
+transient failures but its success depends greatly on its
+relationship to the downtime distribution and can in some instances
+reduce durability as well.</p>
+<p><!--TOC section Implementing Carbonite--></p>
+<h2 class="section"><a name="htoc17" id=
+"htoc17">6</a>&nbsp;&nbsp;Implementing Carbonite</h2>
+<!--SEC END -->
+<a name="sec:together" id="sec:together"></a> <a name="sec:impl"
+id="sec:impl"></a> While the discussion of durability and efficient
+maintenance may be broadly applicable, in this section, we focus on
+our experience in implementing Carbonite in the context of
+distributed hash tables (DHTs).
+<p>In a DHT, each node is algorithmically assigned a portion of the
+total identifier space that it is responsible for maintaining.
+Carbonite requires that each node know the number of available
+replicas of each object for which it is responsible. The goal of
+monitoring is to allow the nodes to track the number of available
+replicas and to learn of objects that the node should be tracking
+but is not aware of. When a node <i>n</i> fails the new node
+<i>n</i>' that assumes responsibility of <i>n</i>'s blocks begins
+tracking replica availability; monitored information is soft state
+and thus can be failed over to a "successor" relatively
+transparently.</p>
+<p>Monitoring can be expensive: a node might have to contact every
+node in the scope of each object it holds. While developing two
+prototype implementations of Carbonite in the PlanetLab
+environment, we found it necessary to develop different techniques
+for monitoring: the monitoring problem is slightly different in
+systems that use distributed directories and those that use
+consistent hashing. Figure&nbsp;<a href=
+"#fig:system-architecture">11</a> illustrates the structures of
+these systems.</p>
+<blockquote class="figure">
+<div class="center">
+<div class="center">
+<hr width="80%" size="2" /></div>
+[DHT<a name="fig:dht-architecture" id=
+"fig:dht-architecture"></a>]<img src="nsdi014.png" alt="nsdi014.png" /> &nbsp;
+[Directory<a name="fig:dir-architecture" id=
+"fig:dir-architecture"></a>]<img src="nsdi015.png" alt="nsdi015.png" />
+<div class="center">Figure 11: DHT- and Directory- Based Storage
+System Architectures.</div>
+<p><a name="fig:system-architecture" id=
+"fig:system-architecture"></a></p>
+<div class="center">
+<hr width="80%" size="2" /></div>
+</div>
+</blockquote>
+The Chord/DHash system&nbsp;[<a href=
+"#cfs:sosp"><cite>8</cite></a><cite>,</cite> <a href=
+"#dhash:nsdi2004"><cite>9</cite></a>] served as the basis for our
+consistent hashing implementation. It uses a small scope and thus
+monitors a small number of nodes. DHash does not need to record the
+location of failed replicas: a node will return to the same place
+in the ring and thus the same replica sets, as long as it returns
+with the same logical identifier.
+<p>We used Oceanstore&nbsp;[<a href=
+"#oceanstore:asplos2000"><cite>20</cite></a><cite>,</cite> <a href=
+"#pond:fast2003"><cite>30</cite></a>] and the
+BambooDHT&nbsp;[<a href="#bamboo:usenix2004"><cite>31</cite></a>]
+to develop a distributed directory system using large scope and
+random placement. Oceanstore must maintain pointers to all nodes
+that have ever held data for a given object and has a scope of
+<i>N</i>. Responsibility for keys is still assigned using
+consistent hashing: the pointer database for each key is replicated
+on the successors of the key. In this case, the location of objects
+is hard state. Unfortunately, it could be easy for this system to
+have very high monitoring costs: if each node communicate with
+every other node periodically, the resulting <i>N</i><sup>2</sup>
+probe traffic may limit the system's scalability.</p>
+<p><!--TOC subsection Monitoring consistent hashing systems--></p>
+<h3 class="subsection"><a name="htoc18" id=
+"htoc18">6.1</a>&nbsp;&nbsp;Monitoring consistent hashing
+systems</h3>
+<!--SEC END -->
+In systems that use a small scope, it is possible to make an
+end-to-end check that data is stored on the disk of each node. The
+naive way to do this is to arrange for nodes to repeatedly exchange
+key lists, but such an exchange would be extremely costly.
+<p>DHash uses a synchronization protocol based on Merkle
+trees&nbsp;[<a href="#merkle:cates"><cite>6</cite></a>] that takes
+advantage of the fact that most objects are typically correctly
+placed. In this common case, adjacent nodes store largely similar
+keys and two nodes can exchange a single message (containing a
+digest of the stored keys) to verify that they are
+synchronized.</p>
+<p>Carbonite allows replicas to be placed anywhere in the placement
+scope. This flexibility lets the system avoid moving and
+replicating objects during most joins (until the system grows
+dramatically). However, it also causes the Merkle synchronization
+protocol to operate outside of its common case: adjacent nodes are
+no longer likely to store nearly identical sets of objects. In this
+environment the synchronizer &ldquo;discovers&rdquo; that nodes in
+the scope are missing objects each time it is run. Repeatedly
+exchanging this information can be costly: if the synchronization
+protocol runs once a minute, the cost of repeatedly transferring
+the 20-byte key of an 8 KB data object will exceed the cost of
+transferring the object itself to a newly joined node in about 8
+hours.</p>
+<p>To avoid this problem, each node maintains, for each object, a
+list of nodes in the scope without a copy of the object. The node
+uses this information to adjust its Merkle tree to avoid
+re-learning the information again during the next run of the
+synchronizer. For instance, when a node <i>n</i> synchronizes with
+a replica node <i>n</i>' that is known to be missing an object with
+key <i>k</i>, <i>n</i> leaves <i>k</i> out of the Merkle tree used
+for synchronization: this prevents <i>n</i>' from reporting what
+<i>n</i> already knew. The amount of extra state needed to perform
+this optimization per object is small relative to the size of
+storing the object itself, and can be maintained lazily, unlike the
+object itself which is hard state.</p>
+<p><!--TOC subsection Monitoring host availability--></p>
+<h3 class="subsection"><a name="htoc19" id=
+"htoc19">6.2</a>&nbsp;&nbsp;Monitoring host availability</h3>
+<!--SEC END -->
+In a directory-style system, the same synchronization techniques
+just described can be used to monitor the directory itself (which
+is replicated on successor nodes); however, it is likely infeasible
+to explicitly monitor the liveness of objects themselves using the
+algorithm described above since two nodes are not likely to store
+the same keys. Instead, node availability can be monitored as a
+proxy for object availability. Node availability can be monitored
+using a multicast mechanism that propagates the liveness state of
+each node to each other node.
+<p>The DHT's routing tables are used to establish a unique spanning
+tree rooted at each node a <i>O</i>(log<i>N</i>) out-degree per
+node. Each node periodically broadcasts a heartbeat message to its
+children in the tree; this message includes a generation identifier
+that is randomly generated when the node is installed or
+reinstalled following a disk failure. The children rebroadcast the
+heartbeat to their children until it is received by all nodes.</p>
+<p>Over time, each node expects to receive regular notification of
+node liveness. If a heartbeat is missed, the monitoring node
+triggers repair for every object stored on the newly down node.
+When a node returns and its generation identifier has not changed,
+the monitoring node can conclude that objects stored on that node
+are again accessible.</p>
+<p><!--TOC section Related work--></p>
+<h2 class="section"><a name="htoc20" id=
+"htoc20">7</a>&nbsp;&nbsp;Related work</h2>
+<!--SEC END -->
+<a name="sec:related" id="sec:related"></a> 
+<!--TOC subsection Replication analysis-->
+<h3 class="subsection"><a name="htoc21" id=
+"htoc21">7.1</a>&nbsp;&nbsp;Replication analysis</h3>
+<!--SEC END -->
+The use of a birth-death data-loss model is a departure from
+previous analyses of reliability. Most DHT evaluations consider
+whether data would survive a single event involving the failure of
+many nodes&nbsp;[<a href=
+"#cfs:sosp"><cite>8</cite></a><cite>,</cite> <a href=
+"#codingvsreplication:iptps02"><cite>40</cite></a>]. This approach
+does not separate durability from availability, and does not
+consider the continuous bandwidth consumed by replacing replicas
+lost to disk failure.
+<p>The model and discussion in this paper is similar to
+contemporary work that looks at churn&nbsp;[<a href=
+"#objmaint:iptps2006"><cite>37</cite></a>] and analyzes the
+expected object lifetime&nbsp;[<a href=
+"#longrunning:infocom2006"><cite>29</cite></a>]. The birth-death
+model is a generalization of the calculations that predict the MTBF
+for RAID storage systems&nbsp;[<a href=
+"#raid:sigmod1988"><cite>26</cite></a>]. Owing to its scale, a
+distributed system has more flexibility to choose parameters such
+as the replication level and number of replica sets when compared
+to RAID systems.</p>
+<p>Blake and Rodrigues argue that wide-area storage systems built
+on unreliable nodes cannot store a large amount of
+data&nbsp;[<a href="#picktwo:hotos"><cite>4</cite></a>]. Their
+analysis is based on the amount of data that a host can copy during
+its lifetime and mirrors our discussion of feasibility. We come to
+a different conclusion because we consider a relatively stable
+system membership where data loss is driven by disk failure, while
+they assumed a system with continual membership turnover.</p>
+<p>The selection of a target replication level for surviving bursts
+differs from many traditional fault tolerant storage systems. Such
+systems, designed for single-site clusters, typically aim to
+continue operating despite some fixed number of failures and choose
+number of replicas so that a voting algorithm can ensure correct
+updates in the presence of partitions or Byzantine
+failures&nbsp;[<a href="#harp"><cite>23</cite></a><cite>,</cite>
+<a href="#bft:tocs"><cite>5</cite></a><cite>,</cite> <a href=
+"#dds:osdi2000"><cite>17</cite></a><cite>,</cite> <a href=
+"#saito-2004-fab"><cite>33</cite></a><cite>,</cite> <a href=
+"#LHRS"><cite>24</cite></a>].</p>
+<p>FAB&nbsp;[<a href="#saito-2004-fab"><cite>33</cite></a>] and
+Chain Replication&nbsp;[<a href=
+"#chains:osdi2004"><cite>38</cite></a>] both consider how the
+number of possible replicas sets affects data durability. The two
+come to opposite conclusions: FAB recommends a small number of
+replica sets since more replica sets provide more ways for data to
+fail; chain replication recommends many replica sets to increase
+repair parallelism and thus reduce repair time. These observations
+are both correct: choosing a replica placement strategy requires
+balancing the probability of losing some data item during a
+simultaneous failure (by limiting the number of replica sets) and
+improving the ability of the system to tolerate a higher average
+failure rate (by increasing the number of replica sets and
+reconstruction parallelism).</p>
+<p>Weatherspoon <em>et al</em>&nbsp;[<a href=
+"#weatherspoon05"><cite>39</cite></a>] studied the increased costs
+due to transient failures. Their results quantify the benefits of
+maintaining extra replicas in reducing these transient costs.
+However, their analysis focuses on systems that forget about extant
+replicas that exist when repair is initiated and do not discuss the
+benefits of reintegrating them.</p>
+<p><!--TOC subsection Replicated systems--></p>
+<h3 class="subsection"><a name="htoc22" id=
+"htoc22">7.2</a>&nbsp;&nbsp;Replicated systems</h3>
+<!--SEC END -->
+Replication has been widely used to reduce the risk of data loss
+and increase data availability in storage systems (e.g.,
+RAID&nbsp;[<a href="#raid:sigmod1988"><cite>26</cite></a>], System
+R duplex disks&nbsp;[<a href=
+"#systemrrecovery:csur1981"><cite>16</cite></a>],
+Harp&nbsp;[<a href="#harp"><cite>23</cite></a>], xFS&nbsp;[<a href=
+"#xFS:SOSP"><cite>2</cite></a>], Petal&nbsp;[<a href=
+"#petal"><cite>21</cite></a>], DDS&nbsp;[<a href=
+"#dds:osdi2000"><cite>17</cite></a>], GFS&nbsp;[<a href=
+"#gfs:sosp2003"><cite>15</cite></a>]). The algorithms traditionally
+used to create and maintain data redundancy are tailored for the
+environment in which these systems operate: well-connected hosts
+that rarely lose data or become unavailable. As a result they can
+maintain a small, fixed number of replicas and create a new replica
+immediately following a failure. This paper focuses on wide-area
+systems that are bandwidth-limited, where transient network
+failures are common, and where it is difficult to tell the
+difference between transient failures and disk failures.
+<p>Distributed databases&nbsp;[<a href=
+"#demers-1987-epidemic"><cite>10</cite></a>], online disaster
+recovery systems such as Myriad&nbsp;[<a href=
+"#myriad:fast2002"><cite>22</cite></a>], and storage
+systems&nbsp;[<a href=
+"#emcmirror"><cite>13</cite></a><cite>,</cite> <a href=
+"#emccentera"><cite>12</cite></a><cite>,</cite> <a href=
+"#snapmirror:fast2002"><cite>27</cite></a>] use replication and
+mirroring to distribute load and increase durability. These systems
+store mutable data and focus on the cost of propagating updates, a
+consideration not applicable to the immutable data we assume. In
+some cases, data is replicated between a primary and backup sites
+and further replicated locally at each site using RAID. Wide area
+recovery is initiated only after site failure; individual disk
+failure can be repaired locally.</p>
+<p>Total Recall is the system most similar to our
+work&nbsp;[<a href="#totalrecall:nsdi2004"><cite>3</cite></a>]. We
+borrow from Total Recall the idea that creating and tracking
+additional replicas can reduce the cost of transient failures.
+Total Recall's lazy replication keeps a fixed number of replicas
+and fails to reincorporate replicas that return after a transient
+failure if a repair had been performed. Total Recall also requires
+introspection or guessing to determine an appropriate high water
+mark that Carbonite can arrive at naturally.</p>
+<p>Glacier&nbsp;[<a href="#glacier:nsdi2005"><cite>18</cite></a>]
+is a distributed storage system that uses massive replication to
+provide data durability across large-scale correlated failure
+events. The resulting tradeoffs are quite different from those of
+Carbonite, which is designed to handle a continuous stream of at
+small-scale failure events. For example, due to its high
+replication level, Glacier can afford very long timeouts and thus
+mask almost all transient failures.</p>
+<p><!--TOC section Conclusions and future work--></p>
+<h2 class="section"><a name="htoc23" id=
+"htoc23">8</a>&nbsp;&nbsp;Conclusions and future work</h2>
+<!--SEC END -->
+<a name="sec:conclusion" id="sec:conclusion"></a> Inexpensive
+hardware and the increasing capacity of wide-area network links
+have spurred the development of applications that store a large
+amount of data on wide-area nodes. However, the feasibility of
+applications based on distributed storage systems is currently
+limited by the expense of maintaining data. This paper has
+described a set of techniques that allow wide-area systems to
+efficiently store and maintain large amounts of data.
+<p>These techniques have allowed us to develop and deploy
+prototypes of UsenetDHT&nbsp;[<a href=
+"#usenetdht:iptps04"><cite>34</cite></a>], OverCite&nbsp;[<a href=
+"#overcite:iptps2005"><cite>35</cite></a>], and
+Antiquity&nbsp;[<a href=
+"#databinding:sisw2005"><cite>11</cite></a>]. These systems must
+store large amounts of data durably and were infeasible without the
+techniques we have presented. In the future, we hope to report on
+our long-term experience with these systems.</p>
+<p><!--TOC paragraph Acknowledgments--></p>
+<h5 class="paragraph">Acknowledgments</h5>
+<!--SEC END -->
+The authors would like to thank Vivek Pai and Aaron Klingaman for
+their assistance in compiling the data used for the PlanetLab
+traces. This paper has benefited considerably from the comments of
+the anonymous reviewers and our shepherd, Larry Peterson.
+<p><!--TOC section <FONT SIZE=2>References</FONT>--></p>
+<h2 class="section"><font size="2">References</font></h2>
+<!--SEC END -->
+<dl class="list" compact="compact">
+<dt class="dt-list"><a name="availoverlay:dga" id=
+"availoverlay:dga"><font size="2"><font color=
+"purple">[1]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Andersen, D.</span> <em>Improving
+End-to-End Availability Using Overlay Networks</em>. PhD thesis,
+Massachusetts Institute of Technology, 2004.</font></dd>
+<dt class="dt-list"><a name="xFS:SOSP" id="xFS:SOSP"><font size=
+"2"><font color="purple">[2]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Anderson, T.&nbsp;E., Dahlin, M.&nbsp;D.,
+Neefe, J.&nbsp;M., Patterson, D.&nbsp;A., Roselli, D.&nbsp;S., and
+Wang, R.&nbsp;Y.</span> Serverless network file systems. In
+<em>Proc. of the 15th ACM Symposium on Operating System
+Principles</em> (Dec. 1995).</font></dd>
+<dt class="dt-list"><a name="totalrecall:nsdi2004" id=
+"totalrecall:nsdi2004"><font size="2"><font color=
+"purple">[3]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Bhagwan, R., Tati, K., Cheng, Y.-C.,
+Savage, S., and Voelker, G.&nbsp;M.</span> Total Recall: System
+support for automated availability management. In <em>Proc. of the
+1st Symposium on Networked Systems Design and Implementation</em>
+(Mar. 2004).</font></dd>
+<dt class="dt-list"><a name="picktwo:hotos" id=
+"picktwo:hotos"><font size="2"><font color=
+"purple">[4]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Blake, C., and Rodrigues, R.</span> High
+availability, scalable storage, dynamic peer networks: Pick two. In
+<em>Proc. of the 9th Workshop on Hot Topics in Operating
+Systems</em> (May 2003), pp.&nbsp;1&ndash;6.</font></dd>
+<dt class="dt-list"><a name="bft:tocs" id="bft:tocs"><font size=
+"2"><font color="purple">[5]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Castro, M., and Liskov, B.</span>
+Practical byzantine fault tolerance and proactive recovery. <em>ACM
+Transactions on Computer Systems 20</em>, 4 (2002),
+398&ndash;461.</font></dd>
+<dt class="dt-list"><a name="merkle:cates" id=
+"merkle:cates"><font size="2"><font color=
+"purple">[6]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Cates, J.</span> Robust and efficient
+data management for a distributed hash table. Master's thesis,
+Massachusetts Institute of Technology, May 2003.</font></dd>
+<dt class="dt-list"><a name="dht:fdabek" id=
+"dht:fdabek"><font size="2"><font color=
+"purple">[7]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Dabek, F.</span> <em>A Distributed Hash
+Table</em>. PhD thesis, Massachusetts Institute of Technology,
+2005.</font></dd>
+<dt class="dt-list"><a name="cfs:sosp" id="cfs:sosp"><font size=
+"2"><font color="purple">[8]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Dabek, F., Kaashoek, M.&nbsp;F., Karger,
+D., Morris, R., and Stoica, I.</span> Wide-area cooperative storage
+with CFS. In <em>Proc. of the 18th ACM Symposium on Operating
+System Principles</em> (Oct. 2001).</font></dd>
+<dt class="dt-list"><a name="dhash:nsdi2004" id=
+"dhash:nsdi2004"><font size="2"><font color=
+"purple">[9]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Dabek, F., Li, J., Sit, E., Robertson,
+J., Kaashoek, M.&nbsp;F., and Morris, R.</span> Designing a DHT for
+low latency and high throughput. In <em>Proc. of the 1st Symposium
+on Networked Systems Design and Implementation</em> (Mar.
+2004).</font></dd>
+<dt class="dt-list"><a name="demers-1987-epidemic" id=
+"demers-1987-epidemic"><font size="2"><font color=
+"purple">[10]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Demers, A., Greene, D., Hauser, C.,
+Irish, W., Larson, J., Shenker, S., Sturgis, H., Swinehart, D., and
+Terry, D.</span> Epidemic algorithms for replicated database
+maintenance. In <em>Proc. of the 6th ACM Symposium on Principles of
+Distributed Computing</em> (1987), pp.&nbsp;1&ndash;12.</font></dd>
+<dt class="dt-list"><a name="databinding:sisw2005" id=
+"databinding:sisw2005"><font size="2"><font color=
+"purple">[11]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Eaton, P., Weatherspoon, H., and
+Kubiatowicz, J.</span> Efficiently binding data to owners in
+distributed content-addressable storage systems. In <em>Proc. of
+the 3rd International Security in Storage Workshop</em> (Dec.
+2005).</font></dd>
+<dt class="dt-list"><a name="emccentera" id=
+"emccentera"><font size="2"><font color=
+"purple">[12]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">EMC</span>. Centera&mdash;content
+addressed storage system.
+<tt>http://www.emc.com/products/systems/centera.jsp</tt></font><font size="2">.
+Last accessed March 2006.</font></dd>
+<dt class="dt-list"><a name="emcmirror" id="emcmirror"><font size=
+"2"><font color="purple">[13]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">EMC</span>. Symmetrix remote data
+facility.
+<tt>http://www.emc.com/products/networking/srdf.jsp</tt></font><font size="2">.
+Last accessed March 2006.</font></dd>
+<dt class="dt-list"><a name="nontransitivedhts:worlds2005" id=
+"nontransitivedhts:worlds2005"><font size="2"><font color=
+"purple">[14]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Freedman, M.&nbsp;J., Lakshminarayanan,
+K., Rhea, S., and Stoica, I.</span> Non-transitive connectivity and
+DHTs. In <em>Proc. of the 2nd Workshop on Real Large Distributed
+Systems</em> (Dec. 2005).</font></dd>
+<dt class="dt-list"><a name="gfs:sosp2003" id=
+"gfs:sosp2003"><font size="2"><font color=
+"purple">[15]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Ghemawat, S., Gobioff, H., and Leung,
+S.-T.</span> The Google file system. In <em>Proc. of the 2003 19th
+ACM Symposium on Operating System Principles</em> (Oct.
+2003).</font></dd>
+<dt class="dt-list"><a name="systemrrecovery:csur1981" id=
+"systemrrecovery:csur1981"><font size="2"><font color=
+"purple">[16]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Gray, J., McJones, P., Blasgen, M.,
+Lindsay, B., Lorie, R., Price, T., Putzolu, F., and Traiger,
+I.</span> The recovery manager of the System R database manager.
+<em>ACM Computing Surveys 13</em>, 2 (1981),
+223&ndash;242.</font></dd>
+<dt class="dt-list"><a name="dds:osdi2000" id=
+"dds:osdi2000"><font size="2"><font color=
+"purple">[17]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Gribble, S., Brewer, E., Hellerstein, J.,
+and Culler, D.</span> Scalable, distributed data structures for
+internet service construction. In <em>Proc. of the 4th Symposium on
+Operating Systems Design and Implementation</em> (Oct.
+2004).</font></dd>
+<dt class="dt-list"><a name="glacier:nsdi2005" id=
+"glacier:nsdi2005"><font size="2"><font color=
+"purple">[18]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Haeberlen, A., Mislove, A., and Druschel,
+P.</span> Glacier: Highly durable, decentralized storage despite
+massive correlated failures. In <em>Proc. of the 2nd Symposium on
+Networked Systems Design and Implementation</em> (May
+2005).</font></dd>
+<dt class="dt-list"><a name="queueing:kleinrock" id=
+"queueing:kleinrock"><font size="2"><font color=
+"purple">[19]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Kleinrock, L.</span> <em>Queueing
+Systems, Volume I: Theory</em>. John Wiley &amp; Sons, Jan.
+1975.</font></dd>
+<dt class="dt-list"><a name="oceanstore:asplos2000" id=
+"oceanstore:asplos2000"><font size="2"><font color=
+"purple">[20]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Kubiatowicz, J., Bindel, D., Chen, Y.,
+Czerwinski, S., Eaton, P., Geels, D., Gummadi, R., Rhea, S.,
+Weatherspoon, H., Weimer, W., Wells, C., and Zhao, B.</span>
+OceanStore: An architecture for global-scale persistent storage. In
+<em>Proc. of the 9th Intl. Conference on Architectural Support for
+Programming Languages and Operating Systems</em> (Nov. 2000),
+pp.&nbsp;190&ndash;201.</font></dd>
+<dt class="dt-list"><a name="petal" id="petal"><font size=
+"2"><font color="purple">[21]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Lee, E.&nbsp;K., and Thekkath,
+C.&nbsp;A.</span> Petal: Distributed virtual disks. In <em>Proc. of
+the 7th Intl. Conference on Architectural Support for Programming
+Languages and Operating Systems</em> (1996),
+pp.&nbsp;84&ndash;92.</font></dd>
+<dt class="dt-list"><a name="myriad:fast2002" id=
+"myriad:fast2002"><font size="2"><font color=
+"purple">[22]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Leung, S.-T.&nbsp;A., MacCormick, J.,
+Perl, S.&nbsp;E., and Zhang, L.</span> Myriad: Cost-effective
+disaster tolerance. In <em>Proc. of the 1st USENIX Conference on
+File and Storage Technologies</em> (Jan. 2002).</font></dd>
+<dt class="dt-list"><a name="harp" id="harp"><font size=
+"2"><font color="purple">[23]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Liskov, B., Ghemawat, S., Gruber, R.,
+Johnson, P., Shrira, L., and Williams, M.</span> Replication in the
+Harp file system. In <em>Proc. of the 13th ACM Symposium on
+Operating System Principles</em> (Oct. 1991),
+pp.&nbsp;226&ndash;38.</font></dd>
+<dt class="dt-list"><a name="LHRS" id="LHRS"><font size=
+"2"><font color="purple">[24]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Litwin, W., and Schwarz, T.</span> LH* RS
+: A high-availability scalable distributed data structure using
+reed solomon codes. In <em>Proc. of the 2000 ACM SIGMOD Intl.
+Conference on Management of Data</em> (May 2000),
+pp.&nbsp;237&ndash;248.</font></dd>
+<dt class="dt-list"><a name="comon:osr" id="comon:osr"><font size=
+"2"><font color="purple">[25]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Park, K.&nbsp;S., and Pai, V.</span>
+CoMon: a mostly-scalable monitoring system for PlanetLab. <em>ACM
+SIGOPS Operating Systems Review 40</em>, 1 (Jan. 2006),
+65&ndash;74.
+<tt>http://comon.cs.princeton.edu/</tt></font><font size=
+"2">.</font></dd>
+<dt class="dt-list"><a name="raid:sigmod1988" id=
+"raid:sigmod1988"><font size="2"><font color=
+"purple">[26]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Patterson, D., Gibson, G., and Katz,
+R.</span> A case for redundant arrays of inexpensive disks (RAID).
+In <em>Proc. of the ACM SIGMOD International Conference on
+Management of Data</em> (June 1988).</font></dd>
+<dt class="dt-list"><a name="snapmirror:fast2002" id=
+"snapmirror:fast2002"><font size="2"><font color=
+"purple">[27]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Patterson, H., Manley, S., Federwisch,
+M., Hitz, D., Kleiman, S., and Owara, S.</span> Snapmirror: File
+system based asynchronous mirroring for disaster recovery. In
+<em>Proc. of the 1st USENIX Conference on File and Storage
+Technologies</em> (Jan. 2002).</font></dd>
+<dt class="dt-list"><a name="planetlab" id="planetlab"><font size=
+"2"><font color="purple">[28]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Peterson, L., Anderson, T., Culler, D.,
+and Roscoe, T.</span> A blueprint for introducing disruptive
+technology into the Internet. In <em>Proc. of the First ACM
+Workshop on Hot Topics in Networks</em> (Oct. 2002).
+<tt>http://www.planet-lab.org</tt></font><font size=
+"2">.</font></dd>
+<dt class="dt-list"><a name="longrunning:infocom2006" id=
+"longrunning:infocom2006"><font size="2"><font color=
+"purple">[29]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Ramabhadran, S., and Pasquale, J.</span>
+Analysis of long-running replicated systems. In <em>Proc. of the
+25th IEEE Annual Conference on Computer Communications
+(INFOCOM)</em> (Apr. 2006).</font></dd>
+<dt class="dt-list"><a name="pond:fast2003" id=
+"pond:fast2003"><font size="2"><font color=
+"purple">[30]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Rhea, S., Eaton, P., Geels, D.,
+Weatherspoon, H., Zhao, B., and Kubiatowicz, J.</span> Pond: the
+OceanStore prototype. In <em>Proc. of the 2nd USENIX Conference on
+File and Storage Technologies</em> (Apr. 2003).</font></dd>
+<dt class="dt-list"><a name="bamboo:usenix2004" id=
+"bamboo:usenix2004"><font size="2"><font color=
+"purple">[31]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Rhea, S., Geels, D., Roscoe, T., and
+Kubiatowicz, J.</span> Handling churn in a DHT. In <em>Proc. of the
+2004 Usenix Annual Technical Conference</em> (June
+2004).</font></dd>
+<dt class="dt-list"><a name="codingvsreplication2:iptps2005" id=
+"codingvsreplication2:iptps2005"><font size="2"><font color=
+"purple">[32]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Rodrigues, R., and Liskov, B.</span> High
+availability in DHTs: Erasure coding vs. replication. In <em>Proc.
+of the 4th International Workshop on Peer-to-Peer Systems</em>
+(Feb. 2005).</font></dd>
+<dt class="dt-list"><a name="saito-2004-fab" id=
+"saito-2004-fab"><font size="2"><font color=
+"purple">[33]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Saito, Y., Froelund, S., Veitch, A.,
+Merchant, A., and Spence, S.</span> FAB: building distributed
+enterprise disk arrays from commodity components. In <em>Proc. of
+the 11th Intl. Conference on Architectural Support for Programming
+Languages and Operating Systems</em> (New York, NY, 2004), ACM
+Press, pp.&nbsp;48&ndash;58.</font></dd>
+<dt class="dt-list"><a name="usenetdht:iptps04" id=
+"usenetdht:iptps04"><font size="2"><font color=
+"purple">[34]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Sit, E., Dabek, F., and Robertson,
+J.</span> UsenetDHT: A low overhead Usenet server. In <em>Proc. of
+the 3rd International Workshop on Peer-to-Peer Systems</em> (Feb.
+2004).</font></dd>
+<dt class="dt-list"><a name="overcite:iptps2005" id=
+"overcite:iptps2005"><font size="2"><font color=
+"purple">[35]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Stribling, J., Councill, I.&nbsp;G., Li,
+J., Kaashoek, M.&nbsp;F., Karger, D.&nbsp;R., Morris, R., and
+Shenker, S.</span> OverCite: A cooperative digital research
+library. In <em>Proc. of the 4th International Workshop on
+Peer-to-Peer Systems</em> (Feb. 2005).</font></dd>
+<dt class="dt-list"><a name="overcite:nsdi2006" id=
+"overcite:nsdi2006"><font size="2"><font color=
+"purple">[36]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Stribling, J., Li, J., Councill,
+I.&nbsp;G., Kaashoek, M.&nbsp;F., and Morris, R.</span> Exploring
+the design of multi-site web services using the OverCite digital
+library. In <em>Proc. of the 3rd Symposium on Networked Systems
+Design and Implementation</em> (May 2006).</font></dd>
+<dt class="dt-list"><a name="objmaint:iptps2006" id=
+"objmaint:iptps2006"><font size="2"><font color=
+"purple">[37]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Tati, K., and Voelker, G.&nbsp;M.</span>
+On object maintenance in peer-to-peer systems. In <em>Proc. of the
+5th International Workshop on Peer-to-Peer Systems</em> (Feb.
+2006).</font></dd>
+<dt class="dt-list"><a name="chains:osdi2004" id=
+"chains:osdi2004"><font size="2"><font color=
+"purple">[38]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">van Renesse, R., and Schneider,
+F.&nbsp;B.</span> Chain replication for supporting high throughput
+and availability. In <em>Proc. of the 6th Symposium on Operating
+Systems Design and Implementation</em> (Dec. 2004).</font></dd>
+<dt class="dt-list"><a name="weatherspoon05" id=
+"weatherspoon05"><font size="2"><font color=
+"purple">[39]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Weatherspoon, H., Chun, B.-G., So,
+C.&nbsp;W., and Kubiatowicz, J.</span> Long-term data maintenance
+in wide-area storage systems: A quantitative approach. Tech. Rep.
+UCB//CSD-05-1404, U. C. Berkeley, July 2005.</font></dd>
+<dt class="dt-list"><a name="codingvsreplication:iptps02" id=
+"codingvsreplication:iptps02"><font size="2"><font color=
+"purple">[40]</font></font></a></dt>
+<dd class="dd-list"><font size="2"><span style=
+"font-variant:small-caps">Weatherspoon, H., and Kubiatowicz,
+J.&nbsp;D.</span> Erasure coding vs. replication: A quantitative
+comparison. In <em>Proc. of the 1st International Workshop on
+Peer-to-Peer Systems</em> (Mar. 2002).</font></dd>
+</dl>
+<!--BEGIN NOTES document-->
+<hr width="50%" size="1" />
+<dl class="list">
+<dt class="dt-list"><a name="note1" href="#text1" id=
+"note1"></a></dt>
+<dd class="dd-list"> This research was supported by the
+National Science Foundation under Cooperative Agreement
+No.&nbsp;ANI-0225660, <tt>http://project-iris.net/</tt>. Andreas
+Haeberlen was supported in part by the Max Planck Society. Emil Sit
+was supported in part by the Cambridge-MIT Institute. Hakim
+Weatherspoon was supported by an Intel Foundation PhD
+Fellowship.</dd>
+</dl>
+
+<!-- END OF PAGE CONTENTS -->
+</td></tr></table></td>
+
+<!--Right Border-->
+<td width="2" valign="top" bgcolor="#CCCCCC"><img src="../../../art/dot_clear.gif" width="2" height="1" alt=""></td>
+
+</tr>
+<tr><td colspan="3" bgcolor="#CCCCCC" width="750" height="2"><img src="../../../art/dot_clear.gif" width="1" height="2" alt=""></td></tr>
+<tr><td colspan="3" width="750" height="5"><img src="../../../art/dot_clear.gif" width="1" height="5" alt=""></td></tr>
+</table>
+
+<TABLE BORDER="0" WIDTH="750" CELLSPACING="0" CELLPADDING="0">
+<TR>
+<TD VALIGN="TOP" width="500">
+<FONT SIZE="-1" FACE="arial, verdana, helvetica, sans-serif">
+This paper was originally published in the Proceedings of the
+3rd Symposium on Networked Systems Design and Implementation (NSDI '06)<BR>
+May 8&#150;10, 2006, San Jose, CA 
+<br clear="left">
+<img src="../../../art/dot_clear.gif" width=1 height=5 alt=""><br><img src="../../../art/dot_clear.gif" width="1" height="5" alt=""><br>
+<i>Last changed: 3 May 2006 jel</i><br><img src="../../../art/dot_clear.gif" width="1" height="5" alt=""><br>
+</TD>
+
+<TD VALIGN="TOP" width="250">
+<!-- Upwards Navigation Table -->
+
+<div class="menu">
+<FONT SIZE="-1" FACE="arial, verdana, helvetica, sans-serif">
+<a href="../../../index.html">NSDI '06 Technical Program</a>
+<br><img src="../../../art/dot_clear.gif" width="1" height="5" alt=""><br>
+<a href="http://www.usenix.org/events/nsdi06/index.html" target="other">NSDI '06 Home</a>
+<br><img src="../../../art/dot_clear.gif" width="1" height="5" alt=""><br>
+<a href="http://www.usenix.org" target="other">USENIX Home</a>
+
+</div>
+
+<!-- End of Upwards Navigation Table -->
+
+</TD></TR></TABLE>
+</CENTER>
+</DIV>
+</BODY>
+</HTML>
+

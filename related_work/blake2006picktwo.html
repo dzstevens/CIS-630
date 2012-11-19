@@ -1,0 +1,972 @@
+
+
+
+<html><head><title>
+HotOS IX &#151; Paper</title>
+</head>
+
+<a href="http://www.usenix.org"><img src="/graphics/new_usenix.jpg" width="288" height="232" alt="Check out the new USENIX Web site." align="right"></a>
+
+<!-- IE understands topmargin, leftmargin, rightmargin, NS understands marginheight -->
+<body BGCOLOR="#ffffff" TEXT="#000000"  link="#990000" alink="#666666" vlink="#666666" TOPMARGIN="0" LEFTMARGIN="0" RIGHTMARGIN="0" MARGINHEIGHT="0">
+<!-- Banner -->
+<table BGCOLOR="#ffffff" BORDER="0" WIDTH="100%" CELLSPACING="0" CELLPADDING="0">
+<tr><td ALIGN="LEFT" VALIGN="TOP"><table BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="600"><tr><td>
+<table border="0" cellpadding="0" cellspacing="0" width="600">
+<!-- space at top -->
+<tr><td colspan="13"><img src="/graphics/dot_clear.gif" width="1" height="5" alt=""><br></td></tr>
+ <tr><!-- row 1 -->
+   <td colspan="13"><img src="/graphics/smalltop.gif" width="600" height="6" border="0" alt=""></td>
+
+  </tr>
+
+  <tr><!-- row 2 -->
+   <td rowspan="2"><img src="/graphics/smallleft.gif" width="102" height="23" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="/"><img src="/graphics/smallhome.gif" width="38" height="16" border="0" alt="Home"></a></td>
+   <td bgcolor="#666666"><img src="/graphics/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="/about"><img src="/graphics/smallabout.gif" width="90" height="16" border="0" alt="About USENIX"></a></td>
+   <td bgcolor="#666666"><img src="/graphics/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a HREF="/events"><img src="/graphics/smallevents.gif" width="42" height="16" border="0" alt="Events"></a></td>
+
+   <td bgcolor="#666666"><img src="/graphics/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a HREF="/membership"><img src="/graphics/smallmembership.gif" width="78" height="16" border="0" alt="Membership"></a></td>
+   <td bgcolor="#666666"><img src="/graphics/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="/publications"><img src="/graphics/on/smallpublications.gif" width="77" height="16" border="0" alt="Publications"></a></td>
+   <td bgcolor="#666666"><img src="/graphics/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="/students"><img src="/graphics/smallstudents.gif" width="54" height="16" border="0" alt="Students"></a></td>
+   <td bgcolor="#666666"><img src="/graphics/smallright16.gif" width="34" height="16" border="0" alt=""></td>
+  </tr>
+
+  <tr><!-- row 3 -->
+   <td colspan=12 bgcolor="#666666"><img src="/graphics/dot_clear.gif" width="2" height="7" border="0" alt=""></td>
+  </tr>
+
+</table>
+</td></tr></table></td></tr></table>
+<!-- End of Banner -->
+
+
+<table width=100% border=0 cellspacing=0 cellpadding=8><tr><td>
+
+
+<font SIZE="+1" COLOR="#990000" FACE="verdana, arial, helvetica, sans-serif"><b>HotOS IX Paper</b></font>&nbsp&nbsp&nbsp
+
+<font SIZE="-1" FACE="verdana, arial, helvetica, sans-serif">[<a href="/events/hotos03/program.html">HotOS IX  Program Index</a>]</font>
+<p>
+<!-- START OF PAGE CONTENTS -->
+
+
+
+    
+<h1 align="center"><font size="+2"><b>High Availability, Scalable Storage, Dynamic Peer Networks: Pick Two</b></font> </h1>
+
+<p>
+
+<h3 align=center>Charles Blake &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Rodrigo Rodrigues      <br />
+	&nbsp;&nbsp; cb@mit.edu &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rodrigo@lcs.mit.edu <br />
+        &nbsp; <em>MIT Laboratory for Computer Science</em>       </h3>
+
+<p>
+
+<h3>Abstract</h3>
+Peer-to-peer storage aims to build large-scale, reliable and available
+storage from many small-scale unreliable, low-availability distributed
+hosts.
+Data redundancy is the key to any data guarantees.
+However, preserving redundancy in the face of highly dynamic membership is
+costly.
+We use a simple resource usage model to measured behavior from the Gnutella
+file-sharing network to argue that large-scale cooperative storage is limited
+by likely dynamics and cross-system bandwidth&nbsp;-&nbsp;not by local disk space.
+We examine some bandwidth optimization strategies like delayed response
+to failures, admission control, and load-shifting and find that they
+do not alter the basic problem.
+We conclude that when redundancy, data scale, and dynamics are all high,
+the needed cross-system bandwidth is unreasonable.
+
+<p>
+       <h2><a name="tth_sEc1">
+1</a>&nbsp;&nbsp;Introduction</h2>
+<a name="sec:intro">
+</a>
+Recent systems (CAN, Chord, Pastry, or Tapestry&nbsp;[<a href="#CAN:sigcomm01" name="CITECAN:sigcomm01">Ratnasamy et&nbsp;al., 2001</a>,
+<a href="#Chord:sigcomm2001"> Stoica et al., 2001</a>,
+<a href="#pastry01">Rowstron and Druschel, 2001a</a>,
+<a href="#tapestry:tech">Zhao et&nbsp;al., 2001</a>
+]) enable peer-to-peer lookup
+overlays robust to intermittent participation and scalable to many
+unreliable nodes with fast membership dynamics.
+Some papers&nbsp;([<a href="#cacm_look" name="CITEcacm_look">Balakrishnan et&nbsp;al., 2003</a>, <a href="#cacm_kubi" name="CITEcacm_kubi">Kubiatowicz, 2003</a>]) express a hope that, with extra data
+redundancy, <em>storage</em> can inherit scalability and robustness from the
+underlying lookup procedure.
+More work still&nbsp;([<a href="#cfs" name="CITEcfs">Dabek et&nbsp;al., 2001</a>, <a href="#past:sosp" name="CITEpast:sosp">Rowstron and Druschel, 2001b</a>]) <em>implies</em> this hope by using robust
+lookup as a foundation for wide-area storage layers, even though this
+complicates other desirable properties (e.g., server selection).
+
+<p>
+This paper argues that trying to achieve all three things&nbsp;-&nbsp;scalability,
+storage guarantees, and resilience to highly dynamic membership&nbsp;-&nbsp;overreaches
+bandwidth resources likely to be available, regardless of lookup.
+Our argument is roughly as follows.
+Simple considerations and current hardware deployment suggest that idle
+upstream bandwidth is the limiting resource that volunteers contribute,
+not idle disk space.
+Further, since disk space grows much faster than access point bandwidth,
+bandwidth is likely to become even more scarce relative to disk space.
+
+<p>
+We elaborate this argument in the next section using a generic
+resource usage model to estimate conservatively the costs associated with
+maintaining redundancy in systems built from unreliable parts.
+Section&nbsp;<a href="#sec:avail">3</a> adapts our model to accommodate hosts
+which are temporarily unavailable but have not lost their data.
+Section&nbsp;<a href="#sec:discuss">4</a> discusses other issues such as admission control
+or load-shifting, hardware trends, and the importance of incentives.
+Along the way we use numbers from Gnutella, a real peer-to-peer system,
+to highlight how bandwidth contributions are the serious limit to scaling data.
+We conclude in Section&nbsp;<a href="#sec:conclude">5</a>.
+
+<p>
+       <h2><a name="tth_sEc2">
+2</a>&nbsp;&nbsp;A Simple Model</h2>
+<a name="sec:model">
+</a>
+In this section we consider the bandwidth necessary for reliable
+peer-to-peer storage.
+We present a simple analytic model for bandwidth usage that attempts
+to provide broad intuition and still apply in some approximation to
+currently proposed systems.
+
+<p>
+     <h3><a name="tth_sEc2.1">
+2.1</a>&nbsp;&nbsp;Assumptions</h3>
+
+<p>
+We assume a simple redundancy maintenance algorithm: whenever
+a node leaves or joins the system, the data that node either held or
+will hold must be downloaded from somewhere.
+Note that by <em>join</em> and <em>leave</em> we mean really joining the
+system for the first time or leaving forever.
+We do not refer to transient failures, but rather the intentional or
+accidental loss of the contributed data.
+Section&nbsp;<a href="#sec:avail">3</a> elaborates this model to account for 
+temporary disconnections that may not trigger data transfers.
+We also assume there is a static data placement strategy (i.e., a function
+from the current membership to the set of replicas of each block).
+
+<p>
+We make a number of simplifying assumptions.
+Each one is <em>conservative</em>&nbsp;-&nbsp;increased realism would increase the
+bandwidth required.
+Note that any storage guarantee effectively insists that the probability
+of not getting a datum is below some threshold.
+The time to create new nodes must therefore consider the worst-case
+accidents of data distribution and other variations.
+Therefore, the fact that we perform an average case analysis makes
+our model conservative.
+
+<p>
+We assume identical per-node space and bandwidth contributions.
+In reality, nodes may store different amounts of data and have
+different bandwidth capabilities.
+Maintaining redundancy may require in certain cases more bandwidth
+than the average bandwidth.
+Creating more capable nodes from a set of less capable nodes might
+take more time.
+Average space and bandwidth therefore conservatively bound the
+worst case which is the relevant bound for a guarantee.
+
+<p>
+We assume a constant rate of joining and leaving.
+As with resource contributions, the worst case is a more appropriate
+figure to use for any probabilistic bound.
+The average rate bounds the maximum rate from below, which is again
+conservative.
+We also assume independence of leave events.
+Since failures of networks and machines are not truly independent,
+more redundancy would really be required to provide truer guarantees.
+
+<p>
+We assume a constant steady-state number of nodes and total data size.
+A decreasing population requires more bandwidth while an increasing one
+cannot be sustained indefinitely.
+It would also be more realistic to assume data increases with time or
+changes which would again require more bandwidth.
+
+<p>
+     <h3><a name="tth_sEc2.2">
+2.2</a>&nbsp;&nbsp;Data Maintenance Model</h3>
+
+<p>
+Consider a set of N identical hosts which cooperatively provide
+guaranteed storage over the network.
+Nodes are added to the set at rate &alpha and leave at rate
+&lambda, but the average system size is constant, i.e. &alpha = &lambda.
+On average, a node stays a member for T = N / &lambda.
+
+<p>
+Our data model is that the system reliably stores a total of D bytes of
+unique data stored with a redundancy expansion factor k, for a total of
+S = kD bytes of contributed storage.
+One may think of k as either the replication factor or the expansion due
+to coding.
+The desired value of k depends on both the storage guarantees and redundant
+encoding scheme and is discussed more in the next section.
+
+<p>
+We now consider the data maintenance bandwidth required to maintain
+this redundancy in the presence of a dynamic membership.
+Note that the model does not consider the bandwidth consumed by queries,
+and therefore we present a conservative bandwidth estimate.
+
+<p>
+Each node <em>joining</em> the overlay must download all the data which it must
+later serve, however that subset of data might be mapped to it.
+The average size of this transfer is S/N.
+Join events happen every 1/&alpha time units.
+So the aggregate bandwidth to deal with nodes joining the overlay is
+(&alpha S)/N, or S/T.
+
+<p>
+When a node <em>leaves</em> the overlay, all the data it housed must be
+copied over to new nodes, otherwise redundancy would be lost.
+Thus, each leave event also leads to the transfer of S/N bytes of data.
+Leaves therefore also require an aggregate bandwidth of
+(&lambda S)/N, or S/T.
+The total bandwidth usage for all data maintenance is then 2S/T,
+or a per node average of:
+
+<p>
+<a name="eq:bw">
+</a>
+<br clear="all" /><table border="0" width="65%"><tr><td>
+<table border="0" width="80%" align="right"><tr><td nowrap="nowrap" align="right">
+<table><tr><td nowrap="nowrap" align="right" colspan="0">B/N = 2</td><td nowrap="nowrap" align="center">
+S/N<hr noshade="noshade" />T<br /></td><td nowrap="nowrap" align="center">
+,&nbsp;&nbsp;or&nbsp;&nbsp; BW/node = 2 </td><td nowrap="nowrap" align="center">
+space/node<hr noshade="noshade" />lifetime<br /></td><td nowrap="nowrap" align="center">
+</td></tr></table></td><td width="1" align="right">(1)</TD></TR></table>
+</td></tr></table>
+
+<p>
+
+<p>
+<a name="tth_fIg1">
+
+<center>
+<IMG SRC="scaling_dialup.png" WIDTH=450>
+<IMG SRC="scaling_cable.png" WIDTH=450>
+</center>
+
+<center>Figure 1: 
+Log-Log plots for the participation requirements of a) dial-up
+and b) cable modem networks.
+Plotted are thresholds below which various amounts of unique data
+will incur over 50% link saturation just to maintain the data.
+These use a redundancy k = 20.<a name="fig:scaling">
+</a></center>
+
+<p>
+     <h3><a name="tth_sEc2.3">
+2.3</a>&nbsp;&nbsp;Understanding the Scaling</h3>
+<a name="sec:scenario">
+</a>
+
+<p>
+Figure&nbsp;<a href="#fig:scaling">1</a> plots some example "threshold curves"  in the
+lifetime-membership plane.
+This is the basic participation space of the system.
+More popular systems will have more hosts, and those hosts will stay
+members longer.
+Points below a line for a particular data scale require data maintenance
+bandwidth in excess of the available bandwidth.
+We plot thresholds for maintenance <em>alone</em> consuming half the total
+link capacity for dial-ups and cable modems.
+The data scales we chose, 1&nbsp;TB, 50&nbsp;TB, and 1000&nbsp;TB, might very roughly
+correspond to a medium-sized music archive, a large music archive, and a small
+video archive (a few thousand movies), respectively.
+
+<p>
+There are two basic points to take away from these plots.
+First, short membership times create a need for enormous node counts
+to support interesting data scales.
+E.g., a million cable modem users must each provide a <em>continuous month</em>
+of service to maintain 1000&nbsp;TB even if no one ever actually queries the data!
+Second, this strongly impacts how fast the storage of such a network can grow.
+At a monthly turnover rate, each cable modem must contribute less than 1&nbsp;GB
+of unique data, or 20&nbsp;GB of total storage.
+Given that PCs last only a few years and a few years ago 80&nbsp;GB disks were
+standard on new PCs, 20&nbsp;GB is likely about or below current idle capacity.
+
+<p>
+Figure&nbsp;<a href="#fig:scaling">1</a> uses a fixed redundancy factor k = 20.
+The actual redundancy necessary depends on T, N, probability targets
+for data loss or availability.
+Section&nbsp;<a href="#sec:avail">3</a> examines in more detail the necessary k for both
+replication-style and erasure coded redundancy for availability.
+
+<p>
+       <h2><a name="tth_sEc3">
+3</a>&nbsp;&nbsp;Availability and Redundancy</h2>
+<a name="sec:avail">
+</a>
+This section expands our model to include hosts that are transiently
+disconnected and estimates redundancy requirements in more detail.
+
+<p>
+     <h3><a name="tth_sEc3.1">
+3.1</a>&nbsp;&nbsp;Downtime vs. Departure</h3>
+
+<p>
+So far our calculations have assumed that the resources a host contributes
+are always available.
+Real hosts vary greatly in
+availability&nbsp;[<a href="#savage:iptps" name="CITEsavage:iptps">Bhagwan et&nbsp;al., 2003</a>, <a href="#farsite:study" name="CITEfarsite:study">Bolosky et&nbsp;al., 2000</a>, <a href="#gribble:study" name="CITEgribble:study">Saroiu et&nbsp;al., 2002</a>].
+The previous section shows that it takes a lot of bandwidth to preserve
+redundancy upon departures.
+So it helps to distinguish true departures from temporary downtime,
+as in&nbsp;[<a href="#savage:iptps" name="CITEsavage:iptps">Bhagwan et&nbsp;al., 2003</a>].
+
+<p>
+Our model for how systems distinguish true departures from transient failures
+is a membership timeout, &tau, that measures how long the system delays its
+response to failures.
+I.e., the process of making new hosts responsible for a host's data does not
+begin until that host has been out of contact for longer than time &tau.
+
+<p>
+Counting offline hosts as members has two consequences.
+First, member lifetimes are longer since transient failures are not
+considered leaves.
+Second, hosts serve data for a <em>fraction</em> of the time that they
+are members (or a fraction of members serve data at a given moment).
+We define this fraction to be the availability, a.
+
+<p>
+Since only a fraction of the members serve data at a time, more redundancy is
+needed to achieve the same level of availability.
+Also, the effective bandwidth contributed per node is reduced since these nodes
+serve only a fraction of the time.
+Thus, the membership lifetime benefits gained by delayed response to failures
+are offset by the need for increased redundancy and reduced effective
+bandwidth.
+To understand this effect more quantitatively we must first know the needed
+redundancy.
+
+<p>
+     <h3><a name="tth_sEc3.2">
+3.2</a>&nbsp;&nbsp;Needed Redundancy: Replication</h3>
+
+<p>
+First we compute the data expansion needed for high availability in the
+context of replication-style redundancy.
+Note that availability implies reliability since lost data is
+inherently unavailable.
+
+<p>
+Average lifetime now depends on timeout:  T&nbsp; = &nbsp;T<sub>&tau</sub>.
+System size and availability also depend on &tau, and
+N<sub>&tau</sub> = N<sub>0</sub>/a<sub>&tau</sub>, by our definition of availability.
+
+<p>
+We wish to know the replication factor, k<sub>a</sub>, needed to achieve some
+per object unavailability target, &epsilon<sub>a</sub>.
+(I.e., 1-&epsilon<sub>a</sub> has some "number of 9s".)
+
+<p>
+	         
+<br clear="all" /><table border="0" width="100%"><tr><td>
+<table border="0" width="80%" align="right"><tr><td nowrap="nowrap" align="right">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+&epsilon<sub>a</sub> </td></tr></table></td><td nowrap="nowrap" align="left">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+ = </td></tr></table></td><td nowrap="nowrap" align="left">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+P(object&nbsp; o &nbsp;is&nbsp;unavailable) </td></tr></table></TD></TR><tr><td nowrap="nowrap" align="right" colspan="0"><table border="0"><tr><td nowrap="nowrap" Align="left">
+ </td></tr></table></td><td nowrap="nowrap" align="left">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+ = </td></tr></table></td><td nowrap="nowrap" align="left">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+P(all&nbsp; k<sub>a</sub> &nbsp;replicas&nbsp;of&nbsp; o&nbsp;are&nbsp;unavailable) </td></tr></table></TD></TR><tr><td nowrap="nowrap" align="right" colspan="0"><table border="0"><tr><td nowrap="nowrap" Align="left">
+ </td></tr></table></td><td nowrap="nowrap" align="left">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+ = </td></tr></table></td><td nowrap="nowrap" align="left">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+P(one&nbsp;replica&nbsp;is&nbsp;unavailable)<sup>k<sub>a</sub></sup> </td></tr></table></TD></TR><tr><td nowrap="nowrap" align="right" colspan="0"><table border="0"><tr><td nowrap="nowrap" Align="left">
+ </td></tr></table></td><td nowrap="nowrap" align="left">
+<table border="0"><tr><td nowrap="nowrap" Align="left">
+ = </td></tr></table></td><td nowrap="nowrap" align="left">
+<table><tr><td nowrap="nowrap" align="right" colspan="0">(1 - a<sub>&tau</sub>)<sup>k<sub>a</sub></sup></td></tr></table></TD></TR></table>
+</td></tr></table>
+
+
+which upon solving for k<sub>a</sub> yields
+
+<p>
+<a name="eq:ka">
+</a>
+<br clear="all" /><table border="0" width="100%"><tr><td>
+<table align="center"><tr><td nowrap="nowrap" align="center">
+  k<sub>a</sub> = </td><td nowrap="nowrap" align="center">
+log &epsilon<sub>a</sub><hr noshade="noshade" />log(1 - a<sub>&tau</sub>)<br /></td><td nowrap="nowrap" align="center">
+&asymp;  </td><td nowrap="nowrap" align="center">
+log 1/&epsilon<sub>a</sub><hr noshade="noshade" />a<sub>&tau</sub> <br /></td><td nowrap="nowrap" align="center">
++ O(a<sup>2</sup>)</td></tr></table>
+</td><td width="1%">(2)</td></tr></table>
+
+
+
+<p>
+We can now evaluate the tradeoff between data maintenance bandwidth and
+membership timeout.
+We account for partial availability by replacing B with a<sub>&tau</sub> B 
+in Equation&nbsp;(<a href="#eq:bw">1</a>).
+Solving for B/N and substituting Equation&nbsp;(<a href="#eq:ka">2</a>) gives:
+
+<p>
+<a name="eq:btau">
+</a>
+<br clear="all" /><table border="0" width="100%"><tr><td>
+<table align="center"><tr><td nowrap="nowrap" align="center">
+  B<sub>&tau</sub>/N<sub>&tau</sub> = </td><td nowrap="nowrap" align="center">
+2 k<sub>a</sub> D<hr noshade="noshade" />N<sub>&tau</sub> a<sub>&tau</sub> T<sub>&tau</sub> <br /></td><td nowrap="nowrap" align="center">
+ = </td><td nowrap="nowrap" align="center">
+2 D<hr noshade="noshade" />N<sub>&tau</sub> a<sub>&tau</sub> T<sub>&tau</sub> <br /></td><td nowrap="nowrap" align="center">
+</td><td nowrap="nowrap" align="center">
+log &epsilon<sub>a</sub><hr noshade="noshade" />log(1 - a<sub>&tau</sub>)<br /></td><td nowrap="nowrap" align="center">
+</td></tr></table>
+</td><td width="1%">(3)</td></tr></table>
+
+
+
+<p>
+To apply Equation&nbsp;(<a href="#eq:btau">3</a>) we must know N<sub>&tau</sub>, a<sub>&tau</sub>,
+and T<sub>&tau</sub>, which all depend upon participant behavior.
+We estimate these parameters using data we collected in a measurement
+study of the availability of hosts in the Gnutella file sharing
+network.
+We used a methodology similar to a previous
+study&nbsp;[<a href="#gribble:study" name="CITEgribble:study">Saroiu et&nbsp;al., 2002</a>], except that we allowed our crawler to
+extract the entire membership, therefore giving us a precise estimate
+of N<sub>&tau</sub>.
+Our measurements took place between April 11, 2003 and April 19, 2003.
+
+<p>
+Figure&nbsp;<a href="#fig:btau">2</a> suggests that discriminating downtime from
+departure can lead to a factor of 30 savings in maintenance bandwidth.
+It seems hopeless to field even 1&nbsp;TB at high availability with
+Gnutella-like participation.
+
+<p>
+
+<p>
+<a name="tth_fIg2"></a>
+<center><IMG SRC="membtmout.png" WIDTH=450></center>
+
+<center>Figure 2: 
+Per node bandwidth to maintain 1&nbsp;TB of unique data at 6 nines of
+per-object availability with the system dynamics of 33,000 Gnutella hosts.
+Bandwidth is lessened by longer delays responding to failures,
+but remains quite large in terms of home Internet users.
+Each host contributes only about 3&nbsp;GB.
+<a name="fig:btau">
+</a></center>
+
+<p>
+
+     <h3><a name="tth_sEc3.3">
+3.3</a>&nbsp;&nbsp;Needed Redundancy: Erasure Coding</h3>
+
+<p>
+A technique that has been proposed by several systems is the use of
+erasure coding&nbsp;[<a href="#oceanstore:erasurecoding" name="CITEoceanstore:erasurecoding">Weatherspoon and Kubiatowicz, 2002</a>,].
+This is more efficient than conventional replication since the
+increased intra-object redundancy allows the same level of
+availability to be achieved with much smaller additional redundancy.
+We now exhibit the analogue of Equation&nbsp;(<a href="#eq:ka">2</a>) for the case of
+erasure coding.
+
+<p>
+With an erasure-coded redundancy scheme, each object is divided into b
+blocks which are then stored with an effective redundancy factor k<sub>c</sub>.
+The object can be reconstructed from any available m blocks taken from
+the stored set of k<sub>c</sub> b blocks (where m &asymp; b).
+Object availability is given by the probability that at least b out
+of k<sub>c</sub> b blocks are available:
+
+<p>
+
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="230" HEIGHT="57" BORDER="0"
+ SRC="img57.png"
+ ALT="\begin{displaymath}
+1 - \epsilon_a = \sum_{i=b}^{k_c b}
+{i \atopwithdelims ( ) {k_c b}} a^i (1-a)^{k_c b - i}.
+\end{displaymath}">
+</DIV><BR CLEAR="ALL">
+
+<p>
+
+<!--  <br clear="all" /><table border="0" width="100%"><tr><td> -->
+<!--  <table align="center"><tr><td nowrap="nowrap" align="center"> -->
+<!--   1 <font face="symbol">-</font -->
+<!--  > <font face="symbol">e</font -->
+<!--  ><sub>a</sub> = </td><td nowrap="nowrap" align="center"> -->
+<!--  <font size="-1">k<sub>c</sub> b</font><!--sup -->
+<!--  <font size="-1">i = b</font>&nbsp;<br /></td><td nowrap="nowrap" align="center"> -->
+<!--  i\atopwithdelims ( ) k<sub>c</sub> b a<sup>i</sup> (1<font face="symbol">-</font -->
+<!--  >a)<sup>k<sub>c</sub> b <font face="symbol">-</font -->
+<!--  > i</sup>.</td></tr></table> -->
+<!--  </td></tr></table> -->
+
+
+Using algebraic simplifications and the normal approximation to the binomial
+distribution (see&nbsp;[<a href="#savage-replication" name="CITEsavage-replication">Bhagwan et&nbsp;al., 2002</a>]), we get the following formula
+for the erasure coding redundancy factor and then expand it in a Taylor series:
+
+<p>
+<a name="eq:kc">
+</a>	       
+
+<DIV ALIGN="CENTER"><A NAME="eq:kc"></A>
+<!-- MATH
+ \begin{eqnarray}
+k_c &=& \left( \frac{\sigma_\epsilon \sqrt{\frac{a(1-a)}{b}} +
+	       \sqrt{\frac{\sigma_\epsilon^2 a (1-a)}{b}+4a}}{2 a}\right)^2 \\
+      &\approx& \frac{\sigma_\epsilon^2}{4b}(1 + q)^2 q^{-\frac{1}{2}}
+                (\frac{1}{a} - \frac{1}{q} + O(a)) \\
+      \nonumber
+      &where& q=\sqrt{1+\frac{4b}{\sigma_\epsilon^2}}.
+\end{eqnarray}
+ -->
+<TABLE ALIGN="CENTER" CELLPADDING="0" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP ALIGN="RIGHT">k<sub>c</sub></TD>
+<TD ALIGN="CENTER" NOWRAP>=</TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="247" HEIGHT="86" ALIGN="MIDDLE" BORDER="0"
+ SRC="img60.png"
+ ALT="$\displaystyle \left( \frac{\sigma_\epsilon \sqrt{\frac{a(1-a)}{b}} +
+\sqrt{\frac{\sigma_\epsilon^2 a (1-a)}{b}+4a}}{2 a}\right)^2$"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(4)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP ALIGN="RIGHT">&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&asymp;</TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="216" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img62.png"
+ ALT="$\displaystyle \frac{\sigma_\epsilon^2}{4b}(1 + q)^2 q^{-\frac{1}{2}}
+(\frac{1}{a} - \frac{1}{q} + O(a))$"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(5)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP ALIGN="RIGHT">&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>where</TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="101" HEIGHT="67" ALIGN="MIDDLE" BORDER="0"
+ SRC="img64.png"
+ ALT="$\displaystyle q=\sqrt{1+\frac{4b}{\sigma_\epsilon^2}}.$"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+</TABLE></DIV><BR CLEAR="ALL"><P></P>
+
+<p>
+
+&sigma<sub>&epsilon</sub> is the number of standard deviations in a normal
+distribution for the required level of availability, as
+in&nbsp;[<a href="#savage-replication" name="CITEsavage-replication">Bhagwan et&nbsp;al., 2002</a>].  E.g., &sigma<sub>&epsilon</sub> = 4.7 corresponds
+to six nines of availability.
+
+<p>
+<a name="tth_fIg3"></a>
+<center>
+<IMG SRC="rep-v-code.png" WIDTH=450>
+</center>
+
+<center>Figure 3: This graph shows that decreased availability from
+delayed response to failure causes a marked increase in the
+necessary redundancy.
+While coding beats replication, the bandwidth savings are only
+a factor of 8 for our Gnutella trace.
+<a name="fig:rep-v-code">
+</a></center>
+
+<p>
+Figure&nbsp;<a href="#fig:rep-v-code">3</a> shows the benefits of coding over replication
+when one uses b = 15 fragments.
+Rather than a replication factor of 120, one can achieve the same availability
+with only 15 times the storage using erasure codes, for large values of &tau,
+an 8-fold savings.
+This makes it borderline feasible to store 1&nbsp;TB of unique data with
+Gnutella-like participation and about 75&nbsp;Kbps while-up per node maintenance
+bandwidth.
+Utilization is correspondingly <em>lower</em> for the same amount of unique data.
+Only 500&nbsp;MB of disk per host is contributed.
+This is surely less than what peers are willing to donate.
+
+<p>
+Note that all of this is for maintenance only.
+It would be odd to engineer such highly availabile data and not read it.
+An actual load is hard to guess, but, as a rule of thumb, one would
+probably like maintenance to be less than half the total bandwidth.
+So, the total load one might expect would be greater than 150&nbsp;Kbps
+or just at the limit of what cable modems can provide.
+
+<p>
+This is also not very much service.
+Only 5,000 of the 33,000 Gnutella hosts were usually available.
+If all these hosts were cable modems, the aggregate bandwidth
+available would be about 500&nbsp;Mbps, or 250&nbsp;Mbps if half that
+is used for data maintenance.
+By comparison, the same level of service could be provided by five reliable,
+dedicated PCs, each with a few $300, 250&nbsp;GB drives and 50&nbsp;Mbps
+connections up 99% of the time.
+
+<p>
+       <h2><a name="tth_sEc4">
+4</a>&nbsp;&nbsp;Discussion</h2>
+<a name="sec:discuss">
+</a>
+
+<p>
+This section discusses other issues related to the agenda and design
+of large-scale peer-to-peer storage.
+
+<p>
+     <h3><a name="tth_sEc4.1">
+4.1</a>&nbsp;&nbsp;Admission Control, Load-Shifting</h3>
+
+<p>
+Another strategy to reduce redundancy maintenance bandwidth is to attempt
+to not admit highly volatile nodes or very similarly shift responsibility
+to non-volatile hosts.
+Fundamentally, this strategy weakens how dynamic and peer-symmetric the
+network one is envisioning.
+Indeed, a strong enough bias converts the problem into a garden variety
+distributed systems problem&nbsp;-&nbsp;building a larger storage from a small
+number of highly available collaborators.
+
+<p>
+<a name="tth_fIg4"></a>
+<center>
+<IMG SRC="service.png" WIDTH=450>
+</center>
+
+<center>Figure 4: 
+A graph showing how most service time in Gnutella is provided
+by a tiny fraction of hosts.
+5% of hosts provide 40% of the total service time in a three
+day subset of our trace.
+<a name="fig:service">
+</a></center>
+
+<p>
+As Figure&nbsp;<a href="#fig:service">4</a> shows, in Gnutella, the 5% most
+available hosts provide 29 of the total 72 service years or 40%.
+The availability of these 6,000 nodes is about 40% on average.
+If one is generous, one may also view this 5%-subset of more available
+hosts as a fairer model of the behavior of a hypothetical population of
+peer-to-peer participants.
+We repeated our analysis of earlier sections using just this subset of
+hosts with a one day membership timeout.
+The resulting bandwidth requirement is 30&nbsp;Kbps per node per unique-TB
+using coding.
+Using delayed response, coding, and admission control together enables a
+1000-fold savings in maintenance bandwidth over the bleak results at the
+left edge of Figure&nbsp;<a href="#fig:btau">2</a>.
+
+<p>
+The total scale of this storage remains bounded by bandwidth, though.
+If the 6,000 best 5% of Gnutella peers each donated 3&nbsp;GB each then a
+total of 3&nbsp;TB could be served with six nines of availability.
+These hosts would each use 100&nbsp;Kbps of maintenance bandwidth whenever
+they were participating.
+Assuming the query load was also about 100&nbsp;Kbps per host, cable modems
+would still be adequate to serve this data.
+The same service also could be supported by 10 universities, each using
+[1/3] of the typical OC3 connections and a $1,500 PC.
+
+<p>
+Stricter admission control rapidly leads to a subset 967 Gnutella hosts
+with 99.5% availability.
+This surpasses even observed enterprise wide behavior&nbsp;[<a href="#farsite:study" name="CITEfarsite:study">Bolosky et&nbsp;al., 2000</a>].
+The cost of this improvement is a reduction in service time by 10-fold.
+The real service reduction will depend on the correlation between availability
+and servable bandwidth.
+Ideally, this correlation would be strong and positive.
+
+<p>
+If the per-node bandwidth of the best hosts is roughly 10-fold the per node
+bandwidth of the excluded hosts then the total service is only cut in half
+by using just good nodes.
+Stated in reverse, leveraging tens of thousands of flaky home users only
+doubles total data service.
+This fact is further backed up by a simple back-of-the-envelope calculation.
+Two million cable modem users at 40% availability can serve about as much
+bandwidth as 2,000 typical high availability universities allowing half
+their bandwidth for file sharing.
+
+<p>
+     <h3><a name="tth_sEc4.2">
+4.2</a>&nbsp;&nbsp;Hardware Trends</h3>
+
+<p>
+The discussion so far suggests that even highly optimized systems can achieve
+only a few GB per host with Gnutella-like hosts and cable-modem like connections.
+However, hardware trends are unpromising.
+
+<p>
+<a name="tth_tAb1">
+</a> 
+<center><font size="-1">
+<table border="1">
+<tr><td align="center"></td><td align="center"></td><td colspan="2" align="center">Home access </td><td colspan="2" align="center">Academic access </td></tr>
+<tr><td align="center">Year  </td><td align="center">Disk   </td><td align="center">Speed </td><td align="center">Days </td><td align="center">Speed </td><td align="center">Time </td></tr>
+<tr><td align="center"></td><td align="center"></td><td align="center">(Kbps) </td><td align="center">to send </td><td align="center">(Mbps) </td><td align="center">to send </td></tr>
+<tr><td align="center">1990  </td><td align="center">60 MB     </td><td align="center">9.6      </td><td align="center">0.6    </td><td align="center">10      </td><td align="center">48 sec   </td></tr>
+<tr><td align="center">1995  </td><td align="center">1 GB      </td><td align="center">33.6     </td><td align="center">3      </td><td align="center">43      </td><td align="center">3 min    </td></tr>
+<tr><td align="center">2000  </td><td align="center">80 GB     </td><td align="center">128      </td><td align="center">60     </td><td align="center">155     </td><td align="center">1 hour   </td></tr>
+<tr><td align="center">2005  </td><td align="center">0.5 TB    </td><td align="center">384      </td><td align="center">120    </td><td align="center">622     </td><td align="center">2 hour   </td></tr></table>
+</font>
+</center>
+
+<center>Table 1: Generous bandwidth estimates suggest distributing local disk will
+get harder.
+Disk increased by 8000-fold while bandwidth increased only 50-fold.</center>
+<a name="tab:trends">
+</a>
+
+<p>
+A simple thought experiment helps us realize the implications of this trend.
+Imagine how long it would take to upload your hard disk to a friend's machine.
+Table&nbsp;<a href="#tab:trends">1</a> recalls how this has evolved for "typical" users in
+recent times.
+The fourth and sixth columns show an ominous trend for disk space
+distributors.
+Disk upload time is getting larger quickly.
+If peers are to contribute meaningful fractions of their disks their
+participation must become more and more stable.
+This supports the main point of this paper: synchronizing randomly
+distributed, large-scale storage is expensive now, dynamic membership
+makes it worse, and this situation is worsening.
+
+<p>
+     <h3><a name="tth_sEc4.3">
+4.3</a>&nbsp;&nbsp;Incentive Issues</h3>
+
+<p>
+Unlike pioneer systems like Napster and Gnutella, current research trends
+are toward systems where users serve data that they may have no particular
+interest in.
+A good fraction of their outbound traffic might be saturated by access to
+this data.
+Storage guarantees exacerbate the problem by inducing a great deal of
+synchronization traffic above and beyond access traffic.
+These higher costs may make participation even more capricious than
+our example of the Gnutella network.
+Given that stable membership is necessary to reach even modest data scales,
+participation must be strongly incentivized.
+
+<p>
+The added value of service guarantees might seem to be one incentive.
+However, this is not stable since a noticeable downward fluctuation in
+popularity will make the provided service decline.
+Another option is having user interfaces which discourage or disallow
+disconnection, but this is very much against the spirit of a volunteer or
+donation based system.
+One reasonable idea is to allow client bandwidth usage to be only
+proportional to contributed bandwidth.
+Enforcing this raises many design issues, but since it is an extension to
+the threat model it seems inappropriate to relegate it to an afterthought.
+
+<p>
+       <h2><a name="tth_sEc5">
+5</a>&nbsp;&nbsp;Conclusion</h2>
+<a name="sec:conclude">
+</a>
+This paper argues that the real scalability problem for robust, Internet-scale
+storage is not lookup state or procedure, but rather is the <em>service</em>
+bandwidth to field queries and maintain redundancy.
+For DHT-style systems, maintaining redundancy takes cross-system bandwidth
+proportional to data scale and membership dynamics.
+All three properties&nbsp;-&nbsp;redundancy, data, and dynamics&nbsp;-&nbsp;can be high only
+when cross-system bandwidth is enormous.
+
+<p>
+The conflict between high availability, large data scales, home user-like
+bandwidth and fast participation dynamics raises many questions about
+current DHT research trajectories.
+In dynamic deployment scenarios, why leverage many nodes to serve data a few
+reliable ones might?
+In static deployment scenarios, small lookup-state optimizations may do more
+harm than good in terms of system complexity and other properties, especially
+if designers insist on implementing other optimizations in membership state
+restricted ways.
+If storage guarantees are inappropriate for large-scale peer-to-peer why
+worry about lookup guarantees?
+When anonymity or related security properties are the high priority guarantees,
+it seems bad to plan on incorporating defenses against threats to these
+properties as an afterthought.
+
+<p>
+
+<h2>Acknowledgements</h2>
+
+<p>
+We would like to thank Stefan Saroiu, Krishna Gummadi, and Steven Gribble
+for supplying the data collected in their study.
+This research is supported by DARPA under contract F30602-98-1-0237
+monitored by the Air Force Research Laboratory, NSF Grant IIS-9802066,
+and a Praxis XXI fellowship.
+
+<p>
+
+<p>
+<h2>References</h2>
+<dl compact="compact">
+
+
+
+<p>
+<dt><a href="#CITEcacm_look" name="cacm_look">[Balakrishnan et&nbsp;al., 2003]</a></dt><dd>
+Hari Balakrishnan, M.&nbsp;Frans Kaashoek, David Karger, Robert Morris, and Ion
+  Stoica.
+ Looking up data in P2P systems.
+ <em>Communications of the ACM</em>, pages 43-48, February 2003.
+
+<p>
+<dt><a href="#CITEsavage-replication" name="savage-replication">[Bhagwan et&nbsp;al., 2002]</a></dt><dd>
+Ranjita Bhagwan, Stefan Savage, and Geoffrey Voelker.
+ Replication strategies for highly available peer-to-peer storage
+  systems.
+ Technical Report CS2002-0726, UCSD, November 2002.
+
+<p>
+<dt><a href="#CITEsavage:iptps" name="savage:iptps">[Bhagwan et&nbsp;al., 2003]</a></dt><dd>
+Ranjita Bhagwan, Stefan Savage, and Geoffrey Voelker.
+ Understanding availability.
+ In <em>Proc. 2nd International Workshop on Peer-to-Peer Systems
+  (IPTPS '03)</em>, Berkeley, CA, February 2003.
+
+<p>
+<dt><a href="#CITEfarsite:study" name="farsite:study">[Bolosky et&nbsp;al., 2000]</a></dt><dd>
+William&nbsp;J. Bolosky, John&nbsp;R. Douceur, David Ely, and Marvin Theimer.
+ Feasibility of a serverless distributed file system deployed on an
+  existing set of desktop PCs.
+ In <em>Proc. ACM SIGMETRICS International Conference on
+  Measurement and Modeling of Computer Systems</em>, June 2000.
+
+<p>
+<dt><a href="#CITEcfs" name="cfs">[Dabek et&nbsp;al., 2001]</a></dt><dd>
+Frank Dabek, M.&nbsp;Frans Kaashoek, David Karger, Robert Morris, and Ion Stoica.
+ Wide-area cooperative storage with CFS.
+ In <em>Proc. 18th ACM Symposium on Operating System
+  Principles</em>, Banff, Canada, October 2001.
+
+<p>
+<dt><a href="#CITEcacm_kubi" name="cacm_kubi">[Kubiatowicz 2003]</a></dt><dd>
+John Kubiatowicz.
+ Extracting guarantees from chaos.
+ <em>Communications of the ACM</em>, pages 33-38, February 2003.
+
+<p>
+<dt><a href="#CITECAN:sigcomm01" name="CAN:sigcomm01">[Ratnasamy et&nbsp;al., 2001]</a></dt><dd>
+Sylvia Ratnasamy, Paul Francis, Mark Handley, Richard Karp, and Scott Shenker.
+ A scalable content-addressable network.
+ In <em>Proc. ACM SIGCOMM '01 Conference</em>, San Diego, CA, August
+  2001.
+
+<p>
+<dt><a href="#CITEpastry01" name="pastry01">[Rowstron and Druschel, 2001a]</a></dt><dd>
+Antony Rowstron and Peter Druschel.
+ Pastry: Scalable, distributed object location and routing for large-s
+  cale peer-to-peer systems.
+ In <em>Proc. IFIP/ACM International Conference on Distributed
+  Systems Platforms (Middleware 2001)</em>, Heidelberg, Germany, November
+  2001.
+
+<p>
+<dt><a href="#CITEpast:sosp" name="past:sosp">[Rowstron and Druschel, 2001b]</a></dt><dd>
+Antony Rowstron and Peter Druschel.
+ Storage management and caching in PAST, a large-scale, persistent
+  peer-to-peer storage utility.
+ In <em>Proc. 18th ACM Symposium on Operating System
+  Principles</em>, Banff, Canada, October 2001.
+
+<p>
+<dt><a href="#CITEgribble:study" name="gribble:study">[Saroiu et&nbsp;al., 2002]</a></dt><dd>
+S.&nbsp;Saroiu, P.&nbsp;K. Gummadi, and S.&nbsp;Gribble.
+ A measurement study of peer-to-peer file sharing systems.
+ In <em>Proc. Multimedia Computing and Networking 2002 (MMCN'02)</em>,
+  January 2002.
+
+<p>
+<dt><a href="#CITEChord:sigcomm2001" name="Chord:sigcomm2001">[Stoica et&nbsp;al., 2001]</a></dt><dd>
+Ion Stoica, Robert Morris, David Karger, M.&nbsp;Frans Kaashoek, and Hari
+  Balakrishnan.
+ Chord: A scalable peer-to-peer lookup service for internet
+  applications.
+ In <em>Proc. ACM SIGCOMM '01 Conference</em>, San Diego, CA, August
+  2001.
+
+<p>
+<dt><a href="#CITEoceanstore:erasurecoding" name="oceanstore:erasurecoding">[Weatherspoon and Kubiatowicz, 2002]</a></dt><dd>
+Hakim Weatherspoon and John&nbsp;D. Kubiatowicz.
+ Erasure coding vs. replication: A quantitative comparison.
+ In <em>Proc. 1st International Workshop on Peer-to-Peer Systems
+  (IPTPS '02)</em>, Cambridge, MA, March 2002.
+
+<p>
+<dt><a href="#CITEtapestry:tech" name="tapestry:tech">[Zhao et&nbsp;al., 2001]</a></dt><dd>
+Ben Zhao, John Kubiatowicz, and Anthony Joseph.
+ Tapestry: An infrastructure for fault-tolerant wide-area location and
+  routing.
+ Technical Report UCB/CSD-01-1141, UC Berkeley, April 2001.
+
+<p>
+</dl>
+
+<br /><br /><hr /><small>
+Charles Blake and Rodrigo Rodrigues. "High Availability, Scalable Storage, Dynamic Peer Networks: Pick Two", in Ninth Workshop on Hot Topics in Operating Systems (HotOS-IX)
+</small>
+<!-- END OF PAGE CONTENTS -->
+</td></tr>
+</table>
+<hr>
+<table BORDER="0" WIDTH="100%" CELLSPACING="0" CELLPADDING="0" ALIGN="LEFT">
+<tr><td VALIGN="TOP" WIDTH="40%">
+<address>
+<font SIZE="2">This paper was originally published in the
+
+Proceedings of HotOS IX: The 9th Workshop on Hot Topics in Operating Systems,
+
+May 18&#150;21, 2003, 
+ Lihue, Hawaii, USA
+
+</font><br>
+<!-- EDIT THE DATE AND YOUR LOGIN NAME BELOW -->
+<font SIZE="2">Last changed:  26 Aug. 2003 aw</font><br>
+
+</address>
+</td><td VALIGN="TOP" ALIGN="RIGHT" WIDTH="60%">
+
+<!-- Upwards Navigation Table -->
+<table border=0 cellspacing=0 cellpadding=0>
+<tr><td>
+<a href="/events/hotos03/program.html"><font size=1> HotOS IX Program Index</font></a><br>
+</td></tr>
+<tr><td>
+<a href="/events/hotos03"><font size=1>HotOS IX Home</font></a><br>
+</td></tr>
+<tr><td>
+<a href="/"><font size=1>USENIX home</font></a><br>
+</td></tr></table>
+
+<!-- End of Upwards Navigation Table -->
+
+</td></tr></table>
+</td></tr></table>
+</center>
+</body>
+</html>
+
+

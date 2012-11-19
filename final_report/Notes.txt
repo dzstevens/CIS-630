@@ -1,0 +1,45 @@
+Challenges in replicated environment can be summarized as follows:
+(i) Data Consistency: Maintaining data integrity and consistency in a replicated environment is of prime importance. High precision applications may require strict consistency (e.g. 1SR, as discussed above) of the updates made by transactions.  
+(ii) Downtime during new replica creation: If strict data consistency is to be maintained, performance is severely affected if a new replica is to be created. As sites will not be able to fulfill request due to consistency requirements. (iii) Maintenance overhead: If the files are replicated at more then one sites, it occupies storage space and it has to be administered. Thus, there are overheads in storing multiple files. (iv) Lower write performance: Performance of write operations can be dramatically lower in applications requiring high updates in replicated environment, because the transaction may need to update multiple copies.
+
+conflict resolution:
+-1-copy serializability
+-priority-based
+-scheduling
+-data partitioning (the data is partitioned and specific sites are give update rights to the partition)
+
+Distributed DBMS:
+-Maintaining the correctness and consistency of data is of prime importance
+-Should be transparent- must seem like one-copy db (1cs)
+Replication protocols:
+-ROWA & ROWA-Available:
+	-Read-One-Write-All: Read benefits, write is adversely affected
+	-ROWA-Available: solves availability but may compromise correctness
+-Quorom-based
+	Qw + Qr > Q
+	Qw + Q2 > Q
+
+Synchronous vs. Asynchronous
+- Synchronous (eager): updates all replicas first, globally serializable
+- Asynch (lazy): subet updated, rest brought up to date lazily
+
+Group vs. Master
+
+Two Phase Commit(2PC) Protocol
+
+P2P
+
+File Granularity:
+-Full Replication: 'full' files replicated at peers based on who downloads it (Gnutella)
+-Block-Level: Broken up into blocks. Erasure Codes used to ensure full file collection (Reed-Solomon)
+-Erasure Codes: Can tolerate some lost blocks
+
+Replica Distribution
+-uniform & proportional have same average search size
+-square-root replication is optimum
+
+Replica creation strategy:
+-Owner replication: object replicated at node where it is found
+-Path replication: replication at all nodes on path (~3x better)
+-Random replication: same # replications as path, but random (~4x better)
+

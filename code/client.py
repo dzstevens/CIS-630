@@ -67,7 +67,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                                              event.is_directory))
 
     def take_change(self, filename):
-        if filename in change:
+        if filename in self.changes:
             change = self.changes[filename]
             del self.changes[filename]
             return (change,)
@@ -135,7 +135,7 @@ class BrokerChannel(asynchat.async_chat):
     def process_file(self):
         token = self.get_token()
         logging.info("Receiving File Data" + repr(self.file.name) +
-                     " with size " + len(token))
+                     " with size " + str(len(token)))
         logging.debug("Data : " + repr(token))
         self.file.write(token)
         self.remaining_size -= len(token)
@@ -161,14 +161,14 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_push_change(self, filename):
         flags = self.event_handler.take_change(filename)
-        for flag in flag:
+        for flag in flags:
             self.push(filename + constants.DELIMITER + str(flag))
             if flag == constants.ADD_FILE:
                 self.push(constants.DELIMITER +
                           str(os.stat(self.dirname + filename).st_size) +
                           constants.TERMINATOR)
                 self.push_with_producer(FileProducer(self.dirname + filename))
-           else:
+            else:
                 self.push(constants.TERMINATOR)
 
     def handle_receive_change(self, msg):
@@ -250,7 +250,7 @@ class FileProducer:
             try:
                 data = self.file.read(constants.CHUNK_SIZE)
                 if data:
-                    logging.info("Produced with size " + len(data))
+                    logging.info("Produced with size " + str(len(data)))
                     logging.debug("Producer : " + repr(self))
                     logging.debug("Data : " + repr(data))
                     return data

@@ -33,7 +33,6 @@ class Connection(LineReceiver):
 
     def lineReceived(self, line):
         logging.info("Received Line from " + repr(self.peer))
-        logging.debug("Data : " + repr(line))
         msg = line.strip().split(constants.DELIMITER)
         msg[1] = int(msg[1])
         self.name, self.flag = msg[:2]
@@ -44,13 +43,14 @@ class Connection(LineReceiver):
             logging.info("Switching to raw mode")
             self.to_receive = int(msg[2])
             self.sent = 0
-            self.setRawMode()
         # figure some stuff out here
         if self.flag == constants.REQUEST:
             self.sendLine(line)
         else:
             for user in self.users - set([self]):
                 user.sendLine(line)
+            if self.flag == constants.ADD_FILE:
+                self.setRawMode()
 
     def rawDataReceived(self, data):
         for user in self.users - set([self]):

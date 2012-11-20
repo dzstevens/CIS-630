@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  9 NOV 2012 11:08
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  20 NOV 2012 00:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -19,8 +19,7 @@ File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 \abovecaptionskip=\skip41
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
-) (/Users/krazkorean/netsec/netsec.latex/usenix/usenix.sty) (/usr/local/texlive
-/2010/texmf-dist/tex/latex/graphics/epsfig.sty
+) (/usr/local/texlive/2010/texmf-dist/tex/latex/graphics/epsfig.sty
 Package: epsfig 1999/02/16 v1.7a (e)psfig emulation (SPQR)
 (/usr/local/texlive/2010/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
@@ -368,52 +367,59 @@ rtdayofweek on input line 591.
 ) (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
 \c@lstlisting=\count159
-LaTeX Font Info:    Try loading font information for U+msa on input line 30.
+LaTeX Font Info:    Try loading font information for U+msa on input line 31.
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 30.
+LaTeX Font Info:    Try loading font information for U+msb on input line 31.
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 ) (./abstract.tex) (./notes.tex [1
 
-]
-Overfull \hbox (14.4984pt too wide) in paragraph at lines 40--48
-[]\OT1/cmr/m/n/10 Readers and Writ-ers Mes-sages: -Write (cre-ate, push up-date
-) -Read (pull up-date) -Join (group, project|revision
- []
-
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 55.
+] [2]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 73.
 (/usr/local/texlive/2010/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 55.
-[2]) (./bib.tex (./main.bbl
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 73.
 
-LaTeX Warning: Empty `thebibliography' environment on input line 3.
+Underfull \hbox (badness 10000) in paragraph at lines 82--87
 
-)) [3] (./main.aux) ) 
+ []
+
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 109--115
+
+ []
+
+[4] [5]
+Overfull \hbox (2.5561pt too wide) in paragraph at lines 187--188
+[]\OT1/cmr/m/n/10 This week-end: com-plete lit-er-a-ture re-view (syn-chronic-i
+-ty/repli-ca-tion strate-
+ []
+
+) (./bib.tex (./main.bbl [6])) [7] (./main.aux) ) 
 Here is how much of TeX's memory you used:
- 6350 strings out of 493748
- 88197 string characters out of 3143569
- 189144 words of memory out of 3000000
- 9501 multiletter control sequences out of 15000+200000
- 10582 words of font info for 40 fonts, out of 3000000 for 9000
+ 6345 strings out of 493748
+ 88049 string characters out of 3143569
+ 189976 words of memory out of 3000000
+ 9499 multiletter control sequences out of 15000+200000
+ 10926 words of font info for 41 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 34i,6n,38p,899b,236s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 34i,6n,38p,899b,254s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on main.dvi (3 pages, 5808 bytes).
+Output written on main.dvi (7 pages, 16704 bytes).

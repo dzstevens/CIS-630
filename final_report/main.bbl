@@ -1,3 +1,22 @@
-\begin{thebibliography}{}
+\begin{thebibliography}{1}
+
+\bibitem{chun2006replica}
+B.~Chun, F.~Dabek, A.~Haeberlen, E.~Sit, H.~Weatherspoon, M.~Kaashoek,
+  J.~Kubiatowicz, and R.~Morris.
+\newblock Efficient replica maintenance for distributed storage systems.
+\newblock In {\em Proc. of NSDI}, volume~6, pages 225--264, 2006.
+
+\bibitem{ford2010availability}
+D.~Ford, F.~Labelle, F.~Popovici, M.~Stokely, V.~Truong, L.~Barroso, C.~Grimes,
+  and S.~Quinlan.
+\newblock Availability in globally distributed storage systems.
+\newblock In {\em Proceedings of the 9th USENIX Symposium on Operating Systems
+  Design and Implementation}, 2010.
+
+\bibitem{pu1991replica}
+C.~Pu and A.~Leff.
+\newblock {\em Replica control in distributed systems: as asynchronous
+  approach}, volume~20.
+\newblock ACM, 1991.
 
 \end{thebibliography}

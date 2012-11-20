@@ -1,30 +1,19 @@
 \section{Project Idea}
 \subsection{Scope/Topic} 
-We look into [file hosting services (Dropbox) | revision systems (Github)], which is a popular system for [ collaborative work, remote file storage, FILL IN ].
+We're looking into file hosting systems such as Dropbox, which are popular tools for remote file storage and backup, collaborative work, and file sharing.
 \subsection{Problem} 
 These services/systems work well with centralized storage, but keeping all data at a central server or group of servers:
 \begin{enumerate}
 \item Increases risk of privacy issues
 \item Central point of failure
-\end{enumerate}
-[FILL IN more from SOUP and elsewhere]
-\subsection{Solution}
-Distribute data storage for these [file hosting services | revision systems] across all users, by storing replicas on individual user machines.
 
--Punt on security: SHA and PKI and everything else those schizoid nerds have come up with
+[FILL IN more from SOUP and elsewhere]
+\end{enumerate}
+\subsection{Solution}
+One solution to this problem would be to distribute data storage across all users by storing replicas on individual user machines.
+Such a distributed file hosting system must handle many things: replication strategy, node departures and failures, reads/writes, etc.
 
 To distribute data storage in such a manner requires a distributed and scalable replication strategy.
-We investigate three common replication strategies:
-\begin{itemize}
-\item \textbf{Read Once, Write All (ROWA):} ROWA systems allow read operations to merely fetch the requested data from the most convenient location, while write operations are required to update all replicas. 
-Read operations are therefore guaranteed to be correct, but if replica-storing node fails during a write operation, then that write operation will fail. (PE: necessarily true?)
-\item \textbf{Read Once, Write All-Available (ROWA-A):} ROWA-A read operations are the same as in ROWA, but write operations only affect available replicas. 
-This allows writes to subsets of nodes and better handles changes in node availability, but could compromise the correctness of subsequent read requests.
-\item \textbf{Quorum Based (QB):} QB systems allow write operations to subsets of nodes without compromising correctness and consistency. An acting node must collect votes from other nodes until the sum of those votes exceeds predefined read or write quorums.  Read and write quorums are defined such that there is always a non-null intersection between any two quorum sets.
-\end{itemize}
-
-\subsection{Significance}
-To the best of our knowledge, these strategies have not been comparatively evaluated with respect to distributed [file hosting | revision ] systems.
 
 \subsection{Questions}
 (Given that nodes do not know global state----and are dealing with a dynamic distributed system--nodes may come and go, nodes may crash, multiple users may work on the same data)
@@ -46,34 +35,132 @@ To the best of our knowledge, these strategies have not been comparatively evalu
 -How do we keep track of which nodes have replicas?
 \end{enumerate}
 
+\subsection{Significance}
+To the best of our knowledge, these strategies have not been comparatively evaluated with respect to distributed file hosting systems.
+
+\subsection{Assumptions}
+Our assumptions for this project include:
+\begin{enumerate}
+\item \emph{Reliable network}: The channels will not fail, or at least channel failures are handled by some error detection scheme (TCP).
+\item \emph{Conflict resolution}: Take most recent update
+\item \emph{Security}: SHA, PKI [fill in from SOUP]
+\item \emph{Event ordering}: vector clock
+\end{enumerate}
+
 \section{Related Work}
 (synchronicity/replication strategies--conservative or optimistic--in DS, issues with DropBox, open source revision|file hosting)
-(FILL IN)
+
+\subsection{Issues with Centralized File Hosting Systems}
+(cite dark and exposing papers)
+
+\subsection{Replica Maintanence}
+There has been a considerable amount of work in replica maintenance~\cite{chun2006replica,pu1991replica,ford2010availability}.
+
+Ford: availability in a cloud storage system given different system parameters.
+NOT decentralized storage environment.
+%TODO find more, also check out methodology
+
+Chun: replica algorithms should 1) focus on durability, a less expensive and more useful goal than availability; 2) durability algorithms must create new copies of data faster than failures destroy them; and 3) more replicas helps tolerate bursts of failures but not increasing likelihood of disk failure.
+Chun focuses on durability, but we need high availability due to need to keep data in local repository current.
+
+Pu: Discusses various replica control mechanisms which use epsilon-copy serializability (ESR), a correctness criterion that allows asynchronous maintenance of mutual consistency of replicated data. ESR allows inconsistent data to be read, but requires data to eventually converge to 1SR state.
+"Standard correctness criterion for coherency control such as 1-copy serializability (1SR) are hard to attain with asynchronous coherency control."
+Pu describes and analyzes these various replica control methods, but does not evaluate them in a specific use case such as [file hosting | revision] systems.
+
+\subsection{Synchronization Strategies}
+(cite textbook, and data replication chapter)
+\begin{itemize}
+\item \textbf{Read Once, Write All (ROWA):} ROWA systems allow read operations to merely fetch the requested data from the most convenient location, while write operations are required to update all replicas. 
+Read operations are therefore guaranteed to be correct, but if replica-storing node fails during a write operation, then that write operation will fail. (PE: necessarily true?)
+\item \textbf{Read Once, Write All-Available (ROWA-A):} ROWA-A read operations are the same as in ROWA, but write operations only affect available replicas. 
+This allows writes to subsets of nodes and better handles changes in node availability, but could compromise the correctness of subsequent read requests.
+\item \textbf{Quorum Based (QB):} QB systems allow write operations to subsets of nodes without compromising correctness and consistency. An acting node must collect votes from other nodes until the sum of those votes exceeds predefined read or write quorums.  Read and write quorums are defined such that there is always a non-null intersection between any two quorum sets.
+\end{itemize}
 
 \section{Design}
 \subsection{Client}
 Clients are thin--they have local data storage and the broker program, which handles their read and write requests.
-We implement clients as individual processes.
+We implement clients as individual processes with local storage and a database to track timestamps and revision numbers.
+Clients watch their repository directory for any changes (additions, deletions, modifications).\newline\newline
+Upon initialization:
+\begin{enumerate}
+\item update DB
+\item start observer
+\item connect to broker
+\item push entire directory as request
+\end{enumerate}
+Upon change event:
+\begin{enumerate}
+\item append change to queue
+\item send request to broker
+\end{enumerate}
+Upon broker request ack:
+\begin{enumerate}
+\item dequeue change
+\item send change to broker
+\end{enumerate}
+Upon broker pushback:
+\begin{enumerate}
+\item update DB
+\item receive change (lock?)
+\end{enumerate}
+
 \subsection{Broker}
 The purpose of the broker in our scheme is to handle read and write requests of the individual clients. 
-The broker keeps record of all clients participating in the system.
-When it receives a read request, it pulls in the most current data from the entire system that it can find
-and delivers it to the requesting client.
-During a write request, the broker pushes the update to all the clients it can reach.
+Group management: the broker keeps record of all clients participating in the system.
+A broker keeps its own copy of the revision numbers.
+\newline\newline
+Upon receiving a connection:
+\begin{enumerate}
+\item recv request
+\item lock
+\item compare request to local DB (revision numbers)
+\item if valid respond with ack, else:
+  \begin{enumerate}
+    \item respond with push
+    \item RETRIEVE
+    \item PUSHBACK
+\end{enumerate}
+\item unlock
+\end{enumerate}
+Upon receiving client changes:
+\begin{enumerate}
+\item update DB
+\item PUSH
+\end{enumerate}
+
 \subsection{Messages}
--Write (create, push update)
--Read (pull update)
--Join (group, project|revision ?)
-Version numbers?
-\subsection{Replication Strategies}
-SEE ABOVE
+CONNECT
+
+REQUEST
+
+ACK
+
+RETRIEVE
+
+PUSHBACK
+
+PUSH
+
+(fill in)
 \subsection{Network}
 Clients and brokers use TCP stream sockets to communicate with one another.
+
+\subsection{Issues Resolved}
+What if a client dies? Just consider it gone by the system.
+
+What if a client dies after it makes a request? Drop the request.
+
+Client re-emerges (death + reentry) with updated files? Use local database to check timestamps, update local database, and push changes.
+
+How to handle group managament? At the broker.
+
 \subsection{NOTES}
-Client joins network, and sets up a broker. The client then immediately does a pull (to get all updated repo info) and also pushes any necessary new local data to repo.
-Once update process is successful, client then listens to the broker and listens to its local repository.
+%details: difference between add/delete, how handle, watchdog, etc
+Watchdog and Asynchchat = observer pattern/asynch commun.
 
 \section{Evaluation}
+[THIS ALL NEEDS TO BE UPDATED]
 \begin{enumerate}
 \item Testing Platform:
 \item Parameters:
@@ -112,6 +199,18 @@ Different replication strategies.
     \item Implement Distributed broker
   \end{enumerate}
 \item Week 9 (Thanksgiving): Testing/Evaluation
+  
+  TO CODE:
+  \begin{enumerate}
+    \item Client: local storage (sqlite)
+    \item Client: handle init (update db, start observer, push all)
+    \item Broker: local storage (mysql? sqlite?)
+    \item Broker: handle request (either accept/respond or pushback current)
+    \item Broker: request queue
+    \item TIMERS/TIMEOUT
+    \item Centralized server?
+    \item Testing environment
+  \end{enumerate}
 \item Week 10: Presentation, Write paper
 \item Final Exam Week: Write paper, turn in paper, have multiple celebratory beers
 \end{enumerate}

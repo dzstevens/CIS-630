@@ -39,11 +39,6 @@ class Connection(LineReceiver):
         logging.info("Recieved Message with flag " +
                      constants.DIRECTORY_FLAG_TO_NAME[self.flag])
         logging.debug("Data : " + repr(msg))
-        if self.flag == constants.ADD_FILE:
-            logging.info("Switching to raw mode")
-            self.to_receive = int(msg[2])
-            self.sent = 0
-        # figure some stuff out here
         if self.flag == constants.REQUEST:
             self.sendLine(line)
         else:
@@ -51,19 +46,39 @@ class Connection(LineReceiver):
                 user.sendLine(line)
             if self.flag == constants.ADD_FILE:
                 self.setRawMode()
+                logging.info("Switching to raw mode")
+                self.to_receive = int(msg[2])
+                logging.info("Expecting {} bytes".format(self.to_receive))
+                self.buffer = []
+                self.buff_size = 0
+                self.packet_size = min(constants.CHUNK_SIZE, self.to_receive)
+                logging.debug('Next chunk size : {}'.format(self.packet_size))
 
     def rawDataReceived(self, data):
-        for user in self.users - set([self]):
-            logging.info("Sending chunk of size " +
-                         str(min(len(data), self.to_receive)) + " to " +
-                         repr(user.peer))
-            logging.debug("Chunk : " + repr(data[:self.to_receive]))
-            user.transport.write(data[:self.to_receive])
-        if len(data) >= self.to_receive:
-            logging.info("Switching to line mode")
-            self.setLineMode(extra=data[self.to_receive:])
-        else:
-            self.to_receive -= len(data)
+        self.buffer.append(data)
+        self.buff_size += len(data)
+        logging.debug("Buffer size : {}".format(self.buff_size))
+        while self.buff_size >= self.packet_size:
+            buff = ''.join(self.buffer)
+            packet = buff[:self.packet_size] 
+            for user in self.users - set([self]):
+                logging.info("Sending chunk of size {} "
+                             "to {}".format(len(packet),
+                                            repr(user.peer)))
+                user.transport.write(packet)
+            self.to_receive -= self.packet_size
+            logging.debug("{} bytes left to receive".format(self.to_receive))
+            if self.to_receive == 0:
+                logging.info("Switching to line mode")
+                self.setLineMode(extra=buff[self.packet_size:])
+                return
+            else:
+                self.buffer = [buff[self.packet_size:]]
+                self.buff_size = len(self.buffer[0])
+                logging.debug("New buffer size : {}".format(self.buff_size))
+                self.packet_size = min(constants.CHUNK_SIZE,
+                                       self.to_receive)
+                logging.debug('Next chunk size : {}'.format(self.packet_size))
 
     def sendLine(self, line):
         logging.info("Sending Line to " + repr(self.peer))

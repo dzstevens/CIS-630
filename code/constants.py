@@ -11,6 +11,8 @@ DELETE_FILE   = 0b100
 FOLDER        = 0b001
 ADD_FOLDER    = FOLDER | ADD_FILE
 DELETE_FOLDER = FOLDER | DELETE_FILE
+BATCH         = 0b111
+
 
 DIRECTORY_FLAG_TO_NAME = {REQUEST       : 'REQUEST',
                           ADD_FILE      : 'ADD_FILE',

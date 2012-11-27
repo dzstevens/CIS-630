@@ -54,7 +54,6 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         cur_directory,cur_subdirectories,cur_files = directory_walker.next()
         while(True): #PE walk entire directory, add necessary changes to initial_changes
             cur_directory = cur_directory if cur_directory.endswith('/') else cur_directory + '/'
-            logging.debug('Checking {}'.format(cur_directory))
             for filename in cur_subdirectories + cur_files:
                 filename = os.path.relpath(cur_directory + filename, self.dirname)
                 modified_time = datetime.utcfromtimestamp(os.path.getmtime(self.dirname+filename))
@@ -82,7 +81,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                 change = constants.ADD_FILE if os.path.isfile(self.dirname+filename) else constants.ADD_FOLDER 
             else:
                 change = constants.DELETE_FILE if os.path.isfile(self.dirname+filename) else constants.DELETE_FOLDER 
-            self.handle_change(self.dirname+filename, change)
+            self.handle_change(unicode(self.dirname+filename), change)
 
     def handle_change(self, filename, change):
         record = ClientRecord(record_source,loglevel)
@@ -240,9 +239,8 @@ class BrokerChannel(asynchat.async_chat):
         #flags = self.event_handler.take_change(filename)
         flags = self.event_handler.take_change(filename) #pull next change from file handler
         for flag in flags:
-            retval = self.record.update_record(filename,flag) #PE increment the sequence number for this file
-            if retval == -1:
-              logging.warning('Something went wrong, could not update record: {}'.format(filename))
+            if self.record.update_record(filename,flag) == -1: #PE make necessary updates to records for this file 
+                logging.warning('Something went wrong, could not update record: {}'.format(filename))
             self.push(filename + constants.DELIMITER + str(flag))
             if flag == constants.ADD_FILE: #push size as well for files
                 self.push(constants.DELIMITER +
@@ -267,10 +265,12 @@ class BrokerChannel(asynchat.async_chat):
                 logging.info('Mark {} as being just '
                              'changed'.format(filename))
                 self.event_handler.just_changed[filename] = 'Done'
-                os.mkdir(self.dirname + filename)
+                os.makedirs(self.dirname + filename) #PE made makedirs to handle intermediate directories
 
             else:
                 logging.info('Opening {}'.format(filename))
+                dir, file = os.path.split(filename)
+                if dir != '': os.makedirs(dir) #PE added makedirs to handle intermediate directories
                 self.file = open(self.dirname + filename, 'w')
                 logging.info('Mark {} as being just '
                              'changed'.format(filename))
@@ -284,9 +284,7 @@ class BrokerChannel(asynchat.async_chat):
                   self.process_data = self.process_file
                   self.set_terminator(min(self.remaining_size,
                                           constants.CHUNK_SIZE))
-            retval = self.record.update_sequencenum_or_create(filename) #PE modify: updates seqnum for record, add: creates new record for the added file/folder
-            logging.debug('updated record, returned {}'.format(retval))
-            if retval == -1:
+            if self.record.update_sequencenum_or_create(filename) == -1: #PE modify: updates seqnum for record, add: creates new record for the added file/folder
               logging.warning('Error updating records')
             #PE TODO retrieve sequencenum and use to update
         except OSError as e:
@@ -311,8 +309,7 @@ class BrokerChannel(asynchat.async_chat):
                              'changed'.format(filename))
                 self.event_handler.just_changed[filename] = 'Done'
                 shutil.rmtree(self.dirname + filename)
-                retval = self.record.delete_directory_records(filename) #PE delete directory from records
-                if retval == -1:
+                if self.record.delete_directory_records(filename) == -1: #PE delete directory from records
                   logging.warning('Error updating records')
             else:
                 logging.info('Mark {} as being just '

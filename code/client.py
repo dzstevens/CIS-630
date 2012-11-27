@@ -89,7 +89,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         if self.valid.match(filename):
             logging.info('Change happened to {}'.format(filename))
             logging.debug('Data : {}'
-                          ''.format(constants.DIRECTORY_FLAG_TO_NAME[change]))
+                          ''.format(constants.FLAG_TO_NAME[change]))
             #PE Q could we leverage local records here to prevent duplicate updates?
             if not self.just_changed.get(filename):
                 if filename not in self.changes:
@@ -115,7 +115,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         else:
             logging.info('Ignoring change to {}'.format(filename))
             logging.debug('Data : {}'
-                          ''.format(constants.DIRECTORY_FLAG_TO_NAME[change]))
+                          ''.format(constants.FLAG_TO_NAME[change]))
 
     def on_created(self, event):
         self.handle_change(event.src_path, (constants.ADD_FILE |
@@ -196,7 +196,7 @@ class BrokerChannel(asynchat.async_chat):
         msg[1] = int(msg[1])
         filename, flag = msg[:2]
         logging.info('Received Message with '
-                     'flag {}'.format(constants.DIRECTORY_FLAG_TO_NAME[flag]))
+                     'flag {}'.format(constants.FLAG_TO_NAME[flag]))
         logging.debug('Data : {}'.format(repr(msg)))
         if flag == constants.REQUEST: #broker responded with an ACK to push request
             self.handle_push_change(filename)

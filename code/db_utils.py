@@ -109,7 +109,7 @@ class ClientRecord:
     def update_record_on_receive(self, filename, flag):
         '''Handles updating a record based on flag'''
         logging.debug('Record({}) : Updating record on receive with flag {}'.format(filename,constants.FLAG_TO_NAME[flag]))
-        elif flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
+        if flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
             retval = self.update_sequencenum_or_create(filename)
         elif flag == constants.DELETE_FOLDER:
             retval = self.delete_directory_records(filename)
@@ -118,7 +118,7 @@ class ClientRecord:
     def update_record_on_push(self, filename, flag):
         '''Handles updating a record based on flag'''
         logging.debug('Record({}) : Updating record on push with flag {}'.format(filename,constants.FLAG_TO_NAME[flag]))
-        elif flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
+        if flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
             retval = self.update_sequencenum_or_create(filename)
         elif flag == constants.DELETE_FOLDER:
             retval = self.delete_directory_records(filename)
@@ -173,4 +173,3 @@ if __name__ == '__main__':
         if input == 'EXIT':
             print "QUITTING"
             sys.exit(0)
-

@@ -40,50 +40,67 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         self.loglevel = loglevel
 
     def initial_update_and_push(self):
-        '''Checks for any updates since last snapshot of records, pushes all updates'''
+        '''
+        Checks for any updates since last snapshot of records,
+        pushes all updates
+        '''
         ADD=0
-        DELETE=1 #PE local flags
-
+        DELETE = 1
         record = ClientRecord(record_source,loglevel)
-        current_records = dict([ (filename,(sequencenum,get_datetime(timestamp))) for filename,sequencenum,timestamp in record.fetch_current_records() ])
+        current_records = dict([(filename,(sequencenum,
+                                           get_datetime(timestamp)))
+                                for filename, sequencenum, timestamp in
+                                record.fetch_current_records()])
         logging.info('Checking initial records')
         logging.debug('Current records: {}'.format(current_records))
         
         initial_changes = []
         directory_walker = os.walk(self.dirname)
-        cur_directory,cur_subdirectories,cur_files = directory_walker.next()
-        while(True): #PE walk entire directory, add necessary changes to initial_changes
-            cur_directory = cur_directory if cur_directory.endswith('/') else cur_directory + '/'
+        cur_directory, cur_subdirectories,cur_files = directory_walker.next()
+        # PE walk entire directory, add necessary changes to initial_changes
+        while(True):
+            cur_directory = (cur_directory if cur_directory.endswith('/') else
+                             cur_directory + '/')
             for filename in cur_subdirectories + cur_files:
-                filename = os.path.relpath(cur_directory + filename, self.dirname)
-                modified_time = datetime.utcfromtimestamp(os.path.getmtime(self.dirname+filename))
-                logging.debug('  Evaluating {} modified on {}'.format(filename, modified_time.isoformat(' ')))
+                filename = os.path.relpath(cur_directory + filename,
+                                           self.dirname)
+                modified_time = datetime.utcfromtimestamp(
+                    os.path.getmtime(self.dirname+filename))
+                logging.debug('Evaluating {} modified on {}'.format(
+                    filename,
+                    modified_time.isoformat(' ')))
                 if filename in current_records:
-                    discard,record_timestamp = current_records.pop(filename)
-                    if modified_time > record_timestamp: #PE file/folder updated
+                    discard, record_timestamp = current_records.pop(filename)
+                    # PE file/folder updated
+                    if modified_time > record_timestamp:
                         initial_changes.append((filename, ADD))
-                else: #PE file/folder added
+                # PE file/folder added
+                else:
                     initial_changes.append((filename, ADD))
             try:
-                cur_directory,cur_subdirectories,cur_files = directory_walker.next()
+                cur_directory, cur_subdirectories, cur_files = directory_walker.next()
             except StopIteration:
                 break
         for filename in current_records: #PE file/folder deleted
             initial_changes.append((filename, DELETE))
 
         if len(initial_changes) > 0:
-            logging.info('Updating records and pushing {} initial changes'.format(len(initial_changes)))
+            logging.info('Updating records and pushing {} '
+                         'initial changes'.format(len(initial_changes)))
             logging.debug('Changes to push: {}'.format(initial_changes))
-            self.channel.push(constants.BATCH_FILENAME + constants.DELIMITER +
-                              str(constants.BATCH) + constants.DELIMITER +
-                              str(len(initial_changes)) + constants.TERMINATOR)
-            for filename,flag in initial_changes:
+            self.channel.push(constants.DELIMITER.join(
+                [constants.BATCH_FILENAME,
+                 str(constants.BATCH),
+                 str(len(initial_changes))]) + constants.TERMINATOR)
+            for filename, flag in initial_changes:
                 if record.update_sequencenum_or_create(filename) == -1:
                     logging.warning('Something went wrong.')
                 if flag == ADD:
-                    change = constants.ADD_FILE if os.path.isfile(self.dirname+filename) else constants.ADD_FOLDER 
+                    change = (constants.ADD_FILE if
+                              os.path.isfile(self.dirname+filename) else
+                              constants.ADD_FOLDER)
                 else:
-                    change = constants.DELETE_FILE if os.path.isfile(self.dirname+filename) else constants.DELETE_FOLDER 
+                    change = constants.DELETE
                 self.handle_change(unicode(self.dirname+filename), change)
 
     def handle_change(self, filename, change):
@@ -125,8 +142,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                                             event.is_directory))
 
     def on_deleted(self, event):
-        self.handle_change(event.src_path, (constants.DELETE_FILE |
-                                            event.is_directory))
+        self.handle_change(event.src_path, (constants.DELETE))
 
     def on_modified(self, event):
         if not event.is_directory:
@@ -134,8 +150,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 
     def on_moved(self, event):
         #Or (|) logic handles whether file or folder
-        self.handle_change(event.src_path, (constants.DELETE_FILE |
-                                            event.is_directory))
+        self.handle_change(event.src_path, (constants.DELETE_FILE))
         self.handle_change(event.dest_path, (constants.ADD_FILE |
                                              event.is_directory))
 
@@ -156,9 +171,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                     return (constants.ADD_FILE,)
             else:
                 logging.warning(repr(filename) + ' does not exist')
-                logging.warning('Spoofing DELETE_FILE')
-                logging.warning('Spoofing DELETE_FOLDER')
-                return (constants.DELETE_FILE, constants.DELETE_FOLDER)
+                logging.warning('Spoofing DELETE')
+                return (constants.DELETE)
 
     def remove_change(self,filename,sequencenum):
         '''If filename change is in the queue, compare sequencenums and remove older changes'''
@@ -247,9 +261,9 @@ class BrokerChannel(asynchat.async_chat):
     def handle_connect(self):
         logging.info('Connected')
         self.event_handler.initial_update_and_push() #PE check for offline changes and push all
-
-    def get_flag(self, filename):
-        if 
+# 
+#     def get_flag(self, filename):
+#         if 
 
     def handle_broker_pull(self, filename, client_num):
         '''Respond to broker pull with requested change'''
@@ -273,7 +287,7 @@ class BrokerChannel(asynchat.async_chat):
         '''dequeues a change and pushes it to the broker'''
         #flags = self.event_handler.take_change(filename)
         flags = self.event_handler.take_change(filename) #pull next change from file handler
-        print 'handle_push_change: pushing change: {} {}'.format(filename,constants.FLAG_TO_NAME[flag[0]]))
+        print('handle_push_change: pushing change: {} {}'.format(filename,constants.FLAG_TO_NAME[flag[0]]))
         if len(flags) > 1: print "handle_push_change: got more than 1 flag ({})".format(flags) #PE DEL
         for flag in flags:
             sequencenum = self.record.update_record_on_push(filename,flag)
@@ -297,8 +311,8 @@ class BrokerChannel(asynchat.async_chat):
             logging.warning('Error updating records')
         if flag & constants.ADD_FILE:
             self.handle_receive_add(msg)
-        elif flag & constants.DELETE_FILE:
-            self.handle_receive_delete(msg)
+        elif flag == constants.DELETE:
+            self.handle_receive_delete(msg[0])
 
     def handle_receive_add(self, msg):
         filename, flag, sequencenum = msg[:3]
@@ -340,32 +354,23 @@ class BrokerChannel(asynchat.async_chat):
             logging.debug('Exception : {}'.format(repr(e)))
             raise
 
-    def handle_receive_delete(self, msg):
-        filename, flag = msg[:2]
+    def handle_receive_delete(self, filename):
         logging.info('Getting Delete ' + repr(filename))
         try:
-            if flag & constants.FOLDER:
-                logging.info('Mark {} as being just '
-                             'changed'.format(filename))
-                self.event_handler.just_changed[filename] = 'Done'
-                shutil.rmtree(self.dirname + filename)
-            else:
-                logging.info('Mark {} as being just '
-                             'changed'.format(filename))
-                self.event_handler.just_changed[filename] = 'Done'
-                os.remove(self.dirname + filename)
+            logging.info('Mark {} as being just '
+                         'changed'.format(filename))
+            self.event_handler.just_changed[filename] = 'Done'
+            shutil.rmtree(self.dirname + filename)
         except OSError as e:
-            if e.errno == errno.ENOENT:
+            if e.errno == errno.ENOTDIR:
+                os.remove(self.dirname + filename)
+            elif e.errno == errno.ENOENT:
                 logging.warning(str(e))
                 logging.debug('Exception : {}'.format(repr(e)))
             else:
                 logging.error(str(e))
                 logging.debug('Exception : {}'.format(repr(e)))
                 raise
-        except Exception as e:
-            logging.error(str(e))
-            logging.debug('Exception : {}'.format(repr(e)))
-            raise
 
 
 class FileProducer:

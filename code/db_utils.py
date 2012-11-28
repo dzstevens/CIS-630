@@ -81,6 +81,7 @@ class ClientRecord:
             logging.debug(e.message)
             return -1
 
+    """ [OBSELETE]
     def delete_directory_records(self,filename):
         '''Deletes an entire directory's records, return seqnum on success, -1 on failure'''
         logging.debug('Record({}) : Deleting directory'.format(filename))
@@ -123,6 +124,7 @@ class ClientRecord:
         elif flag == constants.DELETE_FOLDER:
             retval = self.delete_directory_records(filename)
         return retval
+    """
 
     def fetch_current_records(self):
         '''Fetches all current records'''

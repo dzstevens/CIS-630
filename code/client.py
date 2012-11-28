@@ -261,9 +261,16 @@ class BrokerChannel(asynchat.async_chat):
     def handle_connect(self):
         logging.info('Connected')
         self.event_handler.initial_update_and_push() #PE check for offline changes and push all
-# 
-#     def get_flag(self, filename):
-#         if 
+
+    def get_flag(self, filename):
+        '''Returns correct flag'''
+        if os.path.exists(self.dirname + filename):
+            if os.path.isdir(self.dirname + filename):
+                return constants.ADD_FOLDER
+            else:
+                return constants.ADD_FILE
+        else:
+            return constants.DELETE
 
     def handle_broker_pull(self, filename, client_num):
         '''Respond to broker pull with requested change'''
@@ -290,7 +297,7 @@ class BrokerChannel(asynchat.async_chat):
         print('handle_push_change: pushing change: {} {}'.format(filename,constants.FLAG_TO_NAME[flag[0]]))
         if len(flags) > 1: print "handle_push_change: got more than 1 flag ({})".format(flags) #PE DEL
         for flag in flags:
-            sequencenum = self.record.update_record_on_push(filename,flag)
+            sequencenum = self.record.update_sequencenum_or_create(filename,flag)
             if sequencenum == -1: #PE make necessary updates to records for this file 
                 logging.error('Something went wrong, could not update record: {}'.format(filename))
                 return
@@ -307,7 +314,7 @@ class BrokerChannel(asynchat.async_chat):
         filename, flag, sequencenum = msg[:3]
         print "handle_receive_change: handling {} {} {}".format(filename,flag,sequencenum)
         self.event_handler.remove_change(filename,sequencenum) #PE handle pushback from broker
-        if self.record.update_record_on_receive(filename,flag,sequencenum) == -1:
+        if self.record.update_sequencenum_or_create(filename,sequencenum) == -1:
             logging.warning('Error updating records')
         if flag & constants.ADD_FILE:
             self.handle_receive_add(msg)
@@ -450,4 +457,5 @@ if __name__ == '__main__':
     channel.event_handler = event_handler
     observer.schedule(event_handler, dirname, True)
     observer.start()
-    asyncore.loop() 
+    asyncore.loop()
+    

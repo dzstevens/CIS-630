@@ -18,34 +18,37 @@ class Connection(LineReceiver):
     def connectionMade(self):
         self.factory.users[self] = self.factory.next_id()
         logging.info("Added self to users")
-        logging.debug("Users : {}".format(repr(self.factory.users)))
-        self.addr = self.transport.getHost().host
-        self.peer = self.transport.getPeer().host
-        logging.info("Connected to {}".format(repr(self.peer)))
-        self.policy = recieve_line
+        logging.debug("Users : {}".format(self.factory.users.values()))
+        self.id = self.factory.users[self]
+        logging.info("Connected to {}".format(self.id))
+        self.policy = self.receive_line
 
     def connectionLost(self, reason):
-        logging.warning("Disconnected from {}".format(repr(self.peer)))
+        logging.warning("Disconnected from {}".format(self.id))
         if self in self.factory.users:
             del self.factory.users[self]
-            logging.info("Removed self from users")
-            logging.debug("Users : {}".format(repr(self.factory.users)))
+            logging.info("Removed {} from users".format(self.id))
+            logging.debug("Users : {}".format(self.factory.users.values()))
 
     def lineReceived(self, line):
-        logging.info("Received Line from " + repr(self.peer))
+        logging.info("Received Line from {}".format(self.id))
         self.policy(line)
 
-    def recieve_line(self, line):
+    def receive_line(self, line):
         msg = line.strip().split(constants.DELIMITER)
         msg[1] = int(msg[1])
         name, flag = msg[:2] # need reserved name for batch request
-        logging.info("Recieved Message "
+        logging.info("Received Message "
                      "with flag {}".format(constants.FLAG_TO_NAME[flag]))
         logging.debug("Data : {}".format(repr(msg)))
         if flag == constants.BATCH:
             self.batch_count = int(msg[2])
-            self.policy = batch_receive
+            logging.debug("Batch Count : {}".format(self.batch_count))
+            logging.debug("Switching to batch mode")
+            self.policy = self.batch_receive
             self.time_stamps_copy = self.factory.time_stamps.copy()
+            logging.debug("Time stamp dict copy: "
+                          "{}".format(self.time_stamps_copy))
         elif flag == constants.REQUEST:
             self.sendLine(line)
         else:
@@ -55,32 +58,44 @@ class Connection(LineReceiver):
         msg = line.strip().split(constants.DELIMITER)
         msg[1] = int(msg[1])
         name, flag = msg[:2]
-        logging.info("Recieved Message "
+        logging.info("Received Message "
                      "with flag {}".format(constants.FLAG_TO_NAME[flag]))
         logging.debug("Data : {}".format(repr(msg)))
         time_stamp = int(msg[2])
+        logging.debug("Time stamp for incoming file "
+                      "'{}': {}".format(name,time_stamp))
         if flag == constants.REQUEST:
             current = self.time_stamps_copy.get(name)
             if current is not None:
+               logging.debug("Current time stamp for file "
+                             "'{}': {}".format(name, current))
                if current > time_stamp:
                    self.fetch_change(name)
                elif current < time_stamp:
                    self.sendLine(line)
+               logging.debug("Deleting {} from time stamps copy".format(name))
                del self.time_stamps_copy[name]
+               logging.debug("Time stamp dict copy: "
+                             "{}".format(self.time_stamps_copy))
             else:
+                logging.debug("'{}' is new, requesting change".format(name))
                 self.sendLine(line)
             self.batch_count -= 1
-
+            logging.debug("Batch Count : {}".format(self.batch_count))
             if self.batch_count == 0:
                 for file_name in self.time_stamps_copy:
                      self.fetch_change(file_name)
+                logging.debug("Switching back to default receive mode")
                 self.policy = receive_line
     
     def fetch_change(self, file_name):
         user = random.choice(set(self.factory.users) - set([self]))
+        logging.info("Fetching change for file "
+                     "{} from user {}".format(file_name, user.id))
         msg = [file_name, str(constants.REQUEST),
-               str(self.factory.time_stamps[file_name]),
-               str(self.factory.users[user])]
+               str(self.factory.time_stamps[file_name]), str(user.id)]
+        logging.debug("Sending message: "
+                      "'{}'}".format(repr(constants.DELIMITER.join(msg))))
         user.sendLine(constants.DELIMITER.join(msg))
     
     def send_change(self, line, msg, flag):
@@ -92,8 +107,13 @@ class Connection(LineReceiver):
             msg = msg[:-1]
         else:
             self.recipients = set(self.factory.users) - set([self])
+        logging.debug("Sending '{}' to users: "
+                      "{}".format(repr(line), [user.id for user in
+                                               self.recipients]))
         for user in self.recipients:
             user.sendLine(line)
+        logging.debug("Updating time stamp for "
+                      "'{}' to {}".format(msg[0], msg[2]))
         self.factory.time_stamps[msg[0]] = int(msg[2])
         if flag == constants.ADD_FILE:
             self.setRawMode()
@@ -114,8 +134,7 @@ class Connection(LineReceiver):
             packet = buff[:self.packet_size] 
             for user in self.recipients:
                 logging.info("Sending chunk of size {} "
-                             "to {}".format(len(packet),
-                                            repr(user.peer)))
+                             "to {}".format(len(packet), user.id))
                 user.transport.write(packet)
             self.to_receive -= self.packet_size
             logging.debug("{} bytes left to receive".format(self.to_receive))
@@ -132,7 +151,7 @@ class Connection(LineReceiver):
                 logging.debug('Next chunk size : {}'.format(self.packet_size))
 
     def sendLine(self, line):
-        logging.info("Sending Line to {}".format(repr(self.peer)))
+        logging.info("Sending Line to {}".format(self.id))
         logging.debug("Line : {}".format(repr(line)))
         LineReceiver.sendLine(self, line)
 
@@ -165,7 +184,7 @@ class Connection(LineReceiver):
 
 class BrokerFactory(Factory):
     def __init__(self):
-        self.users = set()
+        self.users = dict()
         self.time_stamps = dict()
         self.counter = 0
 

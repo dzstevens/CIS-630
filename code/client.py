@@ -149,8 +149,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
             self.handle_change(event.src_path, (constants.ADD_FILE))
 
     def on_moved(self, event):
-        #Or (|) logic handles whether file or folder
-        self.handle_change(event.src_path, (constants.DELETE_FILE))
+        self.handle_change(event.src_path, (constants.DELETE))
+        # Or (|) logic handles whether file or folder
         self.handle_change(event.dest_path, (constants.ADD_FILE |
                                              event.is_directory))
 
@@ -176,9 +176,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
 
     def remove_change(self,filename,sequencenum):
         '''If filename change is in the queue, compare sequencenums and remove older changes'''
-        print "remove_change: received ({},{}), queue: {}".format(filename,sequencenum,repr(self.changes))
         if filename in self.changes and sequencenum > self.changes[filename][1]:
-            print "deleting {} from queue".format(filename)
             del self.changes[filename]
 
 class BrokerChannel(asynchat.async_chat):
@@ -222,7 +220,6 @@ class BrokerChannel(asynchat.async_chat):
         logging.debug('Data : {}'.format(repr(msg)))
         if flag == constants.REQUEST: #broker responded with an ACK to push request or a PULL
             if len(msg) == 4: #PE broker pulled change
-                print "process_message: this is a broker pull"
                 client_num = msg[3]
                 self.handle_broker_pull(filename,client_num)
             else: #PE broker responded with ACK, push change
@@ -294,8 +291,6 @@ class BrokerChannel(asynchat.async_chat):
         '''dequeues a change and pushes it to the broker'''
         #flags = self.event_handler.take_change(filename)
         flags = self.event_handler.take_change(filename) #pull next change from file handler
-        print('handle_push_change: pushing change: {} {}'.format(filename,constants.FLAG_TO_NAME[flag[0]]))
-        if len(flags) > 1: print "handle_push_change: got more than 1 flag ({})".format(flags) #PE DEL
         for flag in flags:
             sequencenum = self.record.update_sequencenum_or_create(filename,flag)
             if sequencenum == -1: #PE make necessary updates to records for this file 
@@ -312,7 +307,6 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_receive_change(self, msg):
         filename, flag, sequencenum = msg[:3]
-        print "handle_receive_change: handling {} {} {}".format(filename,flag,sequencenum)
         self.event_handler.remove_change(filename,sequencenum) #PE handle pushback from broker
         if self.record.update_sequencenum_or_create(filename,sequencenum) == -1:
             logging.warning('Error updating records')

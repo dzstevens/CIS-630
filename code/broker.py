@@ -4,8 +4,7 @@ Created on Nov 17, 2012
 @author: David Stevens
 '''
 
-import logging
-import sys
+import logging, random, sys
 from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
@@ -17,7 +16,7 @@ class Connection(LineReceiver):
         self.factory = factory
 
     def connectionMade(self):
-        self.factory.users.add(self)
+        self.factory.users[self] = self.factory.next_id()
         logging.info("Added self to users")
         logging.debug("Users : {}".format(repr(self.factory.users)))
         self.addr = self.transport.getHost().host
@@ -28,7 +27,7 @@ class Connection(LineReceiver):
     def connectionLost(self, reason):
         logging.warning("Disconnected from {}".format(repr(self.peer)))
         if self in self.factory.users:
-            self.factory.users.remove(self)
+            del self.factory.users[self]
             logging.info("Removed self from users")
             logging.debug("Users : {}".format(repr(self.factory.users)))
 
@@ -50,7 +49,7 @@ class Connection(LineReceiver):
         elif flag == constants.REQUEST:
             self.sendLine(line)
         else:
-            self.send_change(self.factory.users - set([self]), line, msg)
+            self.send_change(line, msg, flag)
 
     def batch_receive(self, line):
         msg = line.strip().split(constants.DELIMITER)
@@ -64,7 +63,7 @@ class Connection(LineReceiver):
             current = self.time_stamps_copy.get(name)
             if current is not None:
                if current > time_stamp:
-                   pass # how to send user newer file?
+                   self.fetch_change(name)
                elif current < time_stamp:
                    self.sendLine(line)
                del self.time_stamps_copy[name]
@@ -73,18 +72,33 @@ class Connection(LineReceiver):
             self.batch_count -= 1
 
             if self.batch_count == 0:
-                for file in self.time_stamps_copy:
-                     pass # how to send user this file?
+                for file_name in self.time_stamps_copy:
+                     self.fetch_change(file_name)
                 self.policy = receive_line
-
-    def send_change(self, users, line, msg):
-        self.factory.time_stamps[msg[0]] = int(msg[2])
-        for user in users:
+    
+    def fetch_change(self, file_name):
+        user = random.choice(set(self.factory.users) - set([self]))
+        msg = [file_name, str(constants.REQUEST),
+               str(self.factory.time_stamps[file_name]),
+               str(self.factory.users[user])]
+        user.sendLine(constants.DELIMITER.join(msg))
+    
+    def send_change(self, line, msg, flag):
+        if flag == constants.ADD_FILE and len(msg) == 5:
+            self.recipients = [self.factory.users[int(msg[4])]]
+            msg = msg[:-1]
+        elif flag != constants.ADD_FILE and len(msg) == 4:
+            self.recipients = [self.factory.users[int(msg[3])]]
+            msg = msg[:-1]
+        else:
+            self.recipients = set(self.factory.users) - set([self])
+        for user in self.recipients:
             user.sendLine(line)
-        if int(msg[1]) == constants.ADD_FILE:
+        self.factory.time_stamps[msg[0]] = int(msg[2])
+        if flag == constants.ADD_FILE:
             self.setRawMode()
             logging.info("Switching to raw mode")
-            self.to_receive = int(msg[2])
+            self.to_receive = int(msg[3])
             logging.info("Expecting {} bytes".format(self.to_receive))
             self.buffer = []
             self.buff_size = 0
@@ -98,7 +112,7 @@ class Connection(LineReceiver):
         while self.buff_size >= self.packet_size:
             buff = ''.join(self.buffer)
             packet = buff[:self.packet_size] 
-            for user in self.factory.users - set([self]):
+            for user in self.recipients:
                 logging.info("Sending chunk of size {} "
                              "to {}".format(len(packet),
                                             repr(user.peer)))
@@ -153,10 +167,14 @@ class BrokerFactory(Factory):
     def __init__(self):
         self.users = set()
         self.time_stamps = dict()
+        self.counter = 0
 
     def buildProtocol(self, addr):
         return Connection(self)
-
+    
+    def next_id(self):
+        self.counter += 1
+        return self.counter - 1
 
 if __name__ == "__main__":
     import getopt

@@ -100,7 +100,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                           constants.ADD_FOLDER)
             else:
                 change = constants.DELETE
-            self.handle_change(unicode(self.dirname+filename), change)
+            self.handle_change(''.join([self.dirname,filename]), change)
 
     def handle_change(self, filename, change):
         record = ClientRecord(record_source,loglevel)

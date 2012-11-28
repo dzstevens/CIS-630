@@ -147,13 +147,11 @@ PUSH
 Clients and brokers use TCP stream sockets to communicate with one another.
 
 \subsection{Issues Resolved}
-What if a client dies? Just consider it gone by the system.
-
-What if a client dies after it makes a request? Drop the request.
-
-Client re-emerges (death + reentry) with updated files? Use local database to check timestamps, update local database, and push changes.
-
-How to handle group managament? At the broker.
+What if a client dies? Just consider it gone by the system.\newline\newline
+What if a client dies after it makes a request? Drop the request.\newline\newline
+Client re-emerges (death + reentry) with updated files? Use local database to check timestamps, update local database, and push changes.\newline\newline
+How to handle group managament? At the broker.\newline\newline
+What if the broker dies? All clients save state..upon reentering the broker has fresh local storage
 
 \subsection{NOTES}
 %details: difference between add/delete, how handle, watchdog, etc

@@ -52,7 +52,7 @@ class Connection(LineReceiver):
                 for file_name in self.time_stamps_copy:
                      self.fetch_change(file_name)
                 logging.debug("Switching back to default receive mode")
-                self.policy = receive_line
+                self.policy = self.receive_line
             else:
                 logging.debug("Switching to batch mode")
                 self.policy = self.batch_receive
@@ -93,7 +93,7 @@ class Connection(LineReceiver):
                 for file_name in self.time_stamps_copy:
                      self.fetch_change(file_name)
                 logging.debug("Switching back to default receive mode")
-                self.policy = receive_line
+                self.policy = self.receive_line
     
     def fetch_change(self, file_name):
         user = random.choice(set(self.factory.users) - set([self]))

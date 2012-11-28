@@ -50,7 +50,7 @@ class ClientRecord:
 
     def update_sequencenum_or_create(self, filename, new_sequencenum=None):
         '''Update the sequence number of the given record, return updated seqnum on success, -1 on fail'''
-        logging.debug('Record({}) : Updating seqnum to {}'.format(filename,new_sequencenum if new_sequencenum != None else 1)
+        logging.debug('Record({}) : Updating seqnum to {}'.format(filename,new_sequencenum if new_sequencenum != None else 1))
         try:
             sequencenum = self.cursor.execute("SELECT sequencenum FROM records WHERE filename='{}';".format(filename)).fetchone()
         except sqlite3.Error, e:

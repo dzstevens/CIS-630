@@ -106,17 +106,22 @@ class ClientRecord:
             logging.debug(e.message)
             return -1
 
-    def update_record(self, filename, flag):
+    def update_record_on_receive(self, filename, flag):
         '''Handles updating a record based on flag'''
-        logging.debug('Record({}) : Updating record with flag {}'.format(filename,constants.FLAG_TO_NAME[flag])
-        if flag == constants.ADD_FILE or flag == constants.ADD_FOLDER:
+        logging.debug('Record({}) : Updating record on receive with flag {}'.format(filename,constants.FLAG_TO_NAME[flag]))
+        elif flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
             retval = self.update_sequencenum_or_create(filename)
-        elif flag == constants.DELETE_FILE:
-            retval = self.delete_record(filename)
         elif flag == constants.DELETE_FOLDER:
             retval = self.delete_directory_records(filename)
-        elif flag == constants.PULL:
-            retval = self.get_sequencenum(filename)
+        return retval
+
+    def update_record_on_push(self, filename, flag):
+        '''Handles updating a record based on flag'''
+        logging.debug('Record({}) : Updating record on push with flag {}'.format(filename,constants.FLAG_TO_NAME[flag]))
+        elif flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
+            retval = self.update_sequencenum_or_create(filename)
+        elif flag == constants.DELETE_FOLDER:
+            retval = self.delete_directory_records(filename)
         return retval
 
     def fetch_current_records(self):

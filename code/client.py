@@ -105,7 +105,6 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                                       str(constants.REQUEST) + constants.DELIMITER +
                                       str(sequencenum) +
                                       constants.TERMINATOR)
-                    #PE TODO must push sequencenum to broker (modify this and push)
                     logging.debug('Pushing: {} {}'.format(filename,
                                                           constants.REQUEST))
                 self.changes[filename] = (change,sequencenum)
@@ -146,10 +145,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
             change = self.changes[filename][0]
             del self.changes[filename]
             return (change,) #PE updated change queue to include sequencenum
-        else: #TODO needs to be replaced
-            print "take_change: getting a broker pull for {}".format(filename)
-            return (constants.PULL,)
-            '''
+        else: 
             logging.warning('{} was never set to change'.format(filename))
             if os.path.exists(self.dirname + filename):
                 if os.path.isdir(self.dirname + filename):
@@ -163,7 +159,6 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                 logging.warning('Spoofing DELETE_FILE')
                 logging.warning('Spoofing DELETE_FOLDER')
                 return (constants.DELETE_FILE, constants.DELETE_FOLDER)
-            '''
 
     def remove_change(self,filename,sequencenum):
         '''If filename change is in the queue, compare sequencenums and remove older changes'''
@@ -212,7 +207,12 @@ class BrokerChannel(asynchat.async_chat):
                      'flag {}'.format(constants.FLAG_TO_NAME[flag]))
         logging.debug('Data : {}'.format(repr(msg)))
         if flag == constants.REQUEST: #broker responded with an ACK to push request or a PULL
-            self.handle_push_change(filename)
+            if len(msg) == 4: #PE broker pulled change
+                print "process_message: this is a broker pull"
+                client_num = msg[3]
+                self.handle_broker_pull(filename,client_num)
+            else: #PE broker responded with ACK, push change
+                self.handle_push_change(filename)
         else:
             self.handle_receive_change(msg) #broker sending change
 
@@ -248,6 +248,27 @@ class BrokerChannel(asynchat.async_chat):
         logging.info('Connected')
         self.event_handler.initial_update_and_push() #PE check for offline changes and push all
 
+    def get_flag(self, filename):
+        if 
+
+    def handle_broker_pull(self, filename, client_num):
+        '''Respond to broker pull with requested change'''
+        sequencenum = self.record.get_sequencenum(filename)
+        if sequencenum == -1: #PE make necessary updates to records for this file 
+            logging.error('Something went wrong, could not update record: {}'.format(filename))
+            return
+        flag = self.get_flag(filename)
+        self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
+        if flag == constants.ADD_FILE: #push size as well for files
+            self.push(constants.DELIMITER +
+                      str(os.stat(self.dirname + filename).st_size) + 
+                      constants.DELIMITER +
+                      str(client_num) +
+                      constants.TERMINATOR)
+            self.push_with_producer(FileProducer(self.dirname + filename))
+        else:
+            self.push(str(client_num) + constants.TERMINATOR)
+
     def handle_push_change(self, filename):
         '''dequeues a change and pushes it to the broker'''
         #flags = self.event_handler.take_change(filename)
@@ -255,13 +276,10 @@ class BrokerChannel(asynchat.async_chat):
         print 'handle_push_change: pushing change: {} {}'.format(filename,constants.FLAG_TO_NAME[flag[0]]))
         if len(flags) > 1: print "handle_push_change: got more than 1 flag ({})".format(flags) #PE DEL
         for flag in flags:
-            sequencenum = self.record.update_record(filename,flag)
+            sequencenum = self.record.update_record_on_push(filename,flag)
             if sequencenum == -1: #PE make necessary updates to records for this file 
                 logging.error('Something went wrong, could not update record: {}'.format(filename))
                 return
-            if flag == constants.PULL: #PE mask broker pull as add file or folder
-                flag = constants.ADD_FOLDER if os.path.isdir(self.dirname + filename) else constants.ADD_FILE
-                print "handle_push_change: setting flag={} for {}".format(flag,filename)
             self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
             if flag == constants.ADD_FILE: #push size as well for files
                 self.push(constants.DELIMITER +
@@ -275,6 +293,8 @@ class BrokerChannel(asynchat.async_chat):
         filename, flag, sequencenum = msg[:3]
         print "handle_receive_change: handling {} {} {}".format(filename,flag,sequencenum)
         self.event_handler.remove_change(filename,sequencenum) #PE handle pushback from broker
+        if self.record.update_record_on_receive(filename,flag,sequencenum) == -1:
+            logging.warning('Error updating records')
         if flag & constants.ADD_FILE:
             self.handle_receive_add(msg)
         elif flag & constants.DELETE_FILE:
@@ -307,8 +327,6 @@ class BrokerChannel(asynchat.async_chat):
                   self.process_data = self.process_file
                   self.set_terminator(min(self.remaining_size,
                                           constants.CHUNK_SIZE))
-            if self.record.update_sequencenum_or_create(filename, int(sequencenum)) == -1: #PE modify: updates seqnum for record, add: creates new record for the added file/folder
-              logging.warning('Error updating records')
         except OSError as e:
             if e.errno == errno.EEXIST:
                 logging.warning(str(e))
@@ -331,15 +349,11 @@ class BrokerChannel(asynchat.async_chat):
                              'changed'.format(filename))
                 self.event_handler.just_changed[filename] = 'Done'
                 shutil.rmtree(self.dirname + filename)
-                if self.record.delete_directory_records(filename) == -1: #PE delete directory from records
-                  logging.warning('Error updating records')
             else:
                 logging.info('Mark {} as being just '
                              'changed'.format(filename))
                 self.event_handler.just_changed[filename] = 'Done'
                 os.remove(self.dirname + filename)
-                if self.record.delete_record(filename) == -1: #PE delete file from records
-                  logging.warning('Error updating records')
         except OSError as e:
             if e.errno == errno.ENOENT:
                 logging.warning(str(e))

@@ -22,32 +22,33 @@ class ClientRecord:
             self.conn = sqlite3.connect(constants.CLIENT_RECORD_DIR + record_source)
             self.cursor = self.conn.cursor()
             self.cursor.execute("CREATE TABLE IF NOT EXISTS records(id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL UNIQUE, sequencenum INTEGER NOT NULL, timestamp DEFAULT CURRENT_TIMESTAMP);")
-            #PE filename: on conflict replace? or handle in code?
         except sqlite3.Error, e:
             logging.warning('Record : Unable to connect to local record: {}'.format(constants.CLIENT_RECORD_DIR + record_source))
             logging.debug(e.message)
             sys.exit(2)
         logging.debug('Record : Client connected to local record: {}'.format(constants.CLIENT_RECORD_DIR + record_source))
 
+
     def get_sequencenum(self,filename):
         '''Retrieve the sequence number of the given file, return -1 on failure'''
-        logging.debug('Record : Getting seqnum for: {}'.format(filename))
+        logging.debug('Record({}) : Getting seqnum'.format(filename))
         try:
             sequence_num = self.cursor.execute("SELECT sequencenum FROM records WHERE filename='{}';".format(filename)).fetchone()
         except sqlite3.Error, e:
-            logging.warning('Record : Failed to retrieve sequencenum for: {}'.format(filename))
+            logging.warning('Record : Something went wrong')
             logging.debug(e.message)
             return -1
     
         if sequence_num: 
             return sequence_num[0]
         else:
-            logging.debug('Record : {} not in records, creating'.format(filename))
-            return self.create_record(filename)
+            return 0
+            #logging.debug('Record : {} not in records, creating'.format(filename))
+            #return self.create_record(filename)
 
     def update_sequencenum_or_create(self, filename, new_sequencenum=None):
-        '''Update the sequence number of the given record, return 0 on success, -1 on fail'''
-        logging.debug('Record : Updating sequencenum for {}, using seqnum {}'.format(filename,new_sequencenum))
+        '''Update the sequence number of the given record, return updated seqnum on success, -1 on fail'''
+        logging.debug('Record({}) : Updating seqnum to {}'.format(filename,new_sequencenum))
         try:
             sequencenum = self.cursor.execute("SELECT sequencenum FROM records WHERE filename='{}';".format(filename)).fetchone()
         except sqlite3.Error, e:
@@ -56,66 +57,66 @@ class ClientRecord:
             return -1
         if sequencenum:
             try:
-                logging.debug('Record : Record exists, updating seqnum')
                 sequencenum = new_sequencenum if new_sequencenum else sequencenum[0]+1 #either update to new sequence number or increment
                 self.cursor.execute("UPDATE records SET sequencenum={}, timestamp='{}' WHERE filename='{}';".format(sequencenum,datetime.utcnow().isoformat(' '),filename))
                 self.conn.commit()
-                return 0
+                return sequencenum
             except sqlite3.Error, e:
                 logging.warning('Record : Failed to update sequencenum')
                 logging.debug(e.message)
                 return -1
         else:
-            logging.debug('Record : {} not in records, creating with seqnum: {}'.format(filename,sequencenum))
+            if not new_sequencenum: new_sequencenum = 1 #PE creating record on push..sequencenum should be 1
             return self.create_record(filename,new_sequencenum)
 
-    def create_record(self, filename, sequencenum=None):
+    def create_record(self, filename, sequencenum=0):
         '''Create a new record, return 0 on success, -1 on failure'''
-        logging.debug('Record : Creating record for {}'.format(filename))
-        if not sequencenum:
-            sequencenum = 0
+        logging.debug('Record({}) : Creating record with seqnum {}'.format(filename,sequencenum))
         try:
             self.cursor.execute("INSERT INTO records(filename,sequencenum) VALUES('{}',{});".format(filename,sequencenum))
             self.conn.commit()
-            return 0
+            return sequencenum
         except sqlite3.Error, e:
-            logging.warning('Record : Failed to create record: {}'.format(filename))
+            logging.warning('Record : Failed to create record')
             logging.debug(e.message)
             return -1
 
     def delete_directory_records(self,filename):
-        '''Deletes an entire directory's records, return 0 on success, -1 on failure'''
-        logging.debug('Record : Deleting directory: {}'.format(filename))
+        '''Deletes an entire directory's records, return seqnum on success, -1 on failure'''
+        logging.debug('Record({}) : Deleting directory'.format(filename))
         directory_to_delete = filename.split('/')[0] + '/%'
         try:
             self.cursor.execute("DELETE FROM records WHERE filename='{}' or filename LIKE '{}';".format(filename,directory_to_delete))
             self.conn.commit()
             return 0
         except sqlite3.Error, e:
-            logging.warning('Record : Failed to delete directory record: {}'.format(filename))
+            logging.warning('Record : Failed to delete directory record')
             logging.debug(e.message)
             return -1
 
     def delete_record(self,filename):
         '''Deletes a record, return 0 on success, -1 on failure'''
-        logging.debug('Record : Deleting record: {}'.format(filename))
+        logging.debug('Record({}) : Deleting record'.format(filename))
         try:
             self.cursor.execute("DELETE FROM records WHERE filename='{}';".format(filename))
             self.conn.commit()
             return 0
         except sqlite3.Error, e:
-            logging.warning('Record : Failed to delete record: {}'.format(filename))
+            logging.warning('Record : Failed to delete record')
             logging.debug(e.message)
             return -1
 
     def update_record(self, filename, flag):
         '''Handles updating a record based on flag'''
+        logging.debug('Record({}) : Updating record with flag {}'.format(filename,constants.FLAG_TO_NAME[flag])
         if flag == constants.ADD_FILE or flag == constants.ADD_FOLDER:
             retval = self.update_sequencenum_or_create(filename)
         elif flag == constants.DELETE_FILE:
             retval = self.delete_record(filename)
         elif flag == constants.DELETE_FOLDER:
             retval = self.delete_directory_records(filename)
+        elif flag == constants.PULL:
+            retval = self.get_sequencenum(filename)
         return retval
 
     def fetch_current_records(self):
@@ -123,7 +124,7 @@ class ClientRecord:
         try:
             return self.cursor.execute("SELECT filename,sequencenum,timestamp FROM records").fetchall()
         except sqlite3.Error, e:
-            logging.warning('Failed to fetch records')
+            logging.warning('Record : Failed to fetch records')
             logging.debug(e.message)
             return []
 

@@ -23,7 +23,12 @@ FLAG_TO_NAME = {REQUEST       : 'REQUEST',
                 BATCH         : 'BATCH',
                }
 
+
 # Logging
 LOG_FORMAT = '%(asctime)s - %(levelname)7s : %(message)s'
+RECORD_DEBUGGING = True
 
+# Misc
 CLIENT_RECORD_DIR = 'client_records/'
+BATCH_FILENAME = 'BATCH'
+PULL = 'pullstring'

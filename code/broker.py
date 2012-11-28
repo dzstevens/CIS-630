@@ -95,21 +95,23 @@ class Connection(LineReceiver):
                 self.policy = self.receive_line
 
     def fetch_change(self, file_name):
-        user = random.choice(set(self.factory.users) - set([self]))
+        user = random.choice(list(set(self.factory.users) - set([self])))
         logging.info("Fetching change for file "
                      "{} from user {}".format(file_name, user.id))
         msg = [file_name, str(constants.REQUEST),
                str(self.factory.time_stamps[file_name]), str(user.id)]
         logging.debug("Sending message: "
-                      "'{}'}".format(repr(constants.DELIMITER.join(msg))))
+                      "'{}'".format(repr(constants.DELIMITER.join(msg))))
         user.sendLine(constants.DELIMITER.join(msg))
     
     def send_change(self, line, msg, flag):
         if flag == constants.ADD_FILE and len(msg) == 5:
-            self.recipients = [self.factory.users[int(msg[4])]]
+            self.recipients = [user for user in self.factory.users if
+                               self.factory.users[user] == int(msg[4])]
             msg = msg[:-1]
         elif flag != constants.ADD_FILE and len(msg) == 4:
-            self.recipients = [self.factory.users[int(msg[3])]]
+            self.recipients = [user for user in self.factory.users if
+                               self.factory.users[user] == int(msg[3])]
             msg = msg[:-1]
         else:
             self.recipients = set(self.factory.users) - set([self])

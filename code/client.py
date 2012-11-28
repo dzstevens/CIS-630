@@ -149,10 +149,12 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         self.handle_change(event.src_path, (constants.DELETE))
 
     def on_modified(self, event):
+        logging.debug("File '{}' modified'".format(event.src_path))
         if not event.is_directory:
             self.handle_change(event.src_path, (constants.ADD_FILE))
 
     def on_moved(self, event):
+        logging.debug("File '{}' renamed to '{}'".format(event.src_path, event.dest_path))
         self.handle_change(event.src_path, (constants.DELETE))
         # Or (|) logic handles whether file or folder
         self.handle_change(event.dest_path, (constants.ADD_FILE |

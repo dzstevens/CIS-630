@@ -84,24 +84,23 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         for filename in current_records: #PE file/folder deleted
             initial_changes.append((filename, DELETE))
 
-        if len(initial_changes) > 0:
-            logging.info('Updating records and pushing {} '
-                         'initial changes'.format(len(initial_changes)))
-            logging.debug('Changes to push: {}'.format(initial_changes))
-            self.channel.push(constants.DELIMITER.join(
-                [constants.BATCH_FILENAME,
-                 str(constants.BATCH),
-                 str(len(initial_changes))]) + constants.TERMINATOR)
-            for filename, flag in initial_changes:
-                if record.update_sequencenum_or_create(filename) == -1:
-                    logging.warning('Something went wrong.')
-                if flag == ADD:
-                    change = (constants.ADD_FILE if
-                              os.path.isfile(self.dirname+filename) else
-                              constants.ADD_FOLDER)
-                else:
-                    change = constants.DELETE
-                self.handle_change(unicode(self.dirname+filename), change)
+        logging.info('Updating records and pushing {} '
+                     'initial changes'.format(len(initial_changes)))
+        logging.debug('Changes to push: {}'.format(initial_changes))
+        self.channel.push(constants.DELIMITER.join(
+            [constants.BATCH_FILENAME,
+             str(constants.BATCH),
+             str(len(initial_changes))]) + constants.TERMINATOR)
+        for filename, flag in initial_changes:
+            if record.update_sequencenum_or_create(filename) == -1:
+                logging.warning('Something went wrong.')
+            if flag == ADD:
+                change = (constants.ADD_FILE if
+                          os.path.isfile(self.dirname+filename) else
+                          constants.ADD_FOLDER)
+            else:
+                change = constants.DELETE
+            self.handle_change(unicode(self.dirname+filename), change)
 
     def handle_change(self, filename, change):
         record = ClientRecord(record_source,loglevel)
@@ -292,7 +291,7 @@ class BrokerChannel(asynchat.async_chat):
         #flags = self.event_handler.take_change(filename)
         flags = self.event_handler.take_change(filename) #pull next change from file handler
         for flag in flags:
-            sequencenum = self.record.update_sequencenum_or_create(filename,flag)
+            sequencenum = self.record.update_sequencenum_or_create(filename)
             if sequencenum == -1: #PE make necessary updates to records for this file 
                 logging.error('Something went wrong, could not update record: {}'.format(filename))
                 return

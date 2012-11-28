@@ -18,6 +18,8 @@ class ClientRecord:
     def __init__(self,record_source,loglevel = 1):
         '''Create DB, connection, table'''
         logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
+        if not os.path.isdir(constants.CLIENT_RECORD_DIR):
+            os.mkdir(constants.CLIENT_RECORD_DIR)
         try:
             self.conn = sqlite3.connect(constants.CLIENT_RECORD_DIR + record_source)
             self.cursor = self.conn.cursor()
@@ -48,7 +50,7 @@ class ClientRecord:
 
     def update_sequencenum_or_create(self, filename, new_sequencenum=None):
         '''Update the sequence number of the given record, return updated seqnum on success, -1 on fail'''
-        logging.debug('Record({}) : Updating seqnum to {}'.format(filename,new_sequencenum))
+        logging.debug('Record({}) : Updating seqnum to {}'.format(filename,new_sequencenum if new_sequencenum != None else 1)
         try:
             sequencenum = self.cursor.execute("SELECT sequencenum FROM records WHERE filename='{}';".format(filename)).fetchone()
         except sqlite3.Error, e:
@@ -80,51 +82,6 @@ class ClientRecord:
             logging.warning('Record : Failed to create record')
             logging.debug(e.message)
             return -1
-
-    """ [OBSELETE]
-    def delete_directory_records(self,filename):
-        '''Deletes an entire directory's records, return seqnum on success, -1 on failure'''
-        logging.debug('Record({}) : Deleting directory'.format(filename))
-        directory_to_delete = filename.split('/')[0] + '/%'
-        try:
-            self.cursor.execute("DELETE FROM records WHERE filename='{}' or filename LIKE '{}';".format(filename,directory_to_delete))
-            self.conn.commit()
-            return 0
-        except sqlite3.Error, e:
-            logging.warning('Record : Failed to delete directory record')
-            logging.debug(e.message)
-            return -1
-
-    def delete_record(self,filename):
-        '''Deletes a record, return 0 on success, -1 on failure'''
-        logging.debug('Record({}) : Deleting record'.format(filename))
-        try:
-            self.cursor.execute("DELETE FROM records WHERE filename='{}';".format(filename))
-            self.conn.commit()
-            return 0
-        except sqlite3.Error, e:
-            logging.warning('Record : Failed to delete record')
-            logging.debug(e.message)
-            return -1
-
-    def update_record_on_receive(self, filename, flag):
-        '''Handles updating a record based on flag'''
-        logging.debug('Record({}) : Updating record on receive with flag {}'.format(filename,constants.FLAG_TO_NAME[flag]))
-        if flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
-            retval = self.update_sequencenum_or_create(filename)
-        elif flag == constants.DELETE_FOLDER:
-            retval = self.delete_directory_records(filename)
-        return retval
-
-    def update_record_on_push(self, filename, flag):
-        '''Handles updating a record based on flag'''
-        logging.debug('Record({}) : Updating record on push with flag {}'.format(filename,constants.FLAG_TO_NAME[flag]))
-        if flag == constants.ADD_FILE or flag == constants.ADD_FOLDER or flag == constants.DELETE_FILE:
-            retval = self.update_sequencenum_or_create(filename)
-        elif flag == constants.DELETE_FOLDER:
-            retval = self.delete_directory_records(filename)
-        return retval
-    """
 
     def fetch_current_records(self):
         '''Fetches all current records'''

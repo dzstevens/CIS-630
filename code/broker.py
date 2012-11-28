@@ -17,10 +17,9 @@ class Connection(LineReceiver):
 
     def connectionMade(self):
         self.factory.users[self] = self.factory.next_id()
-        logging.info("Added self to users")
-        logging.debug("Users : {}".format(self.factory.users.values()))
         self.id = self.factory.users[self]
         logging.info("Connected to user {}".format(self.id))
+        logging.debug("Users : {}".format(self.factory.users.values()))
         self.policy = self.receive_line
 
     def connectionLost(self, reason):
@@ -51,12 +50,12 @@ class Connection(LineReceiver):
             if self.batch_count == 0:
                 for file_name in self.time_stamps_copy:
                      self.fetch_change(file_name)
-                logging.debug("Switching back to default receive mode")
-                self.policy = self.receive_line
             else:
                 logging.debug("Switching to batch mode")
                 self.policy = self.batch_receive
         elif flag == constants.REQUEST:
+            logging.debug("Sending back line '{}' "
+                          "to user {}".format(repr(line), self.id))
             self.sendLine(line)
         else:
             self.send_change(line, msg, flag)
@@ -94,7 +93,7 @@ class Connection(LineReceiver):
                      self.fetch_change(file_name)
                 logging.debug("Switching back to default receive mode")
                 self.policy = self.receive_line
-    
+
     def fetch_change(self, file_name):
         user = random.choice(set(self.factory.users) - set([self]))
         logging.info("Fetching change for file "

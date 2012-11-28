@@ -59,23 +59,23 @@ class Connection(LineReceiver):
         logging.info("Recieved Message "
                      "with flag {}".format(constants.FLAG_TO_NAME[flag]))
         logging.debug("Data : {}".format(repr(msg)))
-
         time_stamp = int(msg[2])
-        current = self.time_stamps_copy.get(name)
-        if current is not None:
-           if current > time_stamp:
-               pass # how to send user newer file?
-           elif current < time_stamp:
-               self.send_change(self.factory.users - set([self]), msg)
-           del self.time_stamps_copy[name]
-        else:
-            self.send_change(self.factory.users - set([self]), msg)
+        if flag == constants.REQUEST:
+            current = self.time_stamps_copy.get(name)
+            if current is not None:
+               if current > time_stamp:
+                   pass # how to send user newer file?
+               elif current < time_stamp:
+                   self.sendLine(line)
+               del self.time_stamps_copy[name]
+            else:
+                self.sendLine(line)
+            self.batch_count -= 1
 
-        self.batch_count -= 1
-        if self.batch_count == 0:
-            for file in self.time_stamps_copy:
-                 pass # how to send user this file?
-            self.policy = receive_line
+            if self.batch_count == 0:
+                for file in self.time_stamps_copy:
+                     pass # how to send user this file?
+                self.policy = receive_line
 
     def send_change(self, users, line, msg):
         self.factory.time_stamps[msg[0]] = int(msg[2])

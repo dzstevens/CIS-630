@@ -60,7 +60,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         
         directory_walker = os.walk(self.dirname)
         cur_directory, cur_subdirectories,cur_files = directory_walker.next()
-        # PE walk entire directory, add necessary changes to push_changes
+        # PE walk entire directory, add necessary changes to initial_pushes
         while(True):
             cur_directory = (cur_directory if cur_directory.endswith('/') else
                              cur_directory + '/')
@@ -76,26 +76,26 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                     discard, record_timestamp = current_records.pop(filename)
                     # PE file/folder updated
                     if modified_time > record_timestamp:
-                        push_changes.append((filename, ADD, UPDATE))
+                        initial_pushes.append((filename, ADD, UPDATE))
                     # PE file/folder unchanged..still push
                     else:
-                        push_changes.append((filename, ADD, IGNORE))
+                        initial_pushes.append((filename, ADD, IGNORE))
                 # PE file/folder added
                 else:
-                    push_changes.append((filename, ADD, UPDATE))
+                    initial_pushes.append((filename, ADD, UPDATE))
             try:
                 cur_directory, cur_subdirectories, cur_files = directory_walker.next()
             except StopIteration:
                 break
         for filename in current_records: #PE file/folder deleted
-            push_changes.append((filename, DELETE, UPDATE))
+            initial_pushes.append((filename, DELETE, UPDATE))
 
-        logging.debug('Changes to push: {}'.format(push_changes))
+        logging.debug('Changes to push: {}'.format(initial_pushes))
         self.channel.push(constants.DELIMITER.join(
             [constants.BATCH_FILENAME,
              str(constants.BATCH),
-             str(len(push_changes))]) + constants.TERMINATOR)
-        for filename, change, update_flag in push_changes:
+             str(len(initial_pushes))]) + constants.TERMINATOR)
+        for filename, change, update_flag in initial_pushes:
             if update_flag == UPDATE: 
                 if record.update_sequencenum_or_create(filename) == -1:
                     logging.warning('Something went wrong.')

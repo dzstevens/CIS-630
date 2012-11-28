@@ -50,7 +50,7 @@ class Connection(LineReceiver):
         elif flag == constants.REQUEST:
             self.sendLine(line)
         else:
-            self.send_change(self.factory.users - set([self]), msg)
+            self.send_change(self.factory.users - set([self]), line, msg)
 
     def batch_receive(self, line):
         msg = line.strip().split(constants.DELIMITER)
@@ -77,8 +77,8 @@ class Connection(LineReceiver):
                  pass # how to send user this file?
             self.policy = receive_line
 
-    def send_change(self, users, msg):
-        self.factory.time_stamps[name] = int(msg[2])
+    def send_change(self, users, line, msg):
+        self.factory.time_stamps[msg[0]] = int(msg[2])
         for user in users:
             user.sendLine(line)
         if int(msg[1]) == constants.ADD_FILE:

@@ -44,8 +44,10 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         Checks for any updates since last snapshot of records,
         pushes all updates
         '''
-        ADD=0
+        ADD = 0
         DELETE = 1
+        UPDATE = 2
+        IGNORE = 3
         record = ClientRecord(record_source,loglevel)
         current_records = dict([(filename,(sequencenum,
                                            get_datetime(timestamp)))
@@ -54,10 +56,11 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         logging.info('Checking initial records')
         logging.debug('Current records: {}'.format(current_records))
         
-        initial_changes = []
+        initial_pushes = []
+        
         directory_walker = os.walk(self.dirname)
         cur_directory, cur_subdirectories,cur_files = directory_walker.next()
-        # PE walk entire directory, add necessary changes to initial_changes
+        # PE walk entire directory, add necessary changes to push_changes
         while(True):
             cur_directory = (cur_directory if cur_directory.endswith('/') else
                              cur_directory + '/')
@@ -73,34 +76,36 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                     discard, record_timestamp = current_records.pop(filename)
                     # PE file/folder updated
                     if modified_time > record_timestamp:
-                        initial_changes.append((filename, ADD))
+                        push_changes.append((filename, ADD, UPDATE))
+                    # PE file/folder unchanged..still push
+                    else:
+                        push_changes.append((filename, ADD, IGNORE))
                 # PE file/folder added
                 else:
-                    initial_changes.append((filename, ADD))
+                    push_changes.append((filename, ADD, UPDATE))
             try:
                 cur_directory, cur_subdirectories, cur_files = directory_walker.next()
             except StopIteration:
                 break
         for filename in current_records: #PE file/folder deleted
-            initial_changes.append((filename, DELETE))
+            push_changes.append((filename, DELETE, UPDATE))
 
-        logging.info('Updating records and pushing {} '
-                     'initial changes'.format(len(initial_changes)))
-        logging.debug('Changes to push: {}'.format(initial_changes))
+        logging.debug('Changes to push: {}'.format(push_changes))
         self.channel.push(constants.DELIMITER.join(
             [constants.BATCH_FILENAME,
              str(constants.BATCH),
-             str(len(initial_changes))]) + constants.TERMINATOR)
-        for filename, flag in initial_changes:
-            if record.update_sequencenum_or_create(filename) == -1:
-                logging.warning('Something went wrong.')
-            if flag == ADD:
+             str(len(push_changes))]) + constants.TERMINATOR)
+        for filename, change, update_flag in push_changes:
+            if update_flag == UPDATE: 
+                if record.update_sequencenum_or_create(filename) == -1:
+                    logging.warning('Something went wrong.')
+            if change == ADD:
                 change = (constants.ADD_FILE if
                           os.path.isfile(self.dirname+filename) else
                           constants.ADD_FOLDER)
             else:
                 change = constants.DELETE
-            self.handle_change(unicode(self.dirname+filename), change)
+            self.handle_change(self.dirname+filename, change)
 
     def handle_change(self, filename, change):
         record = ClientRecord(record_source,loglevel)

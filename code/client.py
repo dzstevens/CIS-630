@@ -114,16 +114,16 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                 if filename not in self.changes:
                     sequencenum = record.get_sequencenum(filename)
                     if sequencenum == -1:
-                      logging.error('Aborting change')
-                      return
-                    logging.debug('Pushing RQST for {}, seqnum {}'.format(filename,sequencenum))
-                    self.channel.push(filename + constants.DELIMITER +
-                                      str(constants.REQUEST) + constants.DELIMITER +
-                                      str(sequencenum) +
-                                      constants.TERMINATOR)
-                    logging.debug('Pushing: {} {}'.format(filename,
-                                                          constants.REQUEST))
-                self.changes[filename] = (change,sequencenum)
+                        logging.error('Aborting change')
+                        return
+                    logging.debug('Pushing REQUEST for {}, seqnum {}'.format(filename,sequencenum))
+                    msg = constants.DELIMITER.join(
+                        [filename,
+                         str(constants.REQUEST),
+                         str(sequencenum)]) + constants.TERMINATOR
+                    logging.debug('Pushing: {}'.format(repr(msg)))
+                    self.channel.push(msg)
+                    self.changes[filename] = (change,sequencenum)
             elif self.just_changed[filename] != 'Adding':
                 logging.info('Unmark {} as being '
                              'just changed'.format(filename))

@@ -20,18 +20,18 @@ class Connection(LineReceiver):
         logging.info("Added self to users")
         logging.debug("Users : {}".format(self.factory.users.values()))
         self.id = self.factory.users[self]
-        logging.info("Connected to {}".format(self.id))
+        logging.info("Connected to user {}".format(self.id))
         self.policy = self.receive_line
 
     def connectionLost(self, reason):
-        logging.warning("Disconnected from {}".format(self.id))
+        logging.warning("User {} has disconnected".format(self.id))
         if self in self.factory.users:
             del self.factory.users[self]
-            logging.info("Removed {} from users".format(self.id))
+            logging.info("Removed user {} from users".format(self.id))
             logging.debug("Users : {}".format(self.factory.users.values()))
 
     def lineReceived(self, line):
-        logging.info("Received Line from {}".format(self.id))
+        logging.info("Received Line from user {}".format(self.id))
         self.policy(line)
 
     def receive_line(self, line):
@@ -44,11 +44,18 @@ class Connection(LineReceiver):
         if flag == constants.BATCH:
             self.batch_count = int(msg[2])
             logging.debug("Batch Count : {}".format(self.batch_count))
-            logging.debug("Switching to batch mode")
-            self.policy = self.batch_receive
+            
             self.time_stamps_copy = self.factory.time_stamps.copy()
             logging.debug("Time stamp dict copy: "
                           "{}".format(self.time_stamps_copy))
+            if self.batch_count == 0:
+                for file_name in self.time_stamps_copy:
+                     self.fetch_change(file_name)
+                logging.debug("Switching back to default receive mode")
+                self.policy = receive_line
+            else:
+                logging.debug("Switching to batch mode")
+                self.policy = self.batch_receive
         elif flag == constants.REQUEST:
             self.sendLine(line)
         else:
@@ -134,7 +141,7 @@ class Connection(LineReceiver):
             packet = buff[:self.packet_size] 
             for user in self.recipients:
                 logging.info("Sending chunk of size {} "
-                             "to {}".format(len(packet), user.id))
+                             "to user {}".format(len(packet), user.id))
                 user.transport.write(packet)
             self.to_receive -= self.packet_size
             logging.debug("{} bytes left to receive".format(self.to_receive))
@@ -151,35 +158,9 @@ class Connection(LineReceiver):
                 logging.debug('Next chunk size : {}'.format(self.packet_size))
 
     def sendLine(self, line):
-        logging.info("Sending Line to {}".format(self.id))
+        logging.info("Sending Line to user {}".format(self.id))
         logging.debug("Line : {}".format(repr(line)))
         LineReceiver.sendLine(self, line)
-
-#     def _handle_GET_FILENAME(self, name):
-#         self.state = 'GET_FILENAME':
-#         name = name
-#         self.to_send = [name]
-#         self.state = 'GET_FLAG'
-#
-#     def _hande_GET_FLAG(self, flag):
-#         self.to_send.append(flag)
-#         if flag in [constants.MOVE_FILE, constants.MOVE_FOLDER]:
-#             self.state = 'GET_DEST'
-#         elif flag == constants.ADD_FILE:
-#             self.state = 'GET_SIZE'
-#         else:
-#             self.send_message()
-#
-#     def _handle_GET_DEST(self, arg):
-#         self.to_send.append(arg)
-#         self.send_message()
-#
-#     def _handle_GET_SIZE(self, arg):
-#         self.to_send.append(arg)
-#         self.send_message()
-#         self.size = int(arg)
-#         self.so_far = 0
-#         self.setRawMode()
 
 
 class BrokerFactory(Factory):

@@ -104,7 +104,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
             except StopIteration:
                 break
         for filename in current_records: #PE file/folder deleted
-            initial_pushes.append((filename, DELETE, UPDATE))
+            initial_pushes.append((str(filename), DELETE, UPDATE))
 
         logging.debug('Changes to push: {}'.format(initial_pushes))
         self.channel.push(constants.DELIMITER.join(

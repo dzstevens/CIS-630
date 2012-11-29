@@ -221,7 +221,6 @@ class BrokerChannel(asynchat.async_chat):
         asynchat.async_chat.push_with_producer(self, producer)
 
     def collect_incoming_data(self, data):
-        logging.info('Received Data')
         self.received_data.append(data)
 
     def found_terminator(self):
@@ -417,8 +416,6 @@ class FileProducer:
                 data = self.file.read(constants.CHUNK_SIZE)
                 if data:
                     logging.info('Produced with size ' + str(len(data)))
-                    logging.debug('Producer : ' + repr(self))
-                    logging.debug('Data : ' + repr(data))
                     return data
                 logging.info('Closing Producer\'s File')
                 self.file.close()
@@ -433,8 +430,6 @@ class FileProducer:
                 self.file.close()
                 raise
         logging.info('Produced with size 0')
-        logging.debug('Producer : ' + repr(self))
-        logging.debug('Data : ' + repr(''))
         return ''
 
 

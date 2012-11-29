@@ -1,4 +1,4 @@
-CHUNK_SIZE = 4096 
+CHUNK_SIZE = 2**12 
 DELIMITER  = '\n'
 TERMINATOR = '\r\n'
 HOST       = ''

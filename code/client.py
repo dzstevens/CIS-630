@@ -9,7 +9,7 @@ Modified by: Paul Elliott (PE) Nov 26, 2012
     Modified to run initial check for offline changes and push those changes
 '''
 
-import asynchat, asyncore, errno, logging, os, re, shutil, socket, time
+import asynchat, asyncore, errno, logging, os, re, shutil, socket
 from datetime import datetime
 
 from watchdog.events import FileSystemEventHandler
@@ -333,14 +333,9 @@ class BrokerChannel(asynchat.async_chat):
                 return
             self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
             if flag == constants.ADD_FILE: #push size as well for files
-                old_size = -1
-                while(True):
-                    size = os.stat(self.dirname + filename).st_size
-                    if size == old_size:
-                        break
-                    time.sleep(.5)
-                self.push('{}{}{}'.format(constants.DELIMITER,
-                                          str(size), constants.TERMINATOR))
+                self.push(constants.DELIMITER +
+                          str(os.stat(self.dirname + filename).st_size) +
+                          constants.TERMINATOR)
                 self.push_with_producer(FileProducer(self.dirname + filename))
             else:
                 self.push(constants.TERMINATOR)

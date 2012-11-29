@@ -67,7 +67,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                                            get_datetime(timestamp)))
                                 for filename, sequencenum, timestamp in
                                 record.fetch_current_records()])
-        logging.info('Checking initial records')
+        logging.debug('Checking initial records')
         logging.debug('Current records: {}'.format(current_records))
         
         initial_pushes = []
@@ -131,7 +131,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         record = ClientRecord(record_source,loglevel)
         filename = os.path.relpath(filename, self.dirname)
         if valid_filename(filename):
-            logging.info('Change happened to {}'.format(filename))
+            logging.debug('Change happened to {}'.format(filename))
             logging.debug('Data : {}'
                           ''.format(constants.FLAG_TO_NAME[change]))
             #PE Q could we leverage local records here to prevent duplicate updates?
@@ -152,11 +152,11 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                     self.channel.push(msg)
                     self.changes[filename] = (change,sequencenum)
             else:
-                logging.info('Unmark {} as being '
+                logging.debug('Unmark {} as being '
                              'just changed'.format(filename))
                 del self.just_changed[filename]
         else:
-            logging.info('Ignoring change to {}'.format(filename))
+            logging.debug('Ignoring change to {}'.format(filename))
             logging.debug('Data : {}'
                           ''.format(constants.FLAG_TO_NAME[change]))
 
@@ -218,19 +218,19 @@ class BrokerChannel(asynchat.async_chat):
         self.record = ClientRecord(record_source,loglevel) #PE connect to record and pass to event_handler and channel
 
     def push(self, data):
-        logging.info('Pushed Data')
+        logging.debug('Pushed Data')
         logging.debug('Data : {}'.format(repr(data)))
         asynchat.async_chat.push(self, data)
 
     def push_with_producer(self, producer):
-        logging.info('Pushed Producer')
+        logging.debug('Pushed Producer')
         asynchat.async_chat.push_with_producer(self, producer)
 
     def collect_incoming_data(self, data):
         self.received_data.append(data)
 
     def found_terminator(self):
-        logging.info('Processing Data')
+        logging.debug('Processing Data')
         self.process_data()
 
     def process_message(self):
@@ -239,7 +239,7 @@ class BrokerChannel(asynchat.async_chat):
         logging.debug('Data : {}'.format(repr(token)))
         msg[1] = int(msg[1])
         filename, flag = msg[:2]
-        logging.info('Received Message with '
+        logging.debug('Received Message with '
                      'flag {}'.format(constants.FLAG_TO_NAME[flag]))
         logging.debug('Data : {}'.format(repr(msg)))
         if flag == constants.REQUEST: #broker responded with an ACK to push request or a PULL
@@ -253,21 +253,22 @@ class BrokerChannel(asynchat.async_chat):
 
     def process_file(self):
         token = self.get_token()
-        logging.info('Receiving File Data {} '
-                     'with size {}'.format(self.file.name,
-                                           len(token)))
+        logging.debug('Receiving File Data {} '
+                      'with size {}'.format(self.file.name,
+                                            len(token)))
         logging.debug('Received chunk of size {}'.format(len(token)))
         self.file.write(token)
         self.remaining_size -= len(token)
         if self.remaining_size > 0:
             self.set_terminator(min(self.remaining_size, constants.CHUNK_SIZE))
         else:
-            logging.info('Closing {}'.format(self.file.name))
-            logging.info('Mark {} as being done being '
+            logging.debug('Closing {}'.format(self.file.name))
+            logging.debug('Mark {} as being done being '
                          'changed'.format(self.filename))
             self.event_handler.just_changed[self.filename] = True
             self.file.close()
-            shutil.copy(self.file.name,self.dirname + self.filename)
+            shutil.move(self.file.name,self.dirname + self.filename)
+            logging.info('Received file {}'.format(self.filename)) 
             self.set_terminator(constants.TERMINATOR)
             self.process_data = self.process_message
             '''
@@ -351,32 +352,33 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_receive_add(self, msg):
         filename, flag, sequencenum = msg[:3]
-        logging.info('Getting Add {}'.format(filename))
+        logging.debug('Getting Add {}'.format(filename))
         try:
             if flag & constants.FOLDER:
-                logging.info('Mark {} as being just '
+                logging.debug('Mark {} as being just '
                              'changed'.format(filename))
                 self.event_handler.just_changed[filename] = True
                 os.makedirs(self.dirname + filename) #PE made makedirs to handle intermediate directories
-
+                logging.info('Added directory {}'.format(filename)) 
             else:
-                logging.info('Opening {}'.format(filename))
+                logging.debug('Opening {}'.format(filename))
                 dir, file = os.path.split(filename)
                 if dir != '': os.makedirs(dir) #PE added makedirs to handle intermediate directories
                 self.filename = filename
                 self.file = open(self.dirname + constants.TMP_FOLDER + file, 'w')
-                logging.info('Mark {} as being just '
+                logging.debug('Mark {} as being just '
                              'changed'.format(filename))
                 self.remaining_size = int(msg[3])
                 if self.remaining_size == 0: #PE handle empty files, which will otherwise hang badly
-                  logging.debug('Empty file, closing {} and marking done being changed'.format(filename))
-                  self.event_handler.just_changed[self.filename] = True
-                  self.file.close()
-                  shutil.copy(self.file.name,self.dirname + self.filename)
+                    logging.debug('Empty file, closing {} and marking done being changed'.format(filename))
+                    self.event_handler.just_changed[self.filename] = True
+                    self.file.close()
+                    shutil.move(self.file.name,self.dirname + self.filename)
+                    logging.info('Received file {}'.format(self.filename)) 
                 else:
-                  self.process_data = self.process_file
-                  self.set_terminator(min(self.remaining_size,
-                                          constants.CHUNK_SIZE))
+                    self.process_data = self.process_file
+                    self.set_terminator(min(self.remaining_size,
+                                            constants.CHUNK_SIZE))
         except OSError as e:
             if e.errno == errno.EEXIST:
                 logging.warning(str(e))
@@ -391,15 +393,17 @@ class BrokerChannel(asynchat.async_chat):
             raise
 
     def handle_receive_delete(self, filename):
-        logging.info('Getting Delete ' + repr(filename))
+        logging.debug('Getting Delete ' + repr(filename))
         try:
-            logging.info('Mark {} as being just '
+            logging.debug('Mark {} as being just '
                          'changed'.format(filename))
             self.event_handler.just_changed[filename] = True
             shutil.rmtree(self.dirname + filename)
+            logging.info('Deleted directory {}'.format(self.filename))    
         except OSError as e:
             if e.errno == errno.ENOTDIR:
                 os.remove(self.dirname + filename)
+                logging.info('Deleted file {}'.format(self.filename))    
             elif e.errno == errno.ENOENT:
                 logging.warning(str(e))
                 logging.debug('Exception : {}'.format(repr(e)))
@@ -413,7 +417,7 @@ class FileProducer:
     '''This produces a file in chunks.'''
 
     def __init__(self, name):
-        logging.info('Opening Producer\'s File')
+        logging.debug('Opening Producer\'s File')
         self.file = open(name)
 
     def more(self):
@@ -421,9 +425,9 @@ class FileProducer:
             try:
                 data = self.file.read(constants.CHUNK_SIZE)
                 if data:
-                    logging.info('Produced with size ' + str(len(data)))
+                    logging.debug('Produced with size ' + str(len(data)))
                     return data
-                logging.info('Closing Producer\'s File')
+                logging.debug('Closing Producer\'s File')
                 self.file.close()
                 self.file = None
             except IOError as e:
@@ -435,7 +439,7 @@ class FileProducer:
                 logging.debug('Exception : ' + repr(e))
                 self.file.close()
                 raise
-        logging.info('Produced with size 0')
+        logging.debug('Produced with size 0')
         return ''
 
 
@@ -458,7 +462,7 @@ if __name__ == '__main__':
         if opt in ('-d', '--dir'):
             dirname = arg
             if not os.path.exists(dirname):
-                logging.info('Makinge directory \'{}\''.format(dirname))
+                logging.info('Making directory \'{}\''.format(dirname))
                 os.mkdir(dirname)
         elif opt in ('-h', '--host'):
             host = arg

@@ -148,7 +148,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
             else:
                 logging.info('Unmark {} as being '
                              'just changed'.format(filename))
-                del just_changed[filename]
+                del self.just_changed[filename]
         else:
             logging.info('Ignoring change to {}'.format(filename))
             logging.debug('Data : {}'
@@ -314,7 +314,7 @@ class BrokerChannel(asynchat.async_chat):
                       constants.TERMINATOR)
             self.push_with_producer(FileProducer(self.dirname + filename))
         else:
-            self.push(str(client_num) + constants.TERMINATOR)
+            self.push(constants.DELIMITER + str(client_num) + constants.TERMINATOR)
 
     def handle_push_change(self, filename):
         '''dequeues a change and pushes it to the broker'''

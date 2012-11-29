@@ -23,21 +23,21 @@ class Connection(LineReceiver):
         self.policy = self.receive_line
 
     def connectionLost(self, reason):
-        logging.warning("User {} has disconnected".format(self.id))
+        logging.info("User {} has disconnected".format(self.id))
         if self in self.factory.users:
             del self.factory.users[self]
             logging.info("Removed user {} from users".format(self.id))
             logging.debug("Users : {}".format(self.factory.users.values()))
 
     def lineReceived(self, line):
-        logging.info("Received Line from user {}".format(self.id))
+        logging.debug("Received Line from user {}".format(self.id))
         self.policy(line)
 
     def receive_line(self, line):
         msg = line.strip().split(constants.DELIMITER)
         msg[1] = int(msg[1])
         name, flag = msg[:2] # need reserved name for batch request
-        logging.info("Received Message "
+        logging.debug("Received Message "
                      "with flag {}".format(constants.FLAG_TO_NAME[flag]))
         logging.debug("Data : {}".format(repr(msg)))
         if flag == constants.BATCH:
@@ -64,7 +64,7 @@ class Connection(LineReceiver):
         msg = line.strip().split(constants.DELIMITER)
         msg[1] = int(msg[1])
         name, flag = msg[:2]
-        logging.info("Received Message "
+        logging.debug("Received Message "
                      "with flag {}".format(constants.FLAG_TO_NAME[flag]))
         logging.debug("Data : {}".format(repr(msg)))
         time_stamp = int(msg[2])
@@ -99,7 +99,7 @@ class Connection(LineReceiver):
             logging.warning("No other clients to pull from")
             return
         user = random.choice(list(set(self.factory.users) - set([self])))
-        logging.info("Fetching change for file "
+        logging.debug("Fetching change for file "
                      "{} from user {}".format(file_name, user.id))
         msg = [file_name, str(constants.REQUEST),
                str(self.factory.time_stamps[file_name]), str(self.id)]
@@ -128,9 +128,9 @@ class Connection(LineReceiver):
         self.factory.time_stamps[msg[0]] = int(msg[2])
         if flag == constants.ADD_FILE:
             self.setRawMode()
-            logging.info("Switching to raw mode")
+            logging.debug("Switching to raw mode")
             self.to_receive = int(msg[3])
-            logging.info("Expecting {} bytes".format(self.to_receive))
+            logging.debug("Expecting {} bytes".format(self.to_receive))
             self.buffer = []
             self.buff_size = 0
             self.packet_size = min(constants.CHUNK_SIZE, self.to_receive)
@@ -144,13 +144,13 @@ class Connection(LineReceiver):
             buff = ''.join(self.buffer)
             packet = buff[:self.packet_size] 
             for user in self.recipients:
-                logging.info("Sending chunk of size {} "
+                logging.debug("Sending chunk of size {} "
                              "to user {}".format(len(packet), user.id))
                 user.transport.write(packet)
             self.to_receive -= self.packet_size
             logging.debug("{} bytes left to receive".format(self.to_receive))
             if self.to_receive == 0:
-                logging.info("Switching to line mode")
+                logging.debug("Switching to line mode")
                 self.setLineMode(extra=buff[self.packet_size:])
                 return
             else:
@@ -162,7 +162,7 @@ class Connection(LineReceiver):
                 logging.debug('Next chunk size : {}'.format(self.packet_size))
 
     def sendLine(self, line):
-        logging.info("Sending Line to user {}".format(self.id))
+        logging.debug("Sending Line to user {}".format(self.id))
         logging.debug("Line : {}".format(repr(line)))
         LineReceiver.sendLine(self, line)
 

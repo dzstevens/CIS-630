@@ -96,7 +96,7 @@ class Connection(LineReceiver):
 
     def fetch_change(self, file_name):
         if len(self.factory.users) == 1: #PE uh oh
-            self.warning("No other clients to pull from")
+            logging.warning("No other clients to pull from")
             return
         user = random.choice(list(set(self.factory.users) - set([self])))
         logging.info("Fetching change for file "

@@ -75,9 +75,9 @@ class Connection(LineReceiver):
             if current is not None:
                logging.debug("Current time stamp for file "
                              "'{}': {}".format(name, current))
-               if current > time_stamp:
+               if current > time_stamp+1:
                    self.fetch_change(name)
-               elif current < time_stamp:
+               elif current < time_stamp+1:
                    self.sendLine(line)
                logging.debug("Deleting {} from time stamps copy".format(name))
                del self.time_stamps_copy[name]

@@ -60,7 +60,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         ADD = 0
         DELETE = 1
         UPDATE = 2
-        IGNORE = 3
+        CREATE = 3
+        IGNORE = 4
         record = ClientRecord(record_source,loglevel)
         current_records = dict([(filename,(sequencenum,
                                            get_datetime(timestamp)))
@@ -98,7 +99,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                         initial_pushes.append((filename, ADD, IGNORE))
                 # PE file/folder added
                 else:
-                    initial_pushes.append((filename, ADD, UPDATE))
+                    initial_pushes.append((filename, ADD, CREATE))
             try:
                 cur_directory, cur_subdirectories, cur_files = directory_walker.next()
             except StopIteration:
@@ -112,8 +113,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
              str(constants.BATCH),
              str(len(initial_pushes))]) + constants.TERMINATOR)
         for filename, change, update_flag in initial_pushes:
-            if update_flag == UPDATE: 
-                if record.update_sequencenum_or_create(filename) == -1:
+            if update_flag == CREATE:
+                if record.create_record(filename) == -1:
                     logging.warning('Something went wrong.')
             if change == ADD:
                 change = (constants.ADD_FILE if
@@ -121,9 +122,12 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                           constants.ADD_FOLDER)
             else:
                 change = constants.DELETE
-            self.handle_change(''.join([self.dirname,filename]), change)
+            if update_flag == IGNORE:
+                self.handle_change(''.join([self.dirname,filename]), change, True)
+            else:
+                self.handle_change(''.join([self.dirname,filename]), change)
 
-    def handle_change(self, filename, change):
+    def handle_change(self, filename, change, no_change=False):
         record = ClientRecord(record_source,loglevel)
         filename = os.path.relpath(filename, self.dirname)
         if valid_filename(filename):
@@ -137,6 +141,8 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                     if sequencenum == -1:
                         logging.error('Aborting change')
                         return
+                    elif no_change:
+                        sequencenum -= 1
                     logging.debug('Pushing REQUEST for {}, seqnum {}'.format(filename,sequencenum))
                     msg = constants.DELIMITER.join(
                         [filename,

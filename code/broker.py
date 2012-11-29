@@ -99,7 +99,7 @@ class Connection(LineReceiver):
         logging.info("Fetching change for file "
                      "{} from user {}".format(file_name, user.id))
         msg = [file_name, str(constants.REQUEST),
-               str(self.factory.time_stamps[file_name]), str(user.id)]
+               str(self.factory.time_stamps[file_name]), str(self.id)]
         logging.debug("Sending message: "
                       "'{}'".format(repr(constants.DELIMITER.join(msg))))
         user.sendLine(constants.DELIMITER.join(msg))

@@ -29,3 +29,4 @@ RECORD_DEBUGGING = True
 # Misc
 CLIENT_RECORD_DIR = 'client_records/'
 BATCH_FILENAME = 'BATCH'
+TMP_FOLDER = '.TMP/'

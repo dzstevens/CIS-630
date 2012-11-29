@@ -18,6 +18,16 @@ from watchdog.observers import Observer
 import constants
 from db_utils import ClientRecord
 
+def valid_filename(filename):
+    if filename[-1] == '~': return False
+    folders_and_file = filename.split('/')
+    for name in folders_and_file:
+        try:
+            if name[0] == '.': return False
+        except IndexError:
+            pass
+    return True
+
 def get_datetime(timestamp):
     '''Converts a UTC timestamp to a datetime object and returns'''
     (year,month,day),(hour,minute,second) = timestamp.split(' ')[0].split('-'),timestamp.split(' ')[1].split(':') #PE string splits FTW
@@ -33,9 +43,12 @@ class LocalFilesEventHandler(FileSystemEventHandler):
     def __init__(self, dirname, record_source, loglevel):
         FileSystemEventHandler.__init__(self)
         self.dirname = dirname
+        if not os.path.isdir(self.dirname + constants.TMP_FOLDER): 
+            os.mkdir(self.dirname + constants.TMP_FOLDER)
         self.changes = {}
         self.just_changed = {}
-        self.valid = re.compile(r'^(.+/)*[^\./][^/~]*$')
+        self.valid = re.compile(r'^(\./)?([^/]+/)*(?!\.)[^/]*[^~]$') #PE test this, should work
+        #self.valid = re.compile(r'^(.+/)*[^\./][^/~]*$')
         self.record_source = record_source
         self.loglevel = loglevel
 
@@ -67,6 +80,9 @@ class LocalFilesEventHandler(FileSystemEventHandler):
             for filename in cur_subdirectories + cur_files:
                 filename = os.path.relpath(cur_directory + filename,
                                            self.dirname)
+                if not valid_filename(filename):
+                    logging.debug('Ignoring {}'.format(filename))
+                    continue
                 modified_time = datetime.utcfromtimestamp(
                     os.path.getmtime(self.dirname+filename))
                 logging.debug('Evaluating {} modified on {}'.format(
@@ -110,7 +126,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
     def handle_change(self, filename, change):
         record = ClientRecord(record_source,loglevel)
         filename = os.path.relpath(filename, self.dirname)
-        if self.valid.match(filename):
+        if valid_filename(filename):
             logging.info('Change happened to {}'.format(filename))
             logging.debug('Data : {}'
                           ''.format(constants.FLAG_TO_NAME[change]))
@@ -129,13 +145,10 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                     logging.debug('Pushing: {}'.format(repr(msg)))
                     self.channel.push(msg)
                     self.changes[filename] = (change,sequencenum)
-            elif self.just_changed[filename] != 'Adding':
+            else:
                 logging.info('Unmark {} as being '
                              'just changed'.format(filename))
-                self.just_changed[filename] = False
-            else:
-                logging.debug('Ignoring change to {} '
-                              'while it is being written'.format(filename))
+                del just_changed[filename]
         else:
             logging.info('Ignoring change to {}'.format(filename))
             logging.debug('Data : {}'
@@ -246,11 +259,21 @@ class BrokerChannel(asynchat.async_chat):
         else:
             logging.info('Closing {}'.format(self.file.name))
             logging.info('Mark {} as being done being '
+                         'changed'.format(self.filename))
+            self.event_handler.just_changed[self.filename] = True
+            self.file.close()
+            shutil.copy(self.file.name,self.dirname + self.filename)
+            self.set_terminator(constants.TERMINATOR)
+            self.process_data = self.process_message
+            '''
+            logging.info('Closing {}'.format(self.file.name))
+            logging.info('Mark {} as being done being '
                          'changed'.format(self.file.name))
             self.event_handler.just_changed[self.file.name] = 'Done'
             self.file.close()
             self.set_terminator(constants.TERMINATOR)
             self.process_data = self.process_message
+            '''
 
     def get_token(self):
         token = ''.join(self.received_data)
@@ -295,7 +318,7 @@ class BrokerChannel(asynchat.async_chat):
 
     def handle_push_change(self, filename):
         '''dequeues a change and pushes it to the broker'''
-        #flags = self.event_handler.take_change(filename)
+        logging.debug("Pushing change for {}".format(filename))
         flags = self.event_handler.take_change(filename) #pull next change from file handler
         for flag in flags:
             sequencenum = self.record.update_sequencenum_or_create(filename)
@@ -328,22 +351,23 @@ class BrokerChannel(asynchat.async_chat):
             if flag & constants.FOLDER:
                 logging.info('Mark {} as being just '
                              'changed'.format(filename))
-                self.event_handler.just_changed[filename] = 'Done'
+                self.event_handler.just_changed[filename] = True
                 os.makedirs(self.dirname + filename) #PE made makedirs to handle intermediate directories
 
             else:
                 logging.info('Opening {}'.format(filename))
                 dir, file = os.path.split(filename)
                 if dir != '': os.makedirs(dir) #PE added makedirs to handle intermediate directories
-                self.file = open(self.dirname + filename, 'w')
+                self.filename = filename
+                self.file = open(self.dirname + constants.TMP_FOLDER + file, 'w')
                 logging.info('Mark {} as being just '
                              'changed'.format(filename))
-                self.event_handler.just_changed[filename] = 'Adding'
                 self.remaining_size = int(msg[3])
                 if self.remaining_size == 0: #PE handle empty files, which will otherwise hang badly
                   logging.debug('Empty file, closing {} and marking done being changed'.format(filename))
-                  self.event_handler.just_changed[filename] = 'Done'
+                  self.event_handler.just_changed[self.filename] = True
                   self.file.close()
+                  shutil.copy(self.file.name,self.dirname + self.filename)
                 else:
                   self.process_data = self.process_file
                   self.set_terminator(min(self.remaining_size,
@@ -366,7 +390,7 @@ class BrokerChannel(asynchat.async_chat):
         try:
             logging.info('Mark {} as being just '
                          'changed'.format(filename))
-            self.event_handler.just_changed[filename] = 'Done'
+            self.event_handler.just_changed[filename] = True
             shutil.rmtree(self.dirname + filename)
         except OSError as e:
             if e.errno == errno.ENOTDIR:

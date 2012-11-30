@@ -39,6 +39,10 @@ LAN='LAN'
 RESULTS_DIR = 'RESULTS/'
 PLOT_DIR = 'PLOTS/'
 DATA_DIR = 'test_files/'
+try:
+  os.mkdir(DATA_DIR)
+except OSError:
+  pass
 PERFORMANCE_FILES = os.listdir(DATA_DIR)
  
 CLOCK_DRIFT = {'PAUL':0,'david.stevens':0,'david':0,'default':0}

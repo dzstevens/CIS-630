@@ -7,8 +7,8 @@ def get_exp(size):
     d = {'B':0, 'K':10, 'M':20, 'G':30}
     return int(math.log(int(size[:-1]), 2)) + d[size[-1]]
 
-def measure_performance(type='Online', network=constants.LAN):
-    data_filename = constants.PLOT_DIR + "{}-{}_performance.plot".format(network,type)
+def measure_performance(t='Online', network=constants.LAN):
+    data_filename = constants.PLOT_DIR + "{}-{}_performance.plot".format(network,t)
 
     PROCESS_QUEUE = Queue()
     for test_dir in os.listdir(constants.RESULTS_DIR):
@@ -18,27 +18,23 @@ def measure_performance(type='Online', network=constants.LAN):
     with open(data_filename, 'w') as graphfile:
         graphfile.write("reset\n")
         graphfile.write("set term postscript eps color enhanced \"Helvetica\" 25\n")
-        graphfile.write("set ylabel \"Latency (in milliseconds)\"\n")
-        graphfile.write("set xlabel \"File size (in kilabytes)\"\n")
+        graphfile.write("set ylabel \"Latency (ms)\"\n")
+        graphfile.write("set xlabel \"File size (2^n bytes)\"\n")
         graphfile.write("#set yrange\n")
-        graphfile.write("set output \"{}-{}_performance.eps\"\n".format(network,type))
-        graphfile.write("set title \"{} Online Performance\"\n".format(type))
+        graphfile.write("set output \"{} - {}_performance.eps\"\n".format(network,t))
+        graphfile.write("set title \"{} - {} Performance\"\n".format(network, t))
         while not PROCESS_QUEUE.empty():
             num_receives,test_dir = PROCESS_QUEUE.get()
-            graphfile.write("plot \"-\" using 1:2 title \"{} clients\" with lines lw 3\n".format(num_receives))
+            graphfile.write("plot \"data\" using 1:2 title \"{} clients\" with lines lw 3\n".format(1 + num_receives))
             PROCESS_LIST.append(test_dir)
     logging.debug("Test directories to process ({}): {}".format(len(PROCESS_LIST),PROCESS_LIST))
     for test_dir in PROCESS_LIST:
-        if type == 'Online':
+        if t == 'Online':
             append_online_data(test_dir,data_filename)
         else:
             append_offline_data(test_dir,data_filename)
-    with open(data_filename, 'a') as graphfile:
-        graphfile.write("e\n")
 
 def append_online_data(test_dir,data_filename):
-    with open(data_filename, 'a') as graphfile:
-        graphfile.write("e\n")
     receive_files = []
     for f in os.listdir(constants.RESULTS_DIR + test_dir):
         if f == 'sender.log':
@@ -67,7 +63,7 @@ def append_online_data(test_dir,data_filename):
         #calculate latency
         latency = (last_rcv_timestamp-send_timestamp).total_seconds() #seconds.milli
         logging.info("It took {} seconds to send {}".format(latency,per_file))
-        with open(data_filename, 'a') as graphfile:
+        with open(constants.PLOT_DIR + 'data', 'a') as graphfile:
             graphfile.write("{}\t{}\n".format(get_exp(per_file.split('_')[-1]), latency*1000))
 
 def search_send(per_file,send_file):
@@ -100,20 +96,20 @@ def search_rcv(per_file,rcv_file):
 if __name__ == '__main__':
     import getopt
     import sys
-    type='Online'
+    t='Online'
     network=constants.LAN
     try:
         opts, args = getopt.getopt(sys.argv[1:], 't:n:',
-                                   ['type=', 'network='])
+                                   ['t=', 'network='])
     except getopt.GetoptError:
         logging.error('The system arguments are incorrect')
         sys.exit(2)
     for opt, arg in opts:
-        if opt in ('-t', '--type'):
-            type = arg
+        if opt in ('-t', '--t'):
+            t = arg
         elif opt in ('-n', '--network'):
             network = arg
     logging.basicConfig(format=constants.LOG_FORMAT,level=1)
     if not os.path.isdir(constants.PLOT_DIR): os.mkdir(constants.PLOT_DIR)
-    measure_performance(type,network)
+    measure_performance(t,network)
     

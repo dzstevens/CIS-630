@@ -448,6 +448,7 @@ class FileProducer:
 if __name__ == '__main__':
     import getopt
     import sys
+    import random
     dirname = './'
     host = constants.HOST
     port = constants.PORT
@@ -455,6 +456,7 @@ if __name__ == '__main__':
     record_source = None
     logfile = 'sender.log'
     box = 'default'
+    log_directory = 'test' + str(random.randint(1,1000))
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:l:v:r:b:',
                                    ['dir=', 'host=', 'port=', 'logging=',
@@ -472,21 +474,25 @@ if __name__ == '__main__':
             host = arg
         elif opt in ('-p', '--port'):
             port = int(arg)
-        elif opt in ('-v', '-l', '--logging'):
+        elif opt in ('-v', '--verbose'):
             loglevel = 10 * (6 - int(arg))
+        elif opt in ('-l', '--logging'):
+            log_directory = arg
+            if log_directory[-1] != '/':
+                log_directory = log_directory + '/'
         elif opt in ('-r', '--record'): #PE handle record arg
             record_source = arg
         elif opt in ('-b', '--box'):
             box = arg
-            logfile = '{}_receiver.log'.format(box)
+            logfile = '{}_receiver{}.log'.format(box,dirname.split('_')[1])
+            print dirname.split('_')
 
     if not dirname.endswith('/'):
         dirname += '/'
     if not record_source: #PE create random record source if none provided
-        import random
         record_source='defaultclient{}'.format(random.randint(1,1000))
     if constants.TEST_MODE:
-        logging.basicConfig(format=constants.LOG_FORMAT, filename=logfile, level=loglevel)
+        logging.basicConfig(format=constants.LOG_FORMAT, filename=log_directory + logfile, level=loglevel)
     else:
         logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
     observer = Observer()

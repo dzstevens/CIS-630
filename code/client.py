@@ -453,10 +453,12 @@ if __name__ == '__main__':
     port = constants.PORT
     loglevel = logging.INFO
     record_source = None
+    logfile = 'sender.log'
+    box = 'default'
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:l:v:r:',
+        opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:l:v:r:b:',
                                    ['dir=', 'host=', 'port=', 'logging=',
-                                    'verbose=','record=']) #PE added a -r/--record arg
+                                    'verbose=','record=','box=']) #PE added a -r/--record arg
     except getopt.GetoptError:
         logging.error('The system arguments are incorrect')
         sys.exit(2)
@@ -474,13 +476,19 @@ if __name__ == '__main__':
             loglevel = 10 * (6 - int(arg))
         elif opt in ('-r', '--record'): #PE handle record arg
             record_source = arg
+        elif opt in ('-b', '--box'):
+            box = arg
+            logfile = '{}_receiver.log'.format(box)
 
     if not dirname.endswith('/'):
         dirname += '/'
     if not record_source: #PE create random record source if none provided
-      import random
-      record_source='defaultclient{}'.format(random.randint(1,1000))
-    logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
+        import random
+        record_source='defaultclient{}'.format(random.randint(1,1000))
+    if constants.TEST_MODE:
+        logging.basicConfig(format=constants.LOG_FORMAT, filename=logfile, level=loglevel)
+    else:
+        logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
     observer = Observer()
     event_handler = LocalFilesEventHandler(dirname, record_source, loglevel)
     channel = BrokerChannel(dirname, record_source, host, port, loglevel) #PE pass record_source to both..can't pass sqlite conn between threads

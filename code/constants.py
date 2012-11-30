@@ -37,4 +37,5 @@ LAN='LAN'
 RESULTS_DIR = 'RESULTS/'
 DATA_DIR = 'DATA/'
 PERFORMANCE_FILES = ['file_1','file_10','file_100','file_1000','file_10000','file_100000','file_1000000']
-CLOCK_DRIFT = {'PAUL':0,'david.stevens':0,'david':0}
+CLOCK_DRIFT = {'PAUL':0,'david.stevens':0,'david':0,'default':0}
+TEST_MODE = True

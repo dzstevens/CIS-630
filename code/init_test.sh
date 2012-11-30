@@ -1,8 +1,13 @@
 #!/bin/bash
 echo "cleaning records"
 rm client_records/*
+rm test_files/*
 rm -rf sender_dir
 rm -rf receiver*_dir
+if [ ! -d test_files ] ; then
+    mkdir test_files
+fi
+python make_test_files.py
 TESTDIR=$1
 BOX=$2
 mkdir RESULTS/$TESTDIR

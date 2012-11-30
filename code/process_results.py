@@ -4,13 +4,13 @@ import os
 from Queue import Queue
 
 
-def measure_performance(RESULTS_SUBDIRECTORY, type='Online', network=constants.LAN):
-    data_filename = constants.DATA_DIR + "{}-{}_performance.plot".format(network,type)
+def measure_performance(type='Online', network=constants.LAN):
+    data_filename = constants.PLOT_DIR + "{}-{}_performance.plot".format(network,type)
 
     PROCESS_QUEUE = Queue()
-    for test_dir in os.listdir(RESULTS_SUBDIRECTORY):
-        num_receives = len(os.listdir(RESULTS_SUBDIRECTORY + test_dir) - 1) #-1 for send
-        PROCESS_QUEUE.push((num_receives,test_dir))
+    for test_dir in os.listdir(constants.RESULTS_DIR):
+        num_receives = len(os.listdir(constants.RESULTS_DIR + test_dir)) - 1 #-1 for send
+        PROCESS_QUEUE.put((num_receives,test_dir + '/'))
     PROCESS_LIST = []
     with open(data_filename, 'w') as graphfile:
         graphfile.write("reset\n")
@@ -37,11 +37,11 @@ def append_online_data(test_dir,data_filename):
     with open(data_filename, 'a') as graphfile:
         graphfile.write("e\n")
     receive_files = []
-    for file in os.listdir(RESULTS_SUBDIRECTORY + test_dir):
-        if file.name == 'send.log':
-            send_file = RESULTS_SUBDIRECTORY + test_dir + file
+    for file in os.listdir(constants.RESULTS_DIR + test_dir):
+        if file == 'sender.log':
+            send_file = constants.RESULTS_DIR + test_dir + file
         else: # (box)_receive.log
-            receive_files.append(RESULTS_SUBDIRECTORY + test_dir + file)
+            receive_files.append(constants.RESULTS_DIR + test_dir + file)
 
     logging.info("Opened send log and {} receive logs".format(len(receive_files)))
     for per_file in constants.PERFORMANCE_FILES:
@@ -78,6 +78,7 @@ def search_send(per_file,send_file):
                                                                 (raw_timestamp.split(' ')[1].split(',')[0].split(':')),
                                                                 (raw_timestamp.split(',')[1]))
                 return datetime.datetime(year,month,day,hour,min,second,msecond)
+            line = logfile.readline()
     return -1 #did not find correct line
 
 def search_rcv(per_file,rcv_file):
@@ -97,11 +98,11 @@ def search_rcv(per_file,rcv_file):
 if __name__ == '__main__':
     import getopt
     import sys
-    type=None
-    network=None
+    type='Online'
+    network=constants.LAN
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 't:n:s:',
-                                   ['type=', 'network=', 'subdir='])
+        opts, args = getopt.getopt(sys.argv[1:], 't:n:',
+                                   ['type=', 'network='])
     except getopt.GetoptError:
         logging.error('The system arguments are incorrect')
         sys.exit(2)
@@ -110,9 +111,6 @@ if __name__ == '__main__':
             type = arg
         elif opt in ('-n', '--network'):
             network = arg
-        elif opt in ('-s', '--subdir'):
-            arg = arg if arg[-1] == '/' else arg + '/'
-            RESULTS_SUBDIRECTORY = constants.RESULTS_DIR + arg
     logging.basicConfig(format=constants.LOG_FORMAT,level=10)
-    measure_performance(RESULTS_SUBDIRECTORY,type,network)
+    measure_performance(type,network)
     

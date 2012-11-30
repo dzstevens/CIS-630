@@ -37,6 +37,7 @@ TMP_FOLDER = '.TMP/'
 WAN='WAN'
 LAN='LAN'
 RESULTS_DIR = 'RESULTS/'
+PLOT_DIR = 'PLOTS/'
 DATA_DIR = 'test_files/'
 PERFORMANCE_FILES = os.listdir(DATA_DIR)
  

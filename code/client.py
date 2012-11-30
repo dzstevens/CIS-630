@@ -185,20 +185,20 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         if filename in self.changes:
             change = self.changes[filename][0]
             del self.changes[filename]
-            return (change,) #PE updated change queue to include sequencenum
+            return change #PE updated change queue to include sequencenum
         else: 
             logging.warning('{} was never set to change'.format(filename))
             if os.path.exists(self.dirname + filename):
                 if os.path.isdir(self.dirname + filename):
                     logging.warning('Spoofing ADD_FOLDER')
-                    return (constants.ADD_FOLDER,)
+                    return constants.ADD_FOLDER
                 else:
                     logging.warning('Spoofing ADD_FILE')
-                    return (constants.ADD_FILE,)
+                    return constants.ADD_FILE
             else:
                 logging.warning(repr(filename) + ' does not exist')
                 logging.warning('Spoofing DELETE')
-                return (constants.DELETE)
+                return constants.DELETE
 
     def remove_change(self,filename,sequencenum):
         '''If filename change is in the queue, compare sequencenums and remove older changes'''
@@ -312,6 +312,7 @@ class BrokerChannel(asynchat.async_chat):
             logging.error('Something went wrong, could not update record: {}'.format(filename))
             return
         flag = self.get_flag(filename)
+        logging.info('Sending change: {} \'{\'}'.format(constants.FLAG_TO_NAME[flag], filename))
         self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
         if flag == constants.ADD_FILE: #push size as well for files
             self.push(constants.DELIMITER +
@@ -326,20 +327,20 @@ class BrokerChannel(asynchat.async_chat):
     def handle_push_change(self, filename):
         '''dequeues a change and pushes it to the broker'''
         logging.debug("Pushing change for {}".format(filename))
-        flags = self.event_handler.take_change(filename) #pull next change from file handler
-        for flag in flags:
-            sequencenum = self.record.update_sequencenum_or_create(filename)
-            if sequencenum == -1: #PE make necessary updates to records for this file 
-                logging.error('Something went wrong, could not update record: {}'.format(filename))
-                return
-            self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
-            if flag == constants.ADD_FILE: #push size as well for files
-                self.push(constants.DELIMITER +
-                          str(os.stat(self.dirname + filename).st_size) +
-                          constants.TERMINATOR)
-                self.push_with_producer(FileProducer(self.dirname + filename))
-            else:
-                self.push(constants.TERMINATOR)
+        flag = self.event_handler.take_change(filename) #pull next change from file handler
+        sequencenum = self.record.update_sequencenum_or_create(filename)
+        if sequencenum == -1: #PE make necessary updates to records for this file 
+            logging.error('Something went wrong, could not update record: {}'.format(filename))
+            return
+        logging.info('Sending change: {} \'{}\''.format(constants.FLAG_TO_NAME[flag], filename))
+        self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
+        if flag == constants.ADD_FILE: #push size as well for files
+            self.push(constants.DELIMITER +
+                      str(os.stat(self.dirname + filename).st_size) +
+                      constants.TERMINATOR)
+            self.push_with_producer(FileProducer(self.dirname + filename))
+        else:
+            self.push(constants.TERMINATOR)
 
     def handle_receive_change(self, msg):
         filename, flag, sequencenum = msg[:3]
@@ -400,11 +401,11 @@ class BrokerChannel(asynchat.async_chat):
                          'changed'.format(filename))
             self.event_handler.just_changed[filename] = True
             shutil.rmtree(self.dirname + filename)
-            logging.info('Deleted directory {}'.format(self.filename))    
+            logging.info('Deleted directory {}'.format(filename))    
         except OSError as e:
             if e.errno == errno.ENOTDIR:
                 os.remove(self.dirname + filename)
-                logging.info('Deleted file {}'.format(self.filename))    
+                logging.info('Deleted file {}'.format(filename))    
             elif e.errno == errno.ENOENT:
                 logging.warning(str(e))
                 logging.debug('Exception : {}'.format(repr(e)))

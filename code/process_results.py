@@ -72,8 +72,7 @@ def append_online_data(test_dir,data_filename):
 
 def search_send(per_file,send_file):
     with open(send_file,'r') as logfile:
-        line = logfile.readline()
-        while line != '':
+        for line in logfile:
             if (line.find("Sending") >= 0 and line.find("{}".format(per_file)) > 0):
                 raw_timestamp = line.split(' -')[0]
                 logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
@@ -82,21 +81,20 @@ def search_send(per_file,send_file):
                                                                 (raw_timestamp.split(',')[1]))
                 return datetime.datetime(int(year), int(month), int(day),
                                          int(hour), int(m), int(second), int(msecond))
-            line = logfile.readline()
     return -1 #did not find correct line
 
 def search_rcv(per_file,rcv_file):
     box = rcv_file.split('_')[0]
     with open(rcv_file, 'r') as logfile:
-        line = logfile.readline()
-        while line != '':
+        for line in logfile:
             if (line.find("Received") >= 0 and line.find("{}".format(per_file)) > 0):
                 raw_timestamp = line.split(' -')[0]
                 logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
-                (year,month,day),(hour,min,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
+                (year,month,day),(hour,m,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
                                                                 (raw_timestamp.split(' ')[1].split(',')[0].split(':')),
                                                                 (raw_timestamp.split(',')[1]))
-                return datetime.datetime(year,month,day,hour,min,second,msecond) + datetime.timedelta(seconds = constants.CLOCK_DRIFT[box])
+                return datetime.datetime(int(year), int(month), int(day),
+                                         int(hour), int(m), int(second), int(msecond))
     return -1 #did not find correct line
 
 if __name__ == '__main__':

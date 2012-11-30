@@ -318,6 +318,7 @@ class BrokerChannel(asynchat.async_chat):
                       constants.DELIMITER +
                       str(client_num) +
                       constants.TERMINATOR)
+            logging.info('Sending file {}'.format(filename))
             self.push_with_producer(FileProducer(self.dirname + filename))
         else:
             self.push(constants.DELIMITER + str(client_num) + constants.TERMINATOR)
@@ -336,6 +337,7 @@ class BrokerChannel(asynchat.async_chat):
                 self.push(constants.DELIMITER +
                           str(os.stat(self.dirname + filename).st_size) +
                           constants.TERMINATOR)
+                logging.info('Sending file {}'.format(filename))
                 self.push_with_producer(FileProducer(self.dirname + filename))
             else:
                 self.push(constants.TERMINATOR)

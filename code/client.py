@@ -269,7 +269,7 @@ class BrokerChannel(asynchat.async_chat):
             self.event_handler.just_changed[self.filename] = True
             self.file.close()
             shutil.move(self.file.name,self.dirname + self.filename)
-            logging.info('Received file {}'.format(self.filename)) 
+            logging.info('Received file \'{}\''.format(self.filename)) 
             self.set_terminator(constants.TERMINATOR)
             self.process_data = self.process_message
             '''
@@ -376,7 +376,7 @@ class BrokerChannel(asynchat.async_chat):
                     self.event_handler.just_changed[self.filename] = True
                     self.file.close()
                     shutil.move(self.file.name,self.dirname + self.filename)
-                    logging.info('Received file {}'.format(self.filename)) 
+                    logging.info('Received file \'{}\''.format(self.filename)) 
                 else:
                     self.process_data = self.process_file
                     self.set_terminator(min(self.remaining_size,

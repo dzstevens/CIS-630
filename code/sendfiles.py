@@ -1,7 +1,9 @@
 import os
 import shutil
 import sys
-for file in os.listdir('test_files'):
-    print 'sending {}'.format(file)
-    shutil.move('test_files/'+file,'sender_dir/')
+import constants
+
+for f in constants.PERFORMANCE_FILES:
+    print 'sending {}'.format(f)
+    shutil.move('test_files/'+f,'sender_dir/')
     x = raw_input('CONTINUE?')

@@ -5,7 +5,13 @@ CHUNK = '0'*(2**20)
 def get_name(dr, size):
   d = {0:'B', 1:'K', 2:'M', 3:'G'}
   return '{}/data_file_{}{}'.format(dr, 2**(size % 10), d[size//10])
-if not os.listdir(constants.DATA_DIR):
+
+try:
+  os.mkdir(constants.DATA_DIR)
+except OSError:
+  pass
+
+if not len(os.listdir(constants.DATA_DIR)) == 30:
     for i in range(31):
     #  with open('test_files/test_file_{}'.format())
       name = get_name('test_files', i)

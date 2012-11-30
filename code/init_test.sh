@@ -10,6 +10,9 @@ fi
 python make_test_files.py
 TESTDIR=$1
 BOX=$2
+if [ ! -d RESULTS ] ; then
+    mkdir RESULTS
+fi
 mkdir RESULTS/$TESTDIR
 mkdir sender_dir
 echo "starting sender"

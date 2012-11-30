@@ -37,11 +37,11 @@ def append_online_data(test_dir,data_filename):
     with open(data_filename, 'a') as graphfile:
         graphfile.write("e\n")
     receive_files = []
-    for file in os.listdir(constants.RESULTS_DIR + test_dir):
-        if file == 'sender.log':
-            send_file = constants.RESULTS_DIR + test_dir + file
+    for f in os.listdir(constants.RESULTS_DIR + test_dir):
+        if f == 'sender.log':
+            send_file = constants.RESULTS_DIR + test_dir + f
         else: # (box)_receive.log
-            receive_files.append(constants.RESULTS_DIR + test_dir + file)
+            receive_files.append(constants.RESULTS_DIR + test_dir + f)
 
     logging.info("Opened send log and {} receive logs".format(len(receive_files)))
     for per_file in constants.PERFORMANCE_FILES:
@@ -71,7 +71,7 @@ def search_send(per_file,send_file):
     with open(send_file,'r') as logfile:
         line = logfile.readline()
         while line != '':
-            if (line.find("Sending") > 0 and line.find("'{}'".format(per_file)) > 0):
+            if (line.find("Sending") >= 0 and line.find("{}".format(per_file)) > 0):
                 raw_timestamp = line.split(' -')[0]
                 logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
                 (year,month,day),(hour,min,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
@@ -86,7 +86,7 @@ def search_rcv(per_file,rcv_file):
     with open(send_file,'r') as logfile:
         line = logfile.readline()
         while line != '':
-            if (line.find("Received") > 0 and line.find("'{}'".format(per_file)) > 0):
+            if (line.find("Received") >= 0 and line.find("{}".format(per_file)) > 0):
                 raw_timestamp = line.split(' -')[0]
                 logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
                 (year,month,day),(hour,min,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
@@ -112,5 +112,6 @@ if __name__ == '__main__':
         elif opt in ('-n', '--network'):
             network = arg
     logging.basicConfig(format=constants.LOG_FORMAT,level=10)
+    if not os.path.isdir(constants.PLOT_DIR): os.mkdir(constants.PLOT_DIR)
     measure_performance(type,network)
     

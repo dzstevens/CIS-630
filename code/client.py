@@ -270,6 +270,7 @@ class BrokerChannel(asynchat.async_chat):
             self.file.close()
             shutil.move(self.file.name,self.dirname + self.filename)
             logging.info('Received file \'{}\''.format(self.filename)) 
+            print 'RECEIVED FILE'
             self.set_terminator(constants.TERMINATOR)
             self.process_data = self.process_message
             '''
@@ -313,6 +314,7 @@ class BrokerChannel(asynchat.async_chat):
             return
         flag = self.get_flag(filename)
         logging.info('Sending change: {} \'{\'}'.format(constants.FLAG_TO_NAME[flag], filename))
+        print 'SENDING CHANGE'
         self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
         if flag == constants.ADD_FILE: #push size as well for files
             self.push(constants.DELIMITER +

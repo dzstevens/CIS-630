@@ -1,8 +1,11 @@
-import logging 
+import logging, math, os, datetime
 import constants 
-import os
+
 from Queue import Queue
 
+def get_exp(size):
+    d = {'B':0, 'K':10, 'M':20, 'G':30}
+    return int(math.log(int(size[0]), 2)) + d[size[1]]
 
 def measure_performance(type='Online', network=constants.LAN):
     data_filename = constants.PLOT_DIR + "{}-{}_performance.plot".format(network,type)
@@ -65,7 +68,7 @@ def append_online_data(test_dir,data_filename):
         latency = (last_rcv_timestamp-send_timestamp).total_seconds() #seconds.milli
         logging.info("It took {} seconds to send {}".format(latency,per_file))
         with open(data_filename, 'a') as graphfile:
-            graphfile.write("{}\t{}\n".format(per_file.split('_')[1],latency*1000))
+            graphfile.write("{}\t{}\n".format(get_exp(per_file.split('_')[-1]), latency*1000))
 
 def search_send(per_file,send_file):
     with open(send_file,'r') as logfile:
@@ -74,16 +77,17 @@ def search_send(per_file,send_file):
             if (line.find("Sending") >= 0 and line.find("{}".format(per_file)) > 0):
                 raw_timestamp = line.split(' -')[0]
                 logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
-                (year,month,day),(hour,min,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
+                (year,month,day),(hour,m,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
                                                                 (raw_timestamp.split(' ')[1].split(',')[0].split(':')),
                                                                 (raw_timestamp.split(',')[1]))
-                return datetime.datetime(year,month,day,hour,min,second,msecond)
+                return datetime.datetime(int(year), int(month), int(day),
+                                         int(hour), int(m), int(second), int(msecond))
             line = logfile.readline()
     return -1 #did not find correct line
 
 def search_rcv(per_file,rcv_file):
     box = rcv_file.split('_')[0]
-    with open(send_file,'r') as logfile:
+    with open(rcv_file, 'r') as logfile:
         line = logfile.readline()
         while line != '':
             if (line.find("Received") >= 0 and line.find("{}".format(per_file)) > 0):
@@ -111,7 +115,7 @@ if __name__ == '__main__':
             type = arg
         elif opt in ('-n', '--network'):
             network = arg
-    logging.basicConfig(format=constants.LOG_FORMAT,level=10)
+    logging.basicConfig(format=constants.LOG_FORMAT,level=1)
     if not os.path.isdir(constants.PLOT_DIR): os.mkdir(constants.PLOT_DIR)
     measure_performance(type,network)
     

@@ -63,6 +63,7 @@ class LocalFilesEventHandler(FileSystemEventHandler):
         CREATE = 3
         IGNORE = 4
         record = ClientRecord(record_source,loglevel)
+        logging.debug('CONNECTED')
         current_records = dict([(filename,(sequencenum,
                                            get_datetime(timestamp)))
                                 for filename, sequencenum, timestamp in

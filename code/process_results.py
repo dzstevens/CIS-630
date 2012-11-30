@@ -5,7 +5,7 @@ from Queue import Queue
 
 def get_exp(size):
     d = {'B':0, 'K':10, 'M':20, 'G':30}
-    return int(math.log(int(size[0]), 2)) + d[size[1]]
+    return int(math.log(int(size[:-1]), 2)) + d[size[1]]
 
 def measure_performance(type='Online', network=constants.LAN):
     data_filename = constants.PLOT_DIR + "{}-{}_performance.plot".format(network,type)

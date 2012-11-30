@@ -485,7 +485,6 @@ if __name__ == '__main__':
         elif opt in ('-b', '--box'):
             box = arg
             logfile = '{}_receiver{}.log'.format(box,dirname.split('_')[1])
-            print dirname.split('_')
 
     if not dirname.endswith('/'):
         dirname += '/'

@@ -1,4 +1,9 @@
 #!/bin/bash
+echo $#
+if [ $# -lt 3 ] ; then
+    echo "USAGE: ./init_test (test_dir) (hostname) (num clients)"
+    exit 1
+fi
 echo "cleaning records"
 rm client_records/*
 rm -rf sender_dir

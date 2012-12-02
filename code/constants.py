@@ -43,12 +43,12 @@ try:
   os.mkdir(DATA_DIR)
 except OSError:
   pass
-PERFORMANCE_FILES = ['data_file_1B', 'data_file_2B', 'data_file_4B',
-         'data_file_16B', 'data_file_32B', 'data_file_64B',
-         'data_file_128B', 'data_file_256B', 'data_file_512B',
-         'data_file_1K', 'data_file_2K', 'data_file_4K',
-         'data_file_16K', 'data_file_32K', 'data_file_64K',
-         'data_file_128K', 'data_file_256K', 'data_file_512K',
+PERFORMANCE_FILES = [# 'data_file_1B', 'data_file_2B', 'data_file_4B',
+       # 'data_file_16B', 'data_file_32B', 'data_file_64B',
+       # 'data_file_128B', 'data_file_256B', 'data_file_512B',
+       # 'data_file_1K', 'data_file_2K', 'data_file_4K',
+       # 'data_file_16K', 'data_file_32K', 'data_file_64K',
+       # 'data_file_128K', 'data_file_256K', 'data_file_512K',
          'data_file_1M', 'data_file_2M', 'data_file_4M',
          'data_file_16M', 'data_file_32M', 'data_file_64M',
          'data_file_128M', 'data_file_256M', 'data_file_512M',

@@ -3,9 +3,10 @@ import constants
 
 from Queue import Queue
 
-def get_exp(size):
-    d = {'B':0, 'K':10, 'M':20, 'G':30}
-    return int(math.log(int(size[:-1]), 2)) + d[size[-1]]
+def get_size(size):
+    if size[1] == 'G':
+      size[0] = 1024
+    return int(size[0])
 
 def measure_performance(t='Online', network=constants.LAN):
     data_filename = constants.PLOT_DIR + "{}-{}_performance.plot".format(network,t)
@@ -19,8 +20,7 @@ def measure_performance(t='Online', network=constants.LAN):
         graphfile.write("reset\n")
         graphfile.write("set term postscript eps color enhanced \"Helvetica\" 25\n")
         graphfile.write("set ylabel \"Latency (s)\"\n")
-        graphfile.write("set xlabel \"File size (2^n bytes)\"\n")
-        graphfile.write("#set yrange\n")
+        graphfile.write("set xlabel \"File Size (MB)\"\n")
         graphfile.write("set output \"{}-{}_performance.eps\"\n".format(network,t))
         graphfile.write("set title \"{} - {} Performance\"\n".format(network, t))
         i = 1
@@ -73,7 +73,7 @@ def append_online_data(test_dir, graphfile):
         #calculate latency
         latency = (last_rcv_timestamp-send_timestamp).total_seconds() #seconds.milli
         logging.info("It took {} seconds to send {}".format(latency,per_file))
-        graphfile.write("{}\t{}\n".format(get_exp(per_file.split('_')[-1]), latency))
+        graphfile.write("{}\t{}\n".format(get_size(per_file.split('_')[-1]), latency))
 
 def search_send(per_file,send_file):
     with open(send_file,'r') as logfile:

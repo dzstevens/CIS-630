@@ -55,4 +55,3 @@ PERFORMANCE_FILES = ['data_file_1B', 'data_file_2B', 'data_file_4B',
          'data_file_1G']
 
 CLOCK_DRIFT = {'PAUL':0,'david.stevens':0,'david':0,'default':0}
-TEST_MODE = False

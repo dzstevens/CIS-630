@@ -453,6 +453,7 @@ if __name__ == '__main__':
     record_source = None
     logfile = 'sender.log'
     box = 'default'
+    TEST_MODE = False  
     log_directory = 'test' + str(random.randint(1,1000))
     '''
     Get command line args:
@@ -466,12 +467,11 @@ if __name__ == '__main__':
         b = box
     '''
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:l:v:r:b:',
+        opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:l:v:r:b:t',
                                    ['dir=', 'host=', 'port=', 'logging=',
-                                    'verbose=','record=','box=']) 
+                                    'verbose=','record=','box=', 'test']) 
     except getopt.GetoptError:
-        logging.error('The system arguments are incorrect')
-        sys.exit(2)
+        raise
     for opt, arg in opts:
         if opt in ('-d', '--dir'):
             dirname = arg
@@ -493,13 +493,14 @@ if __name__ == '__main__':
         elif opt in ('-b', '--box'):
             box = arg
             logfile = '{}_receiver{}.log'.format(box,dirname.split('_')[1])
-
+        elif opt in ('-t', '--test'):
+            TEST_MODE = True
     if not dirname.endswith('/'):
         dirname += '/'
     if not record_source: 
         record_source='defaultclient{}'.format(random.randint(1,1000))
     #PE for testing, log everything to a given logfile
-    if constants.TEST_MODE:
+    if TEST_MODE:
         logging.basicConfig(format=constants.LOG_FORMAT, filename=log_directory + logfile, level=loglevel)
     else:
         logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)

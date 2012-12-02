@@ -1,7 +1,6 @@
 #!/bin/bash
-echo $#
-if [ $# -lt 3 ] ; then
-    echo "USAGE: ./init_test (test_dir) (hostname) (num clients)"
+if [ $# -lt 2 ] ; then
+    echo "USAGE: ./init_test (test_dir) (num clients)"
     exit 1
 fi
 echo "cleaning records"
@@ -13,18 +12,21 @@ if [ ! -d test_files ] ; then
 fi
 python make_test_files.py
 TESTDIR=$1
-BOX=$2
+BOX=$USER
 if [ ! -d RESULTS ] ; then
     mkdir RESULTS
+fi
+if [ -d RESULTS/$TESTDIR ] ; then
+    rm -rf RESULTS/$TESTDIR 
 fi
 mkdir RESULTS/$TESTDIR
 mkdir sender_dir
 echo "starting sender"
-python client.py -v 4 -h $HOST -d sender_dir -r sender.db -l RESULTS/$TESTDIR &
-for (( N=1; N<$3; N++ ))
+python client.py -v 4 -h $HOST -d sender_dir -r sender.db -l RESULTS/$TESTDIR -t &
+for (( N=1; N<$2; N++ ))
 do
     echo "making dir: receiver${N}_dir"
     mkdir receiver_${N}_dir
     echo "starting receiver"
-    python client.py -v 4 -h $HOST -d receiver_${N}_dir -r receiver${N}.db -b $BOX -l RESULTS/$TESTDIR &
+    python client.py -v 4 -h $HOST -d receiver_${N}_dir -r receiver${N}.db -b $BOX -l RESULTS/$TESTDIR -t &
 done

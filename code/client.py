@@ -19,6 +19,7 @@ import constants
 from db_utils import ClientRecord
 
 def valid_filename(filename):
+    '''Returns True on valid filename, False otherwise'''
     if filename[-1] == '~': return False
     folders_and_file = filename.split('/')
     for name in folders_and_file:
@@ -30,7 +31,7 @@ def valid_filename(filename):
 
 def get_datetime(timestamp):
     '''Converts a UTC timestamp to a datetime object and returns'''
-    (year,month,day),(hour,minute,second) = timestamp.split(' ')[0].split('-'),timestamp.split(' ')[1].split(':') #PE string splits FTW
+    (year,month,day),(hour,minute,second) = timestamp.split(' ')[0].split('-'),timestamp.split(' ')[1].split(':') 
     if second.find('.') > -1:
         second,microsecond = second.split('.')
     else:
@@ -129,13 +130,13 @@ class LocalFilesEventHandler(FileSystemEventHandler):
                 self.handle_change(''.join([self.dirname,filename]), change)
 
     def handle_change(self, filename, change, no_change=False):
+        '''Handler for any changes to the workspace directory'''
         record = ClientRecord(record_source,loglevel)
         filename = os.path.relpath(filename, self.dirname)
         if valid_filename(filename):
             logging.debug('Change happened to {}'.format(filename))
             logging.debug('Data : {}'
                           ''.format(constants.FLAG_TO_NAME[change]))
-            #PE Q could we leverage local records here to prevent duplicate updates?
             if not self.just_changed.get(filename):
                 if filename not in self.changes:
                     sequencenum = record.get_sequencenum(filename)
@@ -161,18 +162,16 @@ class LocalFilesEventHandler(FileSystemEventHandler):
             logging.debug('Data : {}'
                           ''.format(constants.FLAG_TO_NAME[change]))
 
+    '''Workspace directory events'''
     def on_created(self, event):
         self.handle_change(event.src_path, (constants.ADD_FILE |
                                             event.is_directory))
-
     def on_deleted(self, event):
         self.handle_change(event.src_path, (constants.DELETE))
-
     def on_modified(self, event):
         logging.debug("File '{}' modified'".format(event.src_path))
         if not event.is_directory:
             self.handle_change(event.src_path, (constants.ADD_FILE))
-
     def on_moved(self, event):
         logging.debug("File '{}' renamed to '{}'".format(event.src_path, event.dest_path))
         self.handle_change(event.src_path, (constants.DELETE))
@@ -216,14 +215,16 @@ class BrokerChannel(asynchat.async_chat):
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((host, port))
         self.set_terminator(constants.TERMINATOR)
-        self.record = ClientRecord(record_source,loglevel) #PE connect to record and pass to event_handler and channel
+        self.record = ClientRecord(record_source,loglevel) 
 
     def push(self, data):
+        '''Send messages'''
         logging.debug('Pushed Data')
         logging.debug('Data : {}'.format(repr(data)))
         asynchat.async_chat.push(self, data)
 
     def push_with_producer(self, producer):
+        '''Send data'''
         logging.debug('Pushed Producer')
         asynchat.async_chat.push_with_producer(self, producer)
 
@@ -235,6 +236,7 @@ class BrokerChannel(asynchat.async_chat):
         self.process_data()
 
     def process_message(self):
+        '''Process a message received from the broker, and handle'''
         token = self.get_token()
         msg = token.split(constants.DELIMITER)
         logging.debug('Data : {}'.format(repr(token)))
@@ -243,16 +245,17 @@ class BrokerChannel(asynchat.async_chat):
         logging.debug('Received Message with '
                      'flag {}'.format(constants.FLAG_TO_NAME[flag]))
         logging.debug('Data : {}'.format(repr(msg)))
-        if flag == constants.REQUEST: #broker responded with an ACK to push request or a PULL
+        if flag == constants.REQUEST: 
             if len(msg) == 4: #PE broker pulled change
                 client_num = msg[3]
                 self.handle_broker_pull(filename,client_num)
             else: #PE broker responded with ACK, push change
                 self.handle_push_change(filename)
         else:
-            self.handle_receive_change(msg) #broker sending change
+            self.handle_receive_change(msg) #PE broker pushed change
 
     def process_file(self):
+        '''Process incoming file data, and write to workspace directory'''
         token = self.get_token()
         logging.debug('Receiving File Data {} '
                       'with size {}'.format(self.file.name,
@@ -272,15 +275,6 @@ class BrokerChannel(asynchat.async_chat):
             logging.info('Received file \'{}\''.format(self.filename)) 
             self.set_terminator(constants.TERMINATOR)
             self.process_data = self.process_message
-            '''
-            logging.info('Closing {}'.format(self.file.name))
-            logging.info('Mark {} as being done being '
-                         'changed'.format(self.file.name))
-            self.event_handler.just_changed[self.file.name] = 'Done'
-            self.file.close()
-            self.set_terminator(constants.TERMINATOR)
-            self.process_data = self.process_message
-            '''
 
     def get_token(self):
         token = ''.join(self.received_data)
@@ -296,7 +290,7 @@ class BrokerChannel(asynchat.async_chat):
         self.event_handler.initial_update_and_push() #PE check for offline changes and push all
 
     def get_flag(self, filename):
-        '''Returns correct flag'''
+        '''Returns proper flag depending on existence of given file/folder'''
         if os.path.exists(self.dirname + filename):
             if os.path.isdir(self.dirname + filename):
                 return constants.ADD_FOLDER
@@ -308,13 +302,13 @@ class BrokerChannel(asynchat.async_chat):
     def handle_broker_pull(self, filename, client_num):
         '''Respond to broker pull with requested change'''
         sequencenum = self.record.get_sequencenum(filename)
-        if sequencenum == -1: #PE make necessary updates to records for this file 
+        if sequencenum == -1: 
             logging.error('Something went wrong, could not update record: {}'.format(filename))
             return
         flag = self.get_flag(filename)
-        logging.info('Sending change: {} \'{\'}'.format(constants.FLAG_TO_NAME[flag], filename))
+        logging.info('Sending change: {} \'{}\''.format(constants.FLAG_TO_NAME[flag], filename))
         self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
-        if flag == constants.ADD_FILE: #push size as well for files
+        if flag == constants.ADD_FILE: 
             self.push(constants.DELIMITER +
                       str(os.stat(self.dirname + filename).st_size) + 
                       constants.DELIMITER +
@@ -329,12 +323,12 @@ class BrokerChannel(asynchat.async_chat):
         logging.debug("Pushing change for {}".format(filename))
         flag = self.event_handler.take_change(filename) #pull next change from file handler
         sequencenum = self.record.update_sequencenum_or_create(filename)
-        if sequencenum == -1: #PE make necessary updates to records for this file 
+        if sequencenum == -1: 
             logging.error('Something went wrong, could not update record: {}'.format(filename))
             return
         logging.info('Sending change: {} \'{}\''.format(constants.FLAG_TO_NAME[flag], filename))
         self.push(filename + constants.DELIMITER + str(flag) + constants.DELIMITER + str(sequencenum))
-        if flag == constants.ADD_FILE: #push size as well for files
+        if flag == constants.ADD_FILE: 
             self.push(constants.DELIMITER +
                       str(os.stat(self.dirname + filename).st_size) +
                       constants.TERMINATOR)
@@ -343,8 +337,9 @@ class BrokerChannel(asynchat.async_chat):
             self.push(constants.TERMINATOR)
 
     def handle_receive_change(self, msg):
+        '''Handle a change pushed from the broker'''
         filename, flag, sequencenum = msg[:3]
-        self.event_handler.remove_change(filename,sequencenum) #PE handle pushback from broker
+        self.event_handler.remove_change(filename,sequencenum) 
         if self.record.update_sequencenum_or_create(filename,sequencenum) == -1:
             logging.warning('Error updating records')
         if flag & constants.ADD_FILE:
@@ -353,6 +348,7 @@ class BrokerChannel(asynchat.async_chat):
             self.handle_receive_delete(msg[0])
 
     def handle_receive_add(self, msg):
+        '''Write incoming add to workspace directory'''
         filename, flag, sequencenum = msg[:3]
         logging.debug('Getting Add {}'.format(filename))
         try:
@@ -360,18 +356,18 @@ class BrokerChannel(asynchat.async_chat):
                 logging.debug('Mark {} as being just '
                              'changed'.format(filename))
                 self.event_handler.just_changed[filename] = True
-                os.makedirs(self.dirname + filename) #PE made makedirs to handle intermediate directories
+                os.makedirs(self.dirname + filename) 
                 logging.info('Added directory {}'.format(filename)) 
             else:
                 logging.debug('Opening {}'.format(filename))
                 dir, file = os.path.split(filename)
-                if dir != '': os.makedirs(dir) #PE added makedirs to handle intermediate directories
+                if dir != '': os.makedirs(dir) 
                 self.filename = filename
                 self.file = open(self.dirname + constants.TMP_FOLDER + file, 'w')
                 logging.debug('Mark {} as being just '
                              'changed'.format(filename))
                 self.remaining_size = int(msg[3])
-                if self.remaining_size == 0: #PE handle empty files, which will otherwise hang badly
+                if self.remaining_size == 0: #PE handle empty files
                     logging.debug('Empty file, closing {} and marking done being changed'.format(filename))
                     self.event_handler.just_changed[self.filename] = True
                     self.file.close()
@@ -395,6 +391,7 @@ class BrokerChannel(asynchat.async_chat):
             raise
 
     def handle_receive_delete(self, filename):
+        '''Delete indicated file from workspace directory'''
         logging.debug('Getting Delete ' + repr(filename))
         try:
             logging.debug('Mark {} as being just '
@@ -457,10 +454,21 @@ if __name__ == '__main__':
     logfile = 'sender.log'
     box = 'default'
     log_directory = 'test' + str(random.randint(1,1000))
+    '''
+    Get command line args:
+        d = local workspace directory
+        h = broker hostname
+        p = broker port
+        v = verbosity level
+        r = record source
+        (for testing)
+        l = log directory
+        b = box
+    '''
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'd:h:p:l:v:r:b:',
                                    ['dir=', 'host=', 'port=', 'logging=',
-                                    'verbose=','record=','box=']) #PE added a -r/--record arg
+                                    'verbose=','record=','box=']) 
     except getopt.GetoptError:
         logging.error('The system arguments are incorrect')
         sys.exit(2)
@@ -480,7 +488,7 @@ if __name__ == '__main__':
             log_directory = arg
             if log_directory[-1] != '/':
                 log_directory = log_directory + '/'
-        elif opt in ('-r', '--record'): #PE handle record arg
+        elif opt in ('-r', '--record'): 
             record_source = arg
         elif opt in ('-b', '--box'):
             box = arg
@@ -488,15 +496,25 @@ if __name__ == '__main__':
 
     if not dirname.endswith('/'):
         dirname += '/'
-    if not record_source: #PE create random record source if none provided
+    if not record_source: 
         record_source='defaultclient{}'.format(random.randint(1,1000))
+    #PE for testing, log everything to a given logfile
     if constants.TEST_MODE:
         logging.basicConfig(format=constants.LOG_FORMAT, filename=log_directory + logfile, level=loglevel)
     else:
         logging.basicConfig(format=constants.LOG_FORMAT, level=loglevel)
+    '''
+    Initialize the client:
+        1. Init the observer for the local workspace directory
+        2. Init the event handler for workspace changes
+        3. Init the channel to the broker
+        4. Link the observer with the event handler
+        5. Start the observer
+        6. Begin a continuous select loop on the broker channel
+    '''
     observer = Observer()
     event_handler = LocalFilesEventHandler(dirname, record_source, loglevel)
-    channel = BrokerChannel(dirname, record_source, host, port, loglevel) #PE pass record_source to both..can't pass sqlite conn between threads
+    channel = BrokerChannel(dirname, record_source, host, port, loglevel) 
     event_handler.channel = channel
     channel.event_handler = event_handler
     observer.schedule(event_handler, dirname, True)

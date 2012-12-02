@@ -11,15 +11,16 @@ try:
 except OSError:
   pass
 
-if not len(os.listdir(constants.DATA_DIR)) == 30:
-    for i in range(31):
-    #  with open('test_files/test_file_{}'.format())
-      name = get_name('test_files', i)
-      with open(name, 'w') as f:
-        if name[-1] in ['B', 'K']:
-          f.write(CHUNK[:2**i])
-        else:
-          for x in range(2**(i-20)):
-            f.write(CHUNK)
-      print('Wrote file {}'.format(name))
+for i in range(31):
+#  with open('test_files/test_file_{}'.format())
+  name = get_name('test_files', i)
+  if os.path.isfile(name):
+      continue
+  with open(name, 'w') as f:
+    if name[-1] in ['B', 'K']:
+      f.write(CHUNK[:2**i])
+    else:
+      for x in range(2**(i-20)):
+        f.write(CHUNK)
+  print('Wrote file {}'.format(name))
 

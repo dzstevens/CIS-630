@@ -1,0 +1,41 @@
+# README
+# @author: Paul Elliott
+# @date: Dec 1 2012
+
+1. Usage
+This file is intended to explain the main components
+of the system and how to use it.
+
+2. Main components
+    a. broker.py
+        This file contains the broker
+    b. client.py
+        This file contains the client
+    c. db_utils.py
+        This file contains the interface
+        allowing the client to connect to its
+        local record (an SQLite database).
+    d. constants.py
+        This file contains necessary constants
+        for running the entire system.
+    (Everything else is miscellany for testing purposes)
+
+3. How to run
+    a. Install dependencies
+        - python 2.7.*
+        - pip (python package)
+        - watchdog (python package)
+        - twisted (python package)
+    b. Start a broker: run 'python broker.py'
+        - This will start a broker on port 55555.
+          If this port will not work for you,
+          change PORT in constants.py
+    c. Start clients: run 'python client.py -d (workspace directory)'
+        - There are several command line arguments
+          that could be helpful..
+          -h --host     : broker host to connect to, default is localhost
+          -p --port     : broker port to connect to, default is 55555
+          -r --record   : record source to connect to
+          -d --dir      : local workspace directory
+          -v --verbose  : verbosity level
+    d. Make changes to any workspace directory, and watch the magic happen!

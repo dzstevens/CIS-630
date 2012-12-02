@@ -18,23 +18,33 @@ def measure_performance(t='Online', network=constants.LAN):
     with open(data_filename, 'w') as graphfile:
         graphfile.write("reset\n")
         graphfile.write("set term postscript eps color enhanced \"Helvetica\" 25\n")
-        graphfile.write("set ylabel \"Latency (ms)\"\n")
+        graphfile.write("set ylabel \"Latency (s)\"\n")
         graphfile.write("set xlabel \"File size (2^n bytes)\"\n")
         graphfile.write("#set yrange\n")
-        graphfile.write("set output \"{} - {}_performance.eps\"\n".format(network,t))
+        graphfile.write("set output \"{}-{}_performance.eps\"\n".format(network,t))
         graphfile.write("set title \"{} - {} Performance\"\n".format(network, t))
+        i = 1
         while not PROCESS_QUEUE.empty():
             num_receives,test_dir = PROCESS_QUEUE.get()
-            graphfile.write("plot \"data\" using 1:2 title \"{} clients\" with lines lw 3\n".format(1 + num_receives))
+            if i == 1:
+               graphfile.write("plot ")
+            else:
+               graphfile.write(", \\\n");
+            graphfile.write("\"data{}\" using 1:2 title \"{} clients\" with lines lw 3".format(i, 1 + num_receives))
             PROCESS_LIST.append(test_dir)
+            i += 1
     logging.debug("Test directories to process ({}): {}".format(len(PROCESS_LIST),PROCESS_LIST))
+    i = 1
     for test_dir in PROCESS_LIST:
-        if t == 'Online':
-            append_online_data(test_dir,data_filename)
-        else:
-            append_offline_data(test_dir,data_filename)
+        with open(constants.PLOT_DIR + 'data' + str(i), 'w') as graphfile:
+            if t == 'Online':
+                    append_online_data(test_dir, graphfile)
+           #  else:
+#                 append_offline_data(test_dir, graphfile)
+        i += 1
 
-def append_online_data(test_dir,data_filename):
+def append_online_data(test_dir, graphfile):
+    logging.info('###{}'.format(test_dir))
     receive_files = []
     for f in os.listdir(constants.RESULTS_DIR + test_dir):
         if f == 'sender.log':
@@ -44,12 +54,12 @@ def append_online_data(test_dir,data_filename):
 
     logging.info("Opened send log and {} receive logs".format(len(receive_files)))
     for per_file in constants.PERFORMANCE_FILES:
-        logging.debug("Searching for 'send {}'".format(per_file))
+#        logging.debug("Searching for 'send {}'".format(per_file))
         send_timestamp = search_send(per_file,send_file) #datetime, no update of clock drift
         if send_timestamp == -1:
             logging.warning("Couldn't find {} in send log: skipping".format(per_file))
             continue
-        logging.debug("Master sent {} at {}".format(per_file,send_timestamp.isoformat(' ')))
+#        logging.debug("Master sent {} at {}".format(per_file,send_timestamp.isoformat(' ')))
         rcv_timestamps = []
         for receive_file in receive_files:
             rcv_timestamp = search_rcv(per_file,receive_file) #datetime, should update based on clock drift too
@@ -63,15 +73,14 @@ def append_online_data(test_dir,data_filename):
         #calculate latency
         latency = (last_rcv_timestamp-send_timestamp).total_seconds() #seconds.milli
         logging.info("It took {} seconds to send {}".format(latency,per_file))
-        with open(constants.PLOT_DIR + 'data', 'a') as graphfile:
-            graphfile.write("{}\t{}\n".format(get_exp(per_file.split('_')[-1]), latency*1000))
+        graphfile.write("{}\t{}\n".format(get_exp(per_file.split('_')[-1]), latency))
 
 def search_send(per_file,send_file):
     with open(send_file,'r') as logfile:
         for line in logfile:
             if (line.find("Sending") >= 0 and line.find("{}".format(per_file)) > 0):
                 raw_timestamp = line.split(' -')[0]
-                logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
+            #    logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
                 (year,month,day),(hour,m,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
                                                                 (raw_timestamp.split(' ')[1].split(',')[0].split(':')),
                                                                 (raw_timestamp.split(',')[1]))
@@ -85,7 +94,7 @@ def search_rcv(per_file,rcv_file):
         for line in logfile:
             if (line.find("Received") >= 0 and line.find("{}".format(per_file)) > 0):
                 raw_timestamp = line.split(' -')[0]
-                logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
+             #   logging.debug("Pulled {} from line: {}".format(raw_timestamp,line))
                 (year,month,day),(hour,m,second),(msecond) = ((raw_timestamp.split(' ')[0].split('-')),
                                                                 (raw_timestamp.split(' ')[1].split(',')[0].split(':')),
                                                                 (raw_timestamp.split(',')[1]))

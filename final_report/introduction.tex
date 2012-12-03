@@ -57,7 +57,8 @@ the following design goals (in addition to privacy):
     \item \textbf{Transparency:} The system itself should largely be transparent to the user. 
     To facilitate transparency, the system must enable automated and asynchronous updates for shared data. When a user is online,
     changes should be pushed immediately after they occur. In addition, a user should not have to block and wait for the system to update.
-    \item \textbf{Efficiency:} The system must be efficient with respect to the latency of message and data transfers. 
+    \item \textbf{Scalability:} The system must be scalable with respect to increasing workloads and working group sizes.
+    \item \textbf{Efficiency:} The system must be efficient with respect to the latency of message and data transfers.
     In particular, the amount of extra information (beyond file data) 
     that is passed between networked entities should be small.
 \end{itemize}
@@ -67,6 +68,7 @@ In this work, we present D-Sync, a distributed and automatically synchronizing f
 architecture that addresses the privacy issues of centralized data storage.
 D-Sync addresses these concerns
 by distributing data across user machines, called \textbf{clients}.
+Clients 
 [FILL IN high level details of how this would work]
 \comment {
     In this manner, working groups can collaborate efficiently over the Internet,

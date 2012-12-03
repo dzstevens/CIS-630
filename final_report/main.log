@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  3 DEC 2012 13:03
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  3 DEC 2012 14:08
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -467,13 +467,19 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 LaTeX Warning: Citation `shakir1998system' on page 2 undefined on input line 26
 .
 
-) (./prototype.tex) (./evaluation.tex [2]) (./discussion.tex) (./conclusion.tex
-) (./bib.tex (./main.bbl
+) (./prototype.tex) (./evaluation.tex [2]
+File: figs/LAN-Online_performance.eps Graphic file (type eps)
+<figs/LAN-Online_performance.eps>
+File: figs/WAN-Online_performance.eps Graphic file (type eps)
+<figs/WAN-Online_performance.eps>
+File: figs/Dropbox_Performance.eps Graphic file (type eps)
+<figs/Dropbox_Performance.eps> [3]) (./discussion.tex) (./conclusion.tex) (./bi
+b.tex (./main.bbl
 Underfull \hbox (badness 4120) in paragraph at lines 7--11
 []\OT1/ptm/m/n/8 B. Chun, F. Dabek, A. Hae-berlen, E. Sit, H. Weath-er-spoon,
  []
 
-[3])) (./appendix.tex)
+)) (./appendix.tex [4])
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -485,18 +491,20 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[4] (./main.aux)
+[5
+
+] (./main.aux)
 
 LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 7056 strings out of 493748
- 102094 string characters out of 3143569
+ 7070 strings out of 493748
+ 102355 string characters out of 3143569
  208909 words of memory out of 3000000
- 10197 multiletter control sequences out of 15000+200000
+ 10206 multiletter control sequences out of 15000+200000
  27271 words of font info for 64 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 34i,9n,38p,899b,307s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 34i,9n,38p,899b,340s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on main.dvi (4 pages, 28740 bytes).
+Output written on main.dvi (5 pages, 32032 bytes).

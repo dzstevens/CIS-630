@@ -1,10 +1,10 @@
 \section{Evaluation}
 \label{evaluation}
 We evaluated our system with respect to performance and accuracy.
-For the former, we measure the latency of key synchronization tasks
-across different network scenarios and compare the results
-with Dropbox. For the latter, we test specific use cases
-where synchronization could fail and demonstrate that the system
+For the former we measure the latency of key synchronization tasks
+across different network scenarios, and compare the results
+with a benchmark evaluation of Dropbox. For the latter we test specific use cases
+where synchronization could fail, and demonstrate that the system
 properly handles these cases.
 
 \subsection{Performance}
@@ -19,7 +19,7 @@ but furthermore outperforms Dropbox in certain cases.
 
 \subsubsection{Metrics and Parameters}
 In order to evaluate the latency of our system,
-we measure the time it takes for adding a single file to 
+we measure the total time it takes for adding a single file to 
 propagate across all online clients.
 We focus on adding files since these updates will necessarily
 have the greatest latency, given that the system
@@ -66,10 +66,61 @@ We repeat the sending of text files in a serial fashion
 until all files have been sent.
 
 In the following section, we cover the results of these tests.
-\subsubsection{Update Latency}
+
+\begin{figure*}[t]
+\centering
+\subfigure[LAN scenario.]{
+    \includegraphics[scale=0.5]{figs/LAN-Online_performance.eps}
+    \label{fig:LANonline}
+}
+~~~~\subfigure[WAN scenario.]{
+    \includegraphics[scale=0.5]{figs/WAN-Online_performance.eps}
+    \label{fig:WANonline}
+}
+\caption{\textbf{The total synchronization time for D-Sync across different network scenarios (shown in log scale).}}
+\end{figure*}
+
+\subsubsection{Scalable Synchronization}
+We first analyze the total time it takes to synchronize files
+across the LAN network scenario.  Figure~\ref{fig:LANonline} 
+shows this synchronization latency for variable working group and
+file sizes. From this graph,
+we see that total synchronization time follows a linear growth pattern.
+Furthermore, the latency increases fairly linearly with respect
+to increasing working group size.
+While we will need a benchmark before making a statement
+on whether this is scalable,
+for now we are satisfied that total synchronization time
+    does not grow unreasonably.
+
+Next we compare the results of the LAN network scenario to the WAN network scenario (\ref{fig:WANonline}.
+The WAN data is considerably noisier,
+reflecting variable congestion and delay in the underlying network.
+However, it is still clear that total synchronization time still increases
+linearly with respect to file size.
+Most importantly, the data from these two networking scenarios show
+that increasing numbers of clients only contributes a modest
+amount of latency to our system's synchronization time.
+Therefore, we find the D-Sync architecture to be scalable 
+with increasing working group size.
+
+One can clearly see that latency for file synchronization
+increases significantly once we step out of a comfortable LAN
+scenario to the wide area network.
+But is this increase in latency reasonable with respect to existing solutions?
+To determine this, we compare our system's performance with a
+benchmark test of Dropbox, which we cover in the next section.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{figs/Dropbox_Performance.eps}
+    \label{fig:dropbox}
+    \caption{\textbf{A comparison of Dropbox and D-Sync's total synchronization time for two clients across network scenarios.}}
+\end{figure}
 
 \subsubsection{Comparison to Dropbox}
-%clock skew
+In order to evaluate the performance of our system,
+
 
 \subsection{Accuracy}
 \label{evaluation.accuracy}

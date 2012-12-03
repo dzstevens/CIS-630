@@ -1,7 +1,7 @@
 \section{System Design}
 \label{design}
 Here we cover the design of our system architecture.
-We first state the overall scope we used to work toward our design goals of accuracy and efficiency.
+We first state the overall scope we used to work toward our design goals of accuracy, transparency, and efficiency.
 We then describe the main components of our system--namely, the client and broker
 programs, followed by the communication protocol that these entities use.
 In these sections we will highlight specific design decisions that we needed to address
@@ -23,14 +23,34 @@ Our assumptions for this work are as follows:
     [FILL IN possibly point to future work in unreliable transmission?]
     \item \emph{Conflict resolution:} Automated synchronization necessarily implies
     instances of conflicts between closely committed updates.
-    There is a considerable body of previous work (\cite{}) on conflict
-    resolution strategies to handle such instances
-    \item \emph{Security:} SHA, PKI [fill in from SOUP]
-    \item \emph{Event ordering:} vector clock
-\end{itemize}
+    Previous work (\cite{shakir1998system,hurley2004collaborative}) has been done on conflict resolution strategies in distributed domains,
+    generating several viable solutions.
+    We rely on these promising schemes in place of proposing our own solution,
+    which is beyond the scope of this work.
+    \item \emph{Security:} Our work falls in the domain
+    of networked applications, and therefore is subject
+    to a litany of network security attacks.
+    The security community has addressed such threats
+    in a body of literature that is too vast to properly reference.
+    Instead we indicate where we leverage secure hashing algorithms (SHA)
+    and public key infrastructure (PKI) to facilitate
+    the integrity and privacy of our system,
+    and leave the rest to the capable hands of security researchers.
+    \end{itemize}
 
 \subsection{D-Sync Architecture}
-[FILL IN high level description of system and synch model]
+[FILL IN high level description of system and sync model]
+
+\comment {
+    \emph{Event ordering:} Since our proposed architecture 
+    synchronizes data across different machines, it 
+    requires an event ordering scheme for evaluating update time.
+    We leverage Lamport timestamps to this end,
+    which allow a partial ordering of events based
+    on happened-before logic.
+    [FILL IN possibly point to vector clock future work]
+}
+
 \subsubsection{Client}
 %clients
         %description (function, local storage)

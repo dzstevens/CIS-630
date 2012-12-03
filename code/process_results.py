@@ -24,6 +24,8 @@ def measure_performance(t='Online', network=constants.LAN):
         graphfile.write("set xlabel \"File Size (MB)\"\n")
         graphfile.write("set output \"{}-{}_performance.eps\"\n".format(network,t))
         graphfile.write("set title \"{} - {} Performance\"\n".format(network, t))
+        graphfile.write("set key top left\n")
+        graphfile.write("set logscale x 2\n")
         i = 1
         while not PROCESS_QUEUE.empty():
             num_receives,test_dir = PROCESS_QUEUE.get()

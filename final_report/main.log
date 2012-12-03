@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  3 DEC 2012 14:08
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  3 DEC 2012 14:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -459,7 +459,10 @@ File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 LaTeX Font Info:    Try loading font information for U+msb on input line 55.
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
-) [1
+)
+Underfull \vbox (badness 7685) has occurred while \output is active []
+
+[1
 
 
 ]) (./related.tex) (./design.tex
@@ -467,19 +470,22 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 LaTeX Warning: Citation `shakir1998system' on page 2 undefined on input line 26
 .
 
-) (./prototype.tex) (./evaluation.tex [2]
+[2]) (./prototype.tex) (./evaluation.tex
 File: figs/LAN-Online_performance.eps Graphic file (type eps)
 <figs/LAN-Online_performance.eps>
 File: figs/WAN-Online_performance.eps Graphic file (type eps)
 <figs/WAN-Online_performance.eps>
 File: figs/Dropbox_Performance.eps Graphic file (type eps)
-<figs/Dropbox_Performance.eps> [3]) (./discussion.tex) (./conclusion.tex) (./bi
-b.tex (./main.bbl
+<figs/Dropbox_Performance.eps>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[3]) (./discussion.tex) (./conclusion.tex) (./bib.tex (./main.bbl
 Underfull \hbox (badness 4120) in paragraph at lines 7--11
 []\OT1/ptm/m/n/8 B. Chun, F. Dabek, A. Hae-berlen, E. Sit, H. Weath-er-spoon,
  []
 
-)) (./appendix.tex [4])
+[4])) (./appendix.tex)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -491,9 +497,7 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[5
-
-] (./main.aux)
+[5] (./main.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -507,4 +511,4 @@ Here is how much of TeX's memory you used:
  714 hyphenation exceptions out of 8191
  34i,9n,38p,899b,340s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on main.dvi (5 pages, 32032 bytes).
+Output written on main.dvi (5 pages, 33272 bytes).

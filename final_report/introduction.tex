@@ -67,16 +67,13 @@ the following design goals (in addition to privacy):
 In this work, we present D-Sync, a distributed and automatically synchronizing file hosting
 architecture that addresses the privacy issues of centralized data storage.
 D-Sync addresses these concerns
-by distributing data across user machines, called \textbf{clients}.
-Clients 
-[FILL IN high level details of how this would work]
-\comment {
-    In this manner, working groups can collaborate efficiently over the Internet,
-
-    Clients share a copy of their local workspace directory,
-    which is replicated across all other clients within that working group.
-}
-[FILL IN discussion of broker]
+by distributing data in workspace directories across user machines, called \textbf{clients}.
+Clients make changes to the files within their local workspace,
+and changes are automatically pushed to the system.
+A \textbf{broker} program marshalls these changes and ensures that all online local workspaces are updated,
+but remains blind to the actual data itself.
+In this manner, working groups can collaborate efficiently over the Internet
+without the privacy concerns of centralized data.
 
 % Issues to be addressed with distributed file hosting system
 [FILL IN issues that need to be addressed]
@@ -95,13 +92,19 @@ Clients
     -How do we keep track of which nodes have replicas?
 }
 
-
 % How the prototype system manages these issues
 %include comment about scope
 [FILL IN high level details of how the prototype system handles these]
 
 % How we evaluate the system
-[FILL IN evaluation details: how, main takeaways]
+We evaluate our system's performance with respect to the latency
+of synchronization across different networking scenarios.
+In particular, we measure the total time it takes to synchronize
+all clients with variable working group and update file size.
+We also benchmark our system against Dropbox's performance.
+Our comparative analysis shows that the D-Sync architecture
+scales reasonably with larger working groups and workloads,
+and furthermore outperforms Dropbox in several scenarios.
 
 The contributions of this work include:
 \begin{itemize}

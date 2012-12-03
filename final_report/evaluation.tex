@@ -1,6 +1,6 @@
 \section{Evaluation}
 \label{evaluation}
-We evaluated our system with respect to performance and correctness.
+We evaluated our system with respect to performance and accuracy.
 For the former, we measure the latency of key synchronization tasks
 across different network scenarios and compare the results
 with Dropbox. For the latter, we test specific use cases
@@ -9,8 +9,113 @@ properly handles these cases.
 
 \subsection{Performance}
 \label{evaluation.performance}
+In order for D-Sync to be a feasible architecture
+for distributed file hosting, it needs to perform comparably
+to existing systems.
+We therefore evaluate our prototype system with respect
+to the latency of updates.
+We not only show that D-Sync scales reasonably well,
+but furthermore outperforms Dropbox in certain cases.
 
+\subsubsection{Metrics and Parameters}
+In order to evaluate the latency of our system,
+we measure the time it takes for adding a single file to 
+propagate across all online clients.
+We focus on adding files since these updates will necessarily
+have the greatest latency, given that the system
+must propagate raw file data to all online clients.
+We measure the total latency as: (time stamp of when the last client receives
+the entire file) - (time stamp of when the sending client starts sending the file).
+
+We define our performance tests in the following manner.
+First, we evaluate two separate network scenarios: a LAN scenario with
+two computers networked over the UO Secure wireless network,
+and a WAN scenario with the same two computers on two separate home
+wireless networks. Within these two testing scenarios,
+we evaluate working group sizes of 2, 4, and 8 clients.
+Finally, we evaluate our system with file update sizes ranging
+from $2^n$ MB, where $0 \leq n \leq 10$.
+We do this in order to gain insight on how our system scales
+as working group size and sending file size increases.
+
+We proceed with our tests in the following manner.
+We start 
+
+First, we test our prototype on two different network scenariosTo test our prototype, we run the broker program on one
+machine and client programs on a separate machine.
+We are able to run client programs on the same machine
+since 
+\begin{itemize}
+\item \emph{LAN:} Two computers, one running a broker program and the other
+running client programs.
+\end{itemize}
+
+We setup our performance tests in the following manner.
+
+
+\subsubsection{Update Latency}
+
+\subsubsection{Comparison to Dropbox}
 %clock skew
 
 \subsection{Accuracy}
 \label{evaluation.accuracy}
+In addition to providing an efficient solution with low latency,
+it is important that our architecture provide data consistency across different
+scenarios.
+In other words, the system must properly synchronize
+all updates across all online users.
+In this section, we evaluate specific scenarios where
+where the replicas in a given working group could become inconsistent across clients,
+and demonstrate how our system handles these scenarios.
+
+\subsubsection{Client Departures}
+A client could depart from the system in several ways,
+the most common of which are going offline and crashing.
+There are three primary scenarios that could cause
+data inconsistency in the event of a client departure:
+\begin{enumerate}[(1)]
+\item the departed client could make offline changes to his local workspace;
+\item one or more online clients could make changes while the departed client is offline; or
+\item both the departed client and one or more online clients could commit conflicting changes.
+\end{enumerate}
+In all of these cases, the system would have to properly update shared data
+when the departed client returns and does an initial batch update.
+
+We preliminarily evaluate these scenarios 
+in stress tests using eight clients and one broker in a LAN setting.
+We start each client and connect them to the broker,
+and begin committing changes on various local workspaces.
+At random intervals, we take one or more clients offline
+and then bring those departed clients back after a fixed length of time (2 minutes).
+Throughout the test we continue to commit changes to the local workspaces of all clients, online or offline.
+
+Our results from four such tests show that the initial batch update
+properly handles all cases of potential data inconsistency.
+Across four tests, we observe 31 instances of case (1),
+26 instances of case (2), and 12 instances of case (3).
+In case (1), the departed client's offline changes are immediately pushed
+to the broker,
+who commits them to the rest of the system.
+Case (2) is similarly handled;
+the broker pulls up-to-date files from the nearest online client
+and pushes them to the returning client.
+For case (3), our prototype broker accepts the first
+offline change it receives, discarding subsequent updates
+with the same timestamp.
+While a better solution would involve merging or handling
+such conflicts in some manner,
+conflict resolution strategies are beyond the scope of this work.
+
+Furthermore, we note that our system maintains accuracy
+even when other clients depart during a re-entering client's batch update.
+In these cases, the second departing client
+will also be updated upon return.
+In this manner, all online clients will maintain a
+current workspace for all online updates.
+These preliminary tests show that the D-Sync architecture keeps data consistent
+in the presence of arbitrary client departures.
+
+%online race condition
+
+%distributed broker?

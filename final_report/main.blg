@@ -3,46 +3,53 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: main.aux
 The style file: abbrv.bst
 Database file #1: project.bib.bib
+I was expecting a `,' or a `}'---line 98 of file project.bib.bib
+ :  
+ :  url = {http://blog.benrhughes.com/mercurial-on-dropbox},
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for "shakir1998system"
+Warning--to sort, need author or key in dropboxmercurial
 Warning--can't use both volume and number fields in pu1991replica
-You've used 3 entries,
+You've used 16 entries,
             2118 wiz_defined-function locations,
-            515 strings with 4329 characters,
-and the built_in function-call counts, 1393 in all, are:
-= -- 118
-> -- 99
-< -- 3
-+ -- 39
-- -- 36
-* -- 110
-:= -- 233
-add.period$ -- 9
-call.type$ -- 3
-change.case$ -- 26
+            576 strings with 6430 characters,
+and the built_in function-call counts, 5365 in all, are:
+= -- 506
+> -- 266
+< -- 8
++ -- 106
+- -- 90
+* -- 324
+:= -- 851
+add.period$ -- 46
+call.type$ -- 16
+change.case$ -- 93
 chr.to.int$ -- 0
-cite$ -- 4
-duplicate$ -- 49
-empty$ -- 92
-format.name$ -- 36
-if$ -- 283
+cite$ -- 18
+duplicate$ -- 212
+empty$ -- 448
+format.name$ -- 90
+if$ -- 1165
 int.to.chr$ -- 0
-int.to.str$ -- 3
-missing$ -- 4
-newline$ -- 18
-num.names$ -- 6
-pop$ -- 35
+int.to.str$ -- 16
+missing$ -- 10
+newline$ -- 77
+num.names$ -- 30
+pop$ -- 143
 preamble$ -- 1
-purify$ -- 24
+purify$ -- 77
 quote$ -- 0
-skip$ -- 36
+skip$ -- 173
 stack$ -- 0
-substring$ -- 47
-swap$ -- 17
-text.length$ -- 3
+substring$ -- 233
+swap$ -- 67
+text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 10
-warning$ -- 1
-while$ -- 9
-width$ -- 4
-write$ -- 35
-(There was 1 warning)
+type$ -- 62
+warning$ -- 2
+while$ -- 46
+width$ -- 18
+write$ -- 163
+(There was 1 error message)

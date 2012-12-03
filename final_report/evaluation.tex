@@ -27,32 +27,45 @@ must propagate raw file data to all online clients.
 We measure the total latency as: (time stamp of when the last client receives
 the entire file) - (time stamp of when the sending client starts sending the file).
 
-We define our performance tests in the following manner.
+We define the parameters of our performance tests in the following manner.
 First, we evaluate two separate network scenarios: a LAN scenario with
 two computers networked over the UO Secure wireless network,
 and a WAN scenario with the same two computers on two separate home
-wireless networks. Within these two testing scenarios,
-we evaluate working group sizes of 2, 4, and 8 clients.
+wireless networks. 
+Within these two testing scenarios,
+we test additional parameters to help determine how our architecture scales.
+First, we evaluate working group sizes of 2, 4, and 8 clients.
+Should the system experience more than linear growth in latency
+as the working group size increases, then our system will not reasonably scale.
 Finally, we evaluate our system with file update sizes ranging
 from $2^n$ MB, where $0 \leq n \leq 10$.
 We do this in order to gain insight on how our system scales
-as working group size and sending file size increases.
+with respect to file size.
 
-We proceed with our tests in the following manner.
-We start 
+\subsubsection{Setup}
+With our metrics and parameters defined,
+we proceed with our tests in the following manner.
+In either network scenario,
+we designate one computer to run the broker program
+and the other to run the variable number of client programs.
+Though the client programs all run on the same computer,
+round trip time is still necessary since all communication
+between clients must pass through the broker.
 
-First, we test our prototype on two different network scenariosTo test our prototype, we run the broker program on one
-machine and client programs on a separate machine.
-We are able to run client programs on the same machine
-since 
-\begin{itemize}
-\item \emph{LAN:} Two computers, one running a broker program and the other
-running client programs.
-\end{itemize}
+To conduct a test we start the broker program, followed by the
+client programs.
+Once all clients are connected to the broker,
+we move a text file of the appropriate
+size into the workspace directory of a given client,
+and measure how long it takes for all other clients
+to receive the file.
+To ensure that our measurements are correct,
+we synchronize the local clocks of both computers
+using the network time protocol.
+We repeat the sending of text files in a serial fashion
+until all files have been sent.
 
-We setup our performance tests in the following manner.
-
-
+In the following section, we cover the results of these tests.
 \subsubsection{Update Latency}
 
 \subsubsection{Comparison to Dropbox}

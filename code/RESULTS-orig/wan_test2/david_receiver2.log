@@ -1,0 +1,11 @@
+2012-12-02 15:43:49,659 -    INFO : Connected
+2012-12-02 15:44:42,379 -    INFO : Received file 'data_file_1M'
+2012-12-02 15:44:45,727 -    INFO : Received file 'data_file_2M'
+2012-12-02 15:44:47,510 -    INFO : Received file 'data_file_4M'
+2012-12-02 15:44:54,234 -    INFO : Received file 'data_file_16M'
+2012-12-02 15:45:17,831 -    INFO : Received file 'data_file_32M'
+2012-12-02 15:46:25,380 -    INFO : Received file 'data_file_64M'
+2012-12-02 15:46:47,368 -    INFO : Received file 'data_file_128M'
+2012-12-02 15:48:00,151 -    INFO : Received file 'data_file_256M'
+2012-12-02 15:49:39,099 -    INFO : Received file 'data_file_512M'
+2012-12-02 16:04:04,461 -    INFO : Received file 'data_file_1G'

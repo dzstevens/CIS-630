@@ -4,9 +4,10 @@ import constants
 from Queue import Queue
 
 def get_size(size):
-    if size[1] == 'G':
-      size[0] = 1024
-    return int(size[0])
+    
+    if size[-1] == 'G':
+        return 1024
+    return int(size[:-1])
 
 def measure_performance(t='Online', network=constants.LAN):
     data_filename = constants.PLOT_DIR + "{}-{}_performance.plot".format(network,t)

@@ -1,0 +1,40 @@
+I. Write
+    1. Introduction
+        -high level details of D-Sync (clients/brokers/etc)
+        -issues to be addressed
+        -how D-Sync handles
+        -how we evaluate-> main takeaways
+    2. Design
+        -high level description of system/sync model/event ordering
+        -client
+            description
+            actions
+        -broker
+            description
+            actions
+        -communication protocol
+    3. Prototype
+        -sqlite storage
+        -python
+        -tcp stream sockets with select loop
+    4. Evaluation
+        -performance
+        -accuracy
+    5. Discussion
+        -follow up from our work
+        -test fully distributed broker
+        -performance
+            other sync strategies
+            evaluate security cost
+    6. Conclusion
+
+II. Revise
+    1. Intro
+    2. Related
+    3. Design
+    4. Prototype
+    5. Evaluation
+    6. Discussion
+    7. Conclusion
+
+III. Turn in, drink beer/sleep

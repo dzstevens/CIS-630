@@ -1,18 +1,117 @@
 \section{Introduction}
 \label{introduction}
 % Introduction to file hosting systems
+Of the wide range of today's Internet tools,
+file hosting systems are certainly among the most popular.
+These systems offer convenient (and often cheap) means
+to store and backup data, in addition to making that data available
+to any device with Internet access and the proper credentials.
+The ever-growing ubiquity of Internet access
+and the advent of cloud storage have allowed systems such as Dropbox
+and Google Drive to become file hosting giants,
+serving billions of files for millions of users.
 
-% Problem with file hosting systems
-    %Privacy issues with the cloud -> provenance, SOUP
+As the most popular file hosting system on today's Internet,
+Dropbox leads the way in this flourishing domain.
+Since January 2010, Dropbox has steadily grown from about 4 to 100 million users,
+and increased its usage rate from roughly 250 million to 1 billion files saved per day~\cite{dropboxstats}.
+Stop for a moment and consider the sheer magnitude of these statistics:
+even roughly averaged, this means that Dropbox users collectively save over
+1 million files \emph{every two minutes}.
+
+This frequency of usage points to a key aspect of Dropbox's popularity:
+its capacity for collaborative work.
+The system allows users to share data with other select users,
+and allows users in the so-called working group to keep a local copy
+on any of their own devices.
+Most importantly, Dropbox synchronizes quickly and automatically across local and cloud prelicas
+by employing \textbf{delta encoding},
+in which only the \emph{changes} to files are saved and uploaded.
+The efficiency of this synchronization strategy makes Dropbox a convenient tool
+for both synchronous and asynchronous collaboration among working groups.
+The benefits of these features for working groups have not gone
+unnoticed, and continue to attract attention~\cite{dropboxmercurial,dropboxcollab}.
+
+% Privacy problem with file hosting systems
+When we consider data privacy in Dropbox and other cloud-based file hosting systems, however, we see that not everything is silver lining.
+Privacy issues with cloud services have recently
+fallen under scrutiny by the security community~\cite{van2010impossibility,soghoian2010caught}, and Dropbox has not escaped this critical eye.
+Aside from a few exposed security issues~\cite{mulazzani2011dark,dropboxsecurity},
+the top file hosting system has been criticized for its policies on data discretion.
+In order to determine facilitate delta encoding,
+Dropbox maintains encryption keys to calculate hashes for saved files.
+This enables both itself and warranted law enforcement agencies
+access to user data~\cite{dropboxprivacy}.
+While this capacity also improves the system's throughput,
+it bears too high of a privacy cost for many types of working groups.
+
+One solution to the privacy issues of centralized data would be to distribute
+data storage across users' local machines.
+The file hosting system itself would remain blind to this data, 
+and merely marshall encrypted updates between user machines to handle synchronization.
+For such a distributed file hosting system to be successful, it would have to achieve
+the following design goals (in addition to privacy):
+\begin{itemize}
+    \item \textbf{Accuracy:} The system must be able to properly synchronize all updates across all \emph{online} users. In other words, whenever a user needs to pull
+    data from the system, it must pull a completely up-to-date copy.  Furthermore, a user should not push outdated data to the system.
+    \item \textbf{Efficiency:} The system itself should largely be transparent to the user. 
+    To facilitate transparency, the system must enable automated and asynchronous updates for shared data. When a user is online,
+    changes should be pushed immediately after they occur. In addition, a user should not have to block and wait for the system to update.
+\end{itemize}
 
 % Potential Solution: Distributed file hosting system
+In this work, we present D-Sync, a distributed and automatically synchronizing file hosting
+architecture that eliminates centralized data storage.
+D-Sync addresses the privacy issues of cloud storage
+by distributing data storage across user machines, called \textbf{clients}.
+[FILL IN high level details of how this would work]
+\comment {
+    In this manner, working groups can collaborate efficiently over the Internet,
 
-% Scope
+    Clients share a copy of their local workspace directory,
+    which is replicated across all other clients within that working group.
+}
+[FILL IN discussion of broker]
 
 % Issues to be addressed with distributed file hosting system
+[FILL IN issues that need to be addressed]
+\comment{
+    Such a distributed file hosting system must handle many things: replication strategy, node departures and failures, reads/writes, etc.
+
+    To distribute data storage in such a manner requires a distributed and scalable replication strategy.
+    (Given that nodes do not know global state----and are dealing with a dynamic distributed system--nodes may come and go, nodes may crash, multiple users may work on the same data)
+    \item Timing/Synchronicity:
+    -How do we handle distributed updates of replicas, or rather how do we synchronize updates?
+    -How do we synchronize updates
+    \item Availability vs Network Overhead:
+    -How do we handle node failures?  How do we update data when a node returns?
+    -How do we ensure that a node gets updated/current data?
+    \item Group membership:
+    -How do we keep track of which nodes have replicas?
+}
+
 
 % How the prototype system manages these issues
+%include comment about scope
+[FILL IN high level details of how the prototype system handles these]
+
+% How we evaluate the system
+[FILL IN evaluation details: how, main takeaways]
 
 % Contributions
+The contributions of this work include:
+\begin{itemize}
+\item Our system
+\item Comparative analysis to Dropbox
+\end{itemize}
+[FILL IN contributions]
 
-% Roadmap
+The remainder of our paper is organized as follows.
+In Section~\ref{related} we highlight previous work related to our project.
+Section~\ref{design} covers our system design, including
+its major components and design decisions,
+and Section~\ref{prototype} details the prototype we built using this design.
+We evaluate our system in Section~\ref{evaluation}, specifically
+analyzing its performance and synchronization correctness.
+In Section~\ref{discussion} we discuss our work and future directions,
+and finally we conclude in Section~\ref{conclusion}.

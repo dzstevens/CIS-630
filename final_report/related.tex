@@ -14,37 +14,5 @@ Their research focuses on data durability, the assurance that data put into the 
 While their work uncovers a valuable property that should be widely applicable in distributed storage systems,
 our research focuses specifically on availability as a necessary prerequisite of automated synchronization.
 
-Lastly, a couple works on distributed collaboration systems closely mirror that of our own~\cite{oster2006data,merle2012decentralized}.
-These works discuss peer-to-peer based architectures for distributed collaboration tools,
-including proposed system designs built atop existing architectures (GitHub) and
-provably correct synchronization models.
-[FILL IN why different]
-\comment{
-Rather than propose a specific design or   
-    %p2p models such as:
-        %Merle:
-        %    focus: centralized collab->distributed collaboration tools
-        %    idea: eliminate central entity, use p2p architecture defined by working group
-        %    method: build structure on top of git-hub
-        %    difference: focus on proposing a system, 
-        %                whereas we want to evaluate a methodology
-        %                built on github, which although worthy, has its own problems
-        %Oster:
-        %    focus: centralized collab tools -> p2p
-        %    idea: WOOT framework
-        %    method: declare methodology for 
-}
-
-\comment{
-    Ford: availability in a cloud storage system given different system parameters.
-    NOT decentralized storage environment.
-    %TODO find more, also check out methodology
-
-    Chun: replica algorithms should 1) focus on durability, a less expensive and more useful goal than availability; 2) durability algorithms must create new copies of data faster than failures destroy them; and 3) more replicas helps tolerate bursts of failures but not increasing likelihood of disk failure.
-    Chun focuses on durability, but we need high availability due to need to keep data in local repository current.
-
-    Pu: Discusses various replica control mechanisms which use epsilon-copy serializability (ESR), a correctness criterion that allows asynchronous maintenance of mutual consistency of replicated data. ESR allows inconsistent data to be read, but requires data to eventually converge to 1SR state.
-    "Standard correctness criterion for coherency control such as 1-copy serializability (1SR) are hard to attain with asynchronous coherency control."
-    Pu describes and analyzes these various replica control methods, but does not evaluate them in a specific use case such as [file hosting | revision] systems.
-}
-
+To the best of our knowledge, our we are the first to present a tested design for a distributed file 
+hosting system optimized for large-scale, real-time collaboration and lacking any central storage.

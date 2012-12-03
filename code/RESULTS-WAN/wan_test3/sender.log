@@ -1,6 +1,0 @@
-2012-12-02 16:31:51,224 -    INFO : Connected
-2012-12-02 16:32:32,456 -    INFO : Sending change: ADD_FILE 'data_file_1M'
-2012-12-02 16:34:58,379 -    INFO : Sending change: ADD_FILE 'data_file_2M'
-2012-12-02 16:43:00,812 -    INFO : Sending change: ADD_FILE 'data_file_4M'
-2012-12-02 16:53:31,185 -    INFO : Sending change: ADD_FILE 'data_file_16M'
-2012-12-02 17:17:09,282 - WARNING : Disconnected

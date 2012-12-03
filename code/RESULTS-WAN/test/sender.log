@@ -1,0 +1,4 @@
+2012-11-30 07:50:31,099 -    INFO : Connected
+2012-11-30 07:50:56,535 - WARNING : Disconnected
+2012-11-30 07:55:15,292 -    INFO : Connected
+2012-11-30 07:55:58,776 -    INFO : Sending change: ADD_FILE 'data_file_1G'

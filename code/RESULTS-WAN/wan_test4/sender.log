@@ -1,0 +1,7 @@
+2012-12-03 10:14:56,960 -    INFO : Connected
+2012-12-03 10:15:04,620 -    INFO : Sending change: ADD_FILE 'data_file_1M'
+2012-12-03 10:18:53,894 -    INFO : Sending change: ADD_FILE 'data_file_2M'
+2012-12-03 10:19:38,511 -    INFO : Sending change: ADD_FILE 'data_file_4M'
+2012-12-03 10:21:39,264 -    INFO : Sending change: ADD_FILE 'data_file_16M'
+2012-12-03 10:27:30,402 -    INFO : Sending change: ADD_FILE 'data_file_32M'
+2012-12-03 10:35:09,016 -    INFO : Sending change: ADD_FILE 'data_file_64M'

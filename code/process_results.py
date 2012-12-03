@@ -70,7 +70,7 @@ def append_online_data(test_dir, graphfile):
                 logging.warning("Couldn't find {} in receive log: ignoring for now".format(per_file))
             else:
                 rcv_timestamps.append(rcv_timestamp)
-        last_rcv_timestamp = max(rcv_timestamps)
+        last_rcv_timestamp = max(rcv_timestamps) if rcv_timestamps else datetime.datetime.strptime('','')
         logging.debug("Last receive received {} at {}".format(per_file,last_rcv_timestamp.isoformat(' ')))
         
         #calculate latency

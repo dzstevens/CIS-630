@@ -15,12 +15,12 @@ to existing systems.
 We therefore evaluate our prototype system with respect
 to the latency of updates.
 We not only show that D-Sync scales reasonably well,
-but furthermore outperforms Dropbox in certain cases.
+but furthermore outperforms Dropbox in every evaluation.
 
 \subsubsection{Metrics and Parameters}
 In order to evaluate the latency of our system,
-we measure the total time it takes for adding a single file to 
-propagate across all online clients.
+we measure the total time it takes for adding a single file of 
+increasing size to propagate across all online clients.
 We focus on adding files since these updates will necessarily
 have the greatest latency, given that the system
 must propagate raw file data to all online clients.
@@ -43,21 +43,25 @@ We do this in order to gain insight on how our system scales
 with respect to file size.
 
 \subsubsection{Setup}
-With our metrics and parameters defined,
-we proceed with our tests in the following manner.
-In either network scenario,
-we designate one computer to run the broker program
+Tests were set up in the following manner.
+
+To evaluate D-Sync, we designate one
+computer to run the broker program
 and the other to run the variable number of client programs.
 Though the client programs all run on the same computer,
-round trip time is still necessary since all communication
-between clients must pass through the broker.
+this is a reasonable simulation of multiple computers on the same
+network, as messages must travel to the broker and back. It also
+eliminates the variables associated with using machines of varying
+performance. In the evaluation of LAN sync, the broker is on the same
+network as the clients, whereas it runs on a seperate network when
+evaluation WAN sync.
 
 To conduct a test we start the broker program, followed by the
 client programs.
 Once all clients are connected to the broker,
 we move a text file of the appropriate
 size into the workspace directory of a given client,
-and measure how long it takes for all other clients
+and measure the total time for all other clients
 to receive the file.
 To ensure that our measurements are correct,
 we synchronize the local clocks of both computers
@@ -65,6 +69,20 @@ using the network time protocol.
 We repeat the sending of text files in a serial fashion
 until all files have been sent.
 
+To evaluate Dropbox, we use the following setup.
+First, we share a Dropbox folders between two users. As we only
+had 2 computers with write-privelages sufficent enough to install 
+Dropbox, we were only able to evaluate the 2-client scenario. Once 
+our shared folder was created, we sequentially added the same test
+files to one folder and used the same procedure to time the latency
+between when the file was added on one client and when it finished 
+writing on the other.
+
+To prevent delta encoding advantages of Dropbox, and to simulate encoded
+data, all test files consisted of randomaly generated strings of 
+characters that should be statistically impossible to exist
+on any of Dropbox's servers. Also, given the client-server nature of
+Dropbox, we have no Dropbox LAN scenarion.
 In the following section, we cover the results of these tests.
 
 \begin{figure*}[t]
@@ -86,7 +104,7 @@ across the LAN network scenario.  Figure~\ref{fig:LANonline}
 shows this synchronization latency for variable working group and
 file sizes. From this graph,
 we see that total synchronization time follows a linear growth pattern.
-Furthermore, the latency increases fairly linearly with respect
+Furthermore, the latency increases only slightly with respect
 to increasing working group size.
 While we will need a benchmark before making a statement
 on whether this is scalable,
@@ -108,8 +126,13 @@ One can clearly see that latency for file synchronization
 increases significantly once we step out of a comfortable LAN
 scenario to the wide area network.
 But is this increase in latency reasonable with respect to existing solutions?
-To determine this, we compare our system's performance with a
-benchmark test of Dropbox, which we cover in the next section.
+To determine this, we compare these results with our results
+from our evaluation of Dropbox. The following graph shows that our system is
+remarkable more efficient than Dropbox, which takes almost an hour and half to
+sync a 256 MB file, while our system takes a modest 5 to 15 minutes to sync over
+LAN and WAN, respectively. This clearly shows that the elimination of
+central storage dramatically speeds up syncronization time between
+any number of users.
 
 \begin{figure}[h]
     \centering
@@ -117,10 +140,6 @@ benchmark test of Dropbox, which we cover in the next section.
     \label{fig:dropbox}
     \caption{\textbf{A comparison of Dropbox and D-Sync's total synchronization time for two clients across network scenarios.}}
 \end{figure}
-
-\subsubsection{Comparison to Dropbox}
-In order to evaluate the performance of our system,
-
 
 \subsection{Accuracy}
 \label{evaluation.accuracy}

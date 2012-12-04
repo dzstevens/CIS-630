@@ -1,19 +1,40 @@
-\section{Discussion}
+\section{Future Work}
 \label{discussion}
-FOLLOW UP FROM OUR WORK??
-(more rigorous testing of accuracy)
-Fully distributed broker
-    %p2p models such as:
-        %Merle:
-        %    focus: centralized collab->distributed collaboration tools
-        %    idea: eliminate central entity, use p2p architecture defined by working group
-        %    method: build structure on top of git-hub
-        %    difference: focus on proposing a system, 
-        %                whereas we want to evaluate a methodology
-        %                built on github, which although worthy, has its own problems
-        %Oster:
-        %    focus: centralized collab tools -> p2p
-        %    idea: WOOT framework
-        %    method: declare methodology for 
-Other synch strategies (for performance)
-security->evaluate performance hit
+Due to limitations of available resources, there is 
+more potential work to be done in evaluating D-Sync
+It would be interesting to evaluate our system over different
+network conditions. Our WAN evalaution was limited because
+we had only 2 machines that we were able to install our 
+software on and therefore were only able to use 2 different
+LAN's at a time. Similarly, it would be interesting to 
+evaluate the performance of Dropbox over different
+working group sizes to see how it scales with the number 
+of users and compare that to our own results.
+
+There are also many things that could be done to improve D-Sync.
+Although security of files was a significant motivator for our
+project, we focused on making a system that would be easy to 
+make secure, but did not implement any encryption scheme, 
+as this was beyond our scope. Another necessary inclusion would
+be conflict resolution for files with no unambiguous 'most recent'
+version. This could be done by either implementing some sort of
+version control system, requiring users to resolve conflicts in
+real time, or creating conflict files that users can resolve
+asynchronously. Again, while necessary for a user-friendly 
+system, this was beyond our scope. Once conflict resolution and/or
+file encryption have been added to D-Sync, it would be 
+interesting to evaluate what effect, if any, they have on 
+the system's overall performance.
+
+Lastly, while our system uses a distributed storage scheme,
+communication is controlled in a undesirably-centralized fashion.
+Luckily, as described in \ref{design.distributed}, a distributed
+version of our broker system could be implemented and, provided 
+it implements the same API as our more-centralized broker, could
+be easily swapped in. This process would be completely transparent
+to the client, with the exception of any changes to performance.
+In this way, we have layed the groundwork and created a easily-extendible
+framework for any future improvements to the broker protocol. We have
+included the current version of our code, as of this publication, and
+the most recent version will continue to be maintained on our
+Github repository: \emph{https://github.com/dzstevens/CIS-630}

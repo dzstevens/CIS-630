@@ -83,7 +83,7 @@ Therefore, users must be invited to the working group and the system in general.
 An invited user could obtain connection information for a specific broker
 with which he could initially connect to.
 Such offline information would also include any public keys needed
-to verify the broker.
+to verify the broker, and any symmetric keys needed for encrypting data.
 
 Once a client has access to the network,
 it can begin to collaborate with the working group.
@@ -99,8 +99,11 @@ are ahead of the system and push those changes.
 After this push, the system should make the client
 pull down any changes that it is behind on.
 We call this initial phase the \textbf{batch update}.
+This action enables our system to maintain data consistency
+for online clients, which we demonstrate in our evaluation
+Section~\ref{evaluation.accuracy}.
 
-\subsubsection{Other Actions}
+\subsubsection{Other Client Actions}
 The remaining actions of the client are fairly trivial.
 When the client detects an update to the local workspace,
 it sends the system a request (RQST) message containing a hash
@@ -126,108 +129,45 @@ the primary component of our system.
 As with the client, we describe the broker's primary
 function and actions.
 
-\subsubsection{Broker}
+\subsection{Broker}
 \label{broker}
-%brokers
-    %description (function, local storage)
-    %actions
-        %connect
-        %client RQST
-        %[distr] broker PUSH
-        %[distr] broker PULL
+The broker is the computation-heavy component of our system architecture.
+It is responsible for marshalling data between clients in a given
+working group. The broker must handle the update requests
+of all connected clients in such a way that
+synchronization remains transparent to the user.
+Furthermore, while all data flows through the broker,
+the broker itself remains blind to the raw data itself by virtue
+of hash functions or crytography on the client side.
+Therefore, while the broker must maintain local storage
+itself to determine the whether client requests are fresh,
+this local storage need not be more than a dictionary of 
+encrypted filenames mapped to revision numbers.
 
-\subsection{Communication Protocol}
-    %communication protocol
-        %Connect
-        %Batch Request
-        %Request
-        %Ack
-        %Retrieve
-        %Push
-    %other considerations
-        %security
+\subsubsection{Broker Actions}
+The first action that a broker must handle is
+receiving a batch update from a newly initialized client.
+The broker must check whether each pushed update
+is ahead of or behind the system.
+Changes ahead of the system are pushed to the remaining clients.
+Otherwise, the broker pulls current changes down to the initializing client.
 
-\comment{
-    \item \textbf{Read Once, Write All (ROWA):} ROWA systems allow read operations to merely fetch the requested data from the most convenient location, while write operations are required to update all replicas. 
-    Read operations are therefore guaranteed to be correct, but if replica-storing node fails during a write operation, then that write operation will fail. (PE: necessarily true?)
-}
+A broker must also handle the client's normal requests,
+though this is done in a similar fashion.
+If the requested change is ahead of the system,
+the broker pushes that change to all clients,
+otherwise it pulls down a change to the requesting client.
 
-\comment {
-    \subsection{Client}
-    Clients are thin--they have local data storage and the broker program, which handles their read and write requests.
-    We implement clients as individual processes with local storage and a database to track timestamps and revision numbers.
-    Clients watch their repository directory for any changes (additions, deletions, modifications).\newline\newline
-    Upon initialization:
-    \begin{enumerate}
-    \item update DB
-    \item start observer
-    \item connect to broker
-    \item push entire directory as request
-    \end{enumerate}
-    Upon change event:
-    \begin{enumerate}
-    \item append change to queue
-    \item send request to broker
-    \end{enumerate}
-    Upon broker request ack:
-    \begin{enumerate}
-    \item dequeue change
-    \item send change to broker
-    \end{enumerate}
-    Upon broker pushback:
-    \begin{enumerate}
-    \item update DB
-    \item receive change (lock?)
-    \end{enumerate}
+\subsubsection{Distributed Broker}
+While the broker description above suggests a single broker or broker network,
+the broker functionality could easily be applied to a distributed manner.
+In such a architecture, each client would have its own broker program.
+Brokers would maintain connection information of all other connected brokers.
+In the event of a channel failure or broker crash,
+other brokers could try to reconnect to the disconnected broker
+using exponential backoff.
 
-    \subsection{Broker}
-    The purpose of the broker in our scheme is to handle read and write requests of the individual clients. 
-    Group management: the broker keeps record of all clients participating in the system.
-    A broker keeps its own copy of the revision numbers.
-    \newline\newline
-    Upon receiving a connection:
-    \begin{enumerate}
-    \item recv request
-    \item lock
-    \item compare request to local DB (revision numbers)
-    \item if valid respond with ack, else:
-      \begin{enumerate}
-        \item respond with push
-        \item RETRIEVE
-        \item PUSHBACK
-    \end{enumerate}
-    \item unlock
-    \end{enumerate}
-    Upon receiving client changes:
-    \begin{enumerate}
-    \item update DB
-    \item PUSH
-    \end{enumerate}
 
-    \subsection{Messages}
-    CONNECT
-
-    REQUEST
-
-    ACK
-
-    RETRIEVE
-
-    PUSHBACK
-
-    PUSH
-
-    (fill in)
-    \subsection{Network}
-    Clients and brokers use TCP stream sockets to communicate with one another.
-
-    \subsection{Issues Resolved}
-    What if a client dies? Just consider it gone by the system.\newline\newline
-    What if a client dies after it makes a request? Drop the request.\newline\newline
-    Client re-emerges (death + reentry) with updated files? Use local database to check timestamps, update local database, and push changes.\newline\newline
-    How to handle group managament? At the broker.\newline\newline
-    What if the broker dies? All clients save state..upon reentering the broker has fresh local storage
-
-    LAMPORT TIMESTAMPS!       
-}
-
+When a given broker receives a request from its client,
+it would contact the other brokers to determine whether the change could be committed.
+We could implement a 

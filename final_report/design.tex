@@ -158,7 +158,31 @@ If the requested change is ahead of the system,
 the broker pushes that change to all clients,
 otherwise it pulls down a change to the requesting client.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{figs/timeline.eps}
+    \label{timeline}
+    \caption{\textbf{A typical timeline involving two clients $C_1,C_2$ and broker $B$.}}
+\end{figure}
+
+Having described both the client and the broker,
+we now cover a typical timeline of events
+occurring between two clients, $C_1,C_2$, and broker $B$
+as pictured in figure~\ref{timeline}.
+In (1), both clients connect to the broker or are already connected
+at this point in time. $C_1$ sends a request to the broker in (2),
+which is acknowledged. $C_1$ sends out the actual change in (3),
+which the broker pushes to $C_2$.
+Around (4), $C_1$ goes offline and $C_2$ makes a request,
+is Acknowledged, and pushes a change. This change
+does not reach $C_1$, who is offline.
+When $C_1$ returns in (5), $C_1$ pushes its local
+workspace.  The broker determines that $C_1$ is behind
+the system due to the change in (4), pulls that change
+from $C_2$, and in (6) updates $C_1$.
+
 \subsubsection{Distributed Broker}
+\label{design.distributed}
 While the broker description above suggests a single broker or broker network,
 the broker functionality could easily be applied to a distributed manner.
 In such a architecture, each client would have its own broker program.
@@ -166,8 +190,18 @@ Brokers would maintain connection information of all other connected brokers.
 In the event of a channel failure or broker crash,
 other brokers could try to reconnect to the disconnected broker
 using exponential backoff.
+In this manner, the broker network could prevent partitions of the network
+due to node failures.
 
-
+In addition to network partitions, a distributed broker 
+solution would also have to manage requests in a new way.
 When a given broker receives a request from its client,
 it would contact the other brokers to determine whether the change could be committed.
-We could implement a 
+Algorithms for consensus between distributed nodes would need to be leveraged
+in order to make this feasible.
+Once such an algorithm is put into place, however,
+a client could easily connect to this new distributed broker as is.
+The high level API implemented by the broker would remain the same,
+with the extra consensus logic remaining transparent to the client.
+We return the notion of a distributed broker in our discussion
+Section~\ref{discussion}.

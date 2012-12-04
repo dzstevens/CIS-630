@@ -1,3 +1,17 @@
+\begin{figure*}[t]
+\centering
+\subfigure[LAN scenario.]{
+    \includegraphics[scale=0.5]{figs/LAN-Online_performance.eps}
+    \label{fig:LANonline}
+}
+~~~~\subfigure[WAN scenario.]{
+    \includegraphics[scale=0.5]{figs/WAN-Online_performance.eps}
+    \label{fig:WANonline}
+}
+\caption{\textbf{The total synchronization time for D-Sync across different network scenarios (shown in log scale).}}
+\end{figure*}
+
+
 \section{Evaluation}
 \label{evaluation}
 We evaluated our system with respect to performance and accuracy.
@@ -43,9 +57,7 @@ We do this in order to gain insight on how our system scales
 with respect to file size.
 
 \subsubsection{Setup}
-Tests were set up in the following manner.
-
-To evaluate D-Sync, we designate one
+We set up our tests in the following manner. We designate one
 computer to run the broker program
 and the other to run the variable number of client programs.
 Though the client programs all run on the same computer,
@@ -84,19 +96,6 @@ characters that should be statistically impossible to exist
 on any of Dropbox's servers. Also, given the client-server nature of
 Dropbox, we have no Dropbox LAN scenarion.
 In the following section, we cover the results of these tests.
-
-\begin{figure*}[t]
-\centering
-\subfigure[LAN scenario.]{
-    \includegraphics[scale=0.5]{figs/LAN-Online_performance.eps}
-    \label{fig:LANonline}
-}
-~~~~\subfigure[WAN scenario.]{
-    \includegraphics[scale=0.5]{figs/WAN-Online_performance.eps}
-    \label{fig:WANonline}
-}
-\caption{\textbf{The total synchronization time for D-Sync across different network scenarios (shown in log scale).}}
-\end{figure*}
 
 \subsubsection{Scalable Synchronization}
 We first analyze the total time it takes to synchronize files

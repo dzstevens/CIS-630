@@ -42,7 +42,7 @@ In order to facilitate delta encoding,
 Dropbox maintains encryption keys to calculate hashes for saved files. When a change is detected in a shared folder,
 Dropbox hashes blocks of the data and uses those hashes to see if they are stored \emph{anywhere} on \emph{any} of its servers.
 Using this information, it only needs to upload the new chunks. This seemingly clever trick can enable a gigabyte file to almost 'magically'
-upload in seconds. It's also a sweet deal for the company, as it allows them to offer more space to clients at almost no cost if the client is sharing
+upload in seconds. This is a huge boon for the company, as it allows them to offer more space to clients at almost no cost if the client is sharing
 data shared somewhere else. 
 
 Unfortunately, this optimization comes at the cost of security. One simple attack is immediately obvious: 

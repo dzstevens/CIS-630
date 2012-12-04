@@ -11,45 +11,45 @@ I'm skipping whatever remains of this entry
 Warning--I didn't find a database entry for "shakir1998system"
 Warning--to sort, need author or key in dropboxmercurial
 Warning--can't use both volume and number fields in pu1991replica
-You've used 16 entries,
+You've used 14 entries,
             2118 wiz_defined-function locations,
-            576 strings with 6430 characters,
-and the built_in function-call counts, 5365 in all, are:
-= -- 506
-> -- 266
-< -- 8
-+ -- 106
-- -- 90
-* -- 324
-:= -- 851
-add.period$ -- 46
-call.type$ -- 16
-change.case$ -- 93
+            566 strings with 5936 characters,
+and the built_in function-call counts, 4311 in all, are:
+= -- 394
+> -- 220
+< -- 6
++ -- 88
+- -- 74
+* -- 256
+:= -- 699
+add.period$ -- 38
+call.type$ -- 14
+change.case$ -- 79
 chr.to.int$ -- 0
-cite$ -- 18
-duplicate$ -- 212
-empty$ -- 448
-format.name$ -- 90
-if$ -- 1165
+cite$ -- 16
+duplicate$ -- 166
+empty$ -- 366
+format.name$ -- 74
+if$ -- 923
 int.to.chr$ -- 0
-int.to.str$ -- 16
-missing$ -- 10
-newline$ -- 77
-num.names$ -- 30
-pop$ -- 143
+int.to.str$ -- 14
+missing$ -- 8
+newline$ -- 67
+num.names$ -- 26
+pop$ -- 123
 preamble$ -- 1
-purify$ -- 77
+purify$ -- 65
 quote$ -- 0
-skip$ -- 173
+skip$ -- 137
 stack$ -- 0
-substring$ -- 233
-swap$ -- 67
-text.length$ -- 8
+substring$ -- 159
+swap$ -- 45
+text.length$ -- 6
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 62
+type$ -- 54
 warning$ -- 2
-while$ -- 46
-width$ -- 18
-write$ -- 163
+while$ -- 36
+width$ -- 16
+write$ -- 139
 (There was 1 error message)

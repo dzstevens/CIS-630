@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  3 DEC 2012 15:15
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=latex 2010.7.21)  3 DEC 2012 16:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -452,17 +452,14 @@ LaTeX Font Info:    Try loading font information for OT1+pcr on input line 30.
 (/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 ) (./abstract.tex) (./introduction.tex
-LaTeX Font Info:    Try loading font information for U+msa on input line 55.
+LaTeX Font Info:    Try loading font information for U+msa on input line 63.
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 55.
+LaTeX Font Info:    Try loading font information for U+msb on input line 63.
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
-)
-Underfull \vbox (badness 7685) has occurred while \output is active []
-
-[1
+) [1
 
 
 ]) (./related.tex) (./design.tex
@@ -470,22 +467,19 @@ Underfull \vbox (badness 7685) has occurred while \output is active []
 LaTeX Warning: Citation `shakir1998system' on page 2 undefined on input line 24
 .
 
-[2]) (./prototype.tex) (./evaluation.tex [3]
+[2] [3]) (./prototype.tex) (./evaluation.tex
 File: figs/LAN-Online_performance.eps Graphic file (type eps)
 <figs/LAN-Online_performance.eps>
 File: figs/WAN-Online_performance.eps Graphic file (type eps)
-<figs/WAN-Online_performance.eps>
+<figs/WAN-Online_performance.eps> [4]
 File: figs/Dropbox_Performance.eps Graphic file (type eps)
-<figs/Dropbox_Performance.eps>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[4]) (./discussion.tex) (./conclusion.tex) (./bib.tex (./main.bbl
+<figs/Dropbox_Performance.eps>) (./discussion.tex) (./conclusion.tex [5]) (./bi
+b.tex (./main.bbl
 Underfull \hbox (badness 4120) in paragraph at lines 7--11
 []\OT1/ptm/m/n/8 B. Chun, F. Dabek, A. Hae-berlen, E. Sit, H. Weath-er-spoon,
  []
 
-)) (./appendix.tex [5])
+)) (./appendix.tex)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -497,20 +491,18 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[6
-
-] (./main.aux)
+[6] (./main.aux)
 
 LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 7071 strings out of 493748
- 102363 string characters out of 3143569
- 208909 words of memory out of 3000000
- 10207 multiletter control sequences out of 15000+200000
+ 7067 strings out of 493748
+ 102307 string characters out of 3143569
+ 209909 words of memory out of 3000000
+ 10203 multiletter control sequences out of 15000+200000
  27271 words of font info for 64 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  34i,9n,38p,899b,340s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on main.dvi (6 pages, 37848 bytes).
+Output written on main.dvi (6 pages, 42864 bytes).

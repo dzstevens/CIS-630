@@ -7,7 +7,6 @@ programs, followed by the communication protocol that these entities use.
 In these sections we will highlight specific design decisions that we needed to address
 in order to achieve our stated goals,
 and explain how we handled them.
-We finish this section with a [NECESSARY?].
 
 \subsection{Scope}
 Before we could begin designing a distributed file hosting architecture,
@@ -20,7 +19,6 @@ Our assumptions for this work are as follows:
     and subsequent retransmission. While TCP handshakes will increase
     the latency of message passing, reliable transmission allows
     us to focus on the accuracy of our system.
-    [FILL IN possibly point to future work in unreliable transmission?]
     \item \emph{Conflict resolution:} Automated synchronization necessarily implies
     instances of conflicts between closely committed updates.
     Previous work (\cite{shakir1998system,hurley2004collaborative}) has been done on conflict resolution strategies in distributed domains,
@@ -38,39 +36,98 @@ Our assumptions for this work are as follows:
     and leave the rest to the capable hands of security researchers.
     \end{itemize}
 
-\subsection{D-Sync Architecture}
-The D-Sync architecture consists of clients and brokers,
+Having declared the scope of our project,
+we now detail the D-Sync architecture.
+The main components of this system are clients and brokers,
 networked via TCP stream sockets.
 In the following sections we will describe the primary
 components and actions of each entity,
 as well as any design decisions made along the way.
 
+\subsection{Major Design Decisions}
+The first design decision that we needed to cover was the synchronization
+model.
+We had a number of options, but to best ensure
+that our system maintained data consistency
+we chose Read Once Write All (ROWA). In this model,
+updates are pushed to all clients in the working group
+at once.
+When a client needs to pull data,
+the system merely fetches it from the nearest client.
 
-\comment {
-    \emph{Event ordering:} Since our proposed architecture 
-    synchronizes data across different machines, it 
-    requires an event ordering scheme for evaluating update time.
-    We leverage Lamport timestamps to this end,
-    which allow a partial ordering of events based
-    on happened-before logic.
-    [FILL IN possibly point to vector clock future work]
-}
+In addition to selecting a synchronization model,
+we also needed to specify a communication model for our system.
+We chose an asynchronous communication model,
+allowing users to collaborate without blocking on updates.
 
-\subsubsection{Client}
-%clients
-        %description (function, local storage)
-        %actions
-            %discovery
-                %what needs to be given?
-                %secret key-hash keys
-                %broker location/auth key
-            %initialization
-            %local update
-            %broker ACK
-            %broker PUSHBACK
-            %broker PULL
+
+With the major design decisions covered, we next turn to 
+the client and broker programs.
+
+\subsection{Client}
+The client program is essentially a thin local program
+for handling changes to a user's local workspace.
+On the one hand, it must watch the client's workspace
+and detect changes to files and folders.
+In order to detect changes,
+the client must maintain local storage tracking
+the current status of the workspace.
+
+One of the first design decisions we had to handle on the client-side
+is the discovery phase: how does a client connect to the rest of the 
+D-Sync architecture?
+We note that given that working groups who would potentially
+use this system have inherent privacy concerns,
+it is reasonable to assume that they would have interest in a secure system.
+Therefore, users must be invited to the working group and the system in general.
+An invited user could obtain connection information for a specific broker
+with which he could initially connect to.
+Such offline information would also include any public keys needed
+to verify the broker.
+
+Once a client has access to the network,
+it can begin to collaborate with the working group.
+In the next sections, we cover the various actions
+that a client performs.
+
+\subsubsection{Initialization}
+In order to implement our ROWA synchronization model,
+we had to take a unique approach to initializing a client.
+When a client comes online,
+it immediately needs to check whether its offline changes
+are ahead of the system and push those changes.
+After this push, the system should make the client
+pull down any changes that it is behind on.
+We call this initial phase the \textbf{batch update}.
+
+\subsubsection{Other Actions}
+The remaining actions of the client are fairly trivial.
+When the client detects an update to the local workspace,
+it sends the system a request (RQST) message containing a hash
+of the filename and the file's revision number.
+The client then waits asynchronously for an acknowledgement
+(ACK) from the broker.
+We cover the need for a request message when we discuss the broker
+in section\ref{broker}.
+Upon receiving an ACK, the client updates the revision
+number of the changed file,
+and pushes that file to the system.
+
+The only other required actions of the client are to handle
+pushes coming from the broker.
+If the broker pushes down a change,
+the client should accept that change and update both its
+local workspace and the associated file's revision number.
+The client should not have to worry about calculating
+revision numbers itself--that logic is handled on the broker-side.
+
+We next turn to the broker,
+the primary component of our system.
+As with the client, we describe the broker's primary
+function and actions.
 
 \subsubsection{Broker}
+\label{broker}
 %brokers
     %description (function, local storage)
     %actions

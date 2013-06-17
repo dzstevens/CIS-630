@@ -64,6 +64,12 @@ C.~Pu and A.~Leff.
   approach}, volume~20.
 \newblock ACM, 1991.
 
+\bibitem{shakib1998system}
+D.~Shakib, S.~Norin, and M.~Benson.
+\newblock System and method for distributed conflict resolution between data
+  objects replicated across a computer network, July~28 1998.
+\newblock US Patent 5,787,262.
+
 \bibitem{soghoian2010caught}
 C.~Soghoian.
 \newblock Caught in the cloud: Privacy, encryption, and government back doors

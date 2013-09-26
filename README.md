@@ -27,8 +27,7 @@ Setup & Usage
     * python 2.7.X
     * pip
 
-1. Install dependencies:
-    * pip install -r requirements.txt
+1. Install dependencies: `pip install -r requirements.txt`
 
 2. Start a broker:  `python broker.py`
     * This will start a broker on port 55555.
